@@ -42,6 +42,7 @@ export default function BrandKitPage() {
   const [newProductImage, setNewProductImage] = useState('/images/bottle_nutrex.png');
   const [newProductDarija, setNewProductDarija] = useState('');
   const [productError, setProductError] = useState<string | null>(null);
+  const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
 
   const handleExtractColorsFromLogo = async (targetLogoUrl?: string) => {
     let url = targetLogoUrl || brandKit?.logoUrl;
@@ -284,14 +285,13 @@ export default function BrandKitPage() {
               <span style={{
                 fontSize: '11px',
                 fontWeight: 800,
-                color: '#00E5FF',
+                color: '#4F46E5',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 background: '#EEF2FF',
                 padding: '4px 10px',
                 borderRadius: '6px',
                 border: '1px solid #E0E7FF',
-                color: '#4F46E5',
               }}>
                 Identité Visuelle E-commerce
               </span>

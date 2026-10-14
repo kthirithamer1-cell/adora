@@ -7,7 +7,9 @@ import { SocialAccount, ScheduledPost } from '@/lib/social';
 interface SocialPublisherModalProps {
   isOpen: boolean;
   onClose: () => void;
-  imageUrl: string;
+  imageUrl?: string;
+  initialImageUrl?: string;
+  defaultCaption?: string;
   defaultCaptionDarija?: string;
   defaultCaptionFr?: string;
   productName?: string;
@@ -16,16 +18,19 @@ interface SocialPublisherModalProps {
 export default function SocialPublisherModal({
   isOpen,
   onClose,
-  imageUrl,
+  imageUrl: rawImageUrl,
+  initialImageUrl,
+  defaultCaption,
   defaultCaptionDarija = '',
   defaultCaptionFr = '',
   productName = 'Produit',
 }: SocialPublisherModalProps) {
+  const imageUrl = initialImageUrl || rawImageUrl || '';
   const { workspace } = useWorkspace();
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
   const [platform, setPlatform] = useState<'instagram' | 'facebook' | 'both'>('instagram');
-  const [caption, setCaption] = useState(defaultCaptionDarija || defaultCaptionFr);
+  const [caption, setCaption] = useState(defaultCaption || defaultCaptionDarija || defaultCaptionFr);
   const [mode, setMode] = useState<'now' | 'schedule'>('now');
   const [scheduleDateTime, setScheduleDateTime] = useState('');
   const [isPublishing, setIsPublishing] = useState(false);

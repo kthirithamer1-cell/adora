@@ -1,7 +1,7 @@
 export interface ProductAnalysis {
   productName: string;
   brand: string;
-  category: 'whey' | 'creatine' | 'preworkout' | 'bcaa' | 'vitamins' | 'gainer';
+  category: 'whey' | 'creatine' | 'preworkout' | 'bcaa' | 'vitamins' | 'gainer' | 'perfume' | string;
   dominantColors: string[];
   targetGoal: string;
   suggestedAngles: string[];

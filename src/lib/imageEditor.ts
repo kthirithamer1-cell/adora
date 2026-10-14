@@ -13,7 +13,7 @@
  *   * Bouton Call-To-Action ("🛍️ COMMANDE MAINTENANT ➔")
  */
 
-import sharp from 'sharp';
+import sharp, { OverlayOptions } from 'sharp';
 import path from 'path';
 import fs from 'fs';
 import { BrandKit } from './brandkit';
@@ -24,7 +24,7 @@ export interface ImageEditOptions {
   brandKit?: BrandKit;
   prompt?: string;
   aspect?: '1:1' | '2:3' | '3:2' | '9:16' | '1.91:1';
-  quality?: 'medium' | 'high';
+  quality?: 'medium' | 'high' | 'standard' | 'hd';
   preserveLabelFidelity?: boolean;
   productName?: string;
   brandName?: string;
@@ -438,7 +438,7 @@ export async function processProductImageEdit(
     }
 
     // 4. Assemblage multi-couches
-    const compositeLayers: sharp.OverlayOptions[] = [];
+    const compositeLayers: OverlayOptions[] = [];
 
     if (!options.skipProductComposite) {
       if (productCutoutBuffer) {

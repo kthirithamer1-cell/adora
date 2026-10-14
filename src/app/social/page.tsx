@@ -162,15 +162,13 @@ export default function SocialHubPage() {
               <span style={{
                 fontSize: '11px',
                 fontWeight: 800,
-                color: '#FF5722',
+                color: '#EA580C',
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
-                background: 'rgba(255, 87, 34, 0.1)',
+                background: '#FFF7ED',
                 padding: '4px 10px',
                 borderRadius: '6px',
                 border: '1px solid #FED7AA',
-                background: '#FFF7ED',
-                color: '#EA580C',
               }}>
                 Meta Graph API v20.0
               </span>

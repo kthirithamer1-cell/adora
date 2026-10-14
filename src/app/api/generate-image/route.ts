@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
       copyLanguage,
       objective,
       workspaceId = 'ws_nutristore',
+      productId,
     } = body;
 
     // 1. GARDE-FOU CRÉDITS (ADORA-73) : Vérification du solde avant exécution
@@ -187,7 +188,7 @@ export async function POST(req: NextRequest) {
 
     const callEditsApi = async (modelName: string, imgBuf: Buffer) => {
       const formData = new FormData();
-      const blob = new Blob([imgBuf], { type: 'image/png' });
+      const blob = new Blob([new Uint8Array(imgBuf)], { type: 'image/png' });
       formData.append('image', blob, 'staging_canvas.png');
       formData.append('prompt', compiledPrompt);
       formData.append('model', modelName);
@@ -420,7 +421,7 @@ export async function POST(req: NextRequest) {
           {
             formatType: 'instagram_post',
             aspectRatio: '1:1',
-            finalImageUrl: finalFormats.feedSquare || primaryUrl,
+            finalImageUrl: finalFormats.instagram || primaryUrl,
             backgroundUrl: aiGeneratedUrl,
             headline: productName || 'Collection Officielle',
             subheadlineDarija: 'A7sen aswem fi tounes',

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import sharp from 'sharp';
+import sharp, { OverlayOptions } from 'sharp';
 import path from 'path';
 import fs from 'fs';
 import { checkCreditBalance, deductCredit } from '@/lib/billing';
@@ -131,7 +131,7 @@ async function compositeMasterVisual(params: {
 
   const shadowBuffer = await sharp(Buffer.from(shadowSvg)).png().toBuffer();
 
-  const layers: sharp.OverlayOptions[] = [
+  const layers: OverlayOptions[] = [
     { input: shadowBuffer, top: 0, left: 0 },
   ];
 
@@ -325,7 +325,7 @@ async function applyAdOverlayToBuffer(params: {
     </svg>
   `;
 
-  const layers: sharp.OverlayOptions[] = [
+  const layers: OverlayOptions[] = [
     { input: Buffer.from(overlaySvg), top: 0, left: 0 },
   ];
 
@@ -540,7 +540,7 @@ export async function POST(req: NextRequest) {
       : (typeof priceTND === 'number' ? `${priceTND} DT` : '89 DT');
 
     const brandPrimary = brandKit.palette?.primary || brandKit.primaryColor || '#00E5FF';
-    const brandShopName = brandKit.shopName || brandKit.name || 'Adora Studio';
+    const brandShopName = brandKit.shopName || (brandKit as any).name || 'Adora Studio';
     const finalBadgeText = chosenIntent.badgeText || (body.reassuranceBadge ? '🚚 Livraison 24-48h' : '✨ Best-Seller');
     const finalHookText = chosenIntent.hookFr || chosenIntent.hookDarija || 'Paiement à la livraison partout en Tunisie';
 
@@ -612,16 +612,26 @@ export async function POST(req: NextRequest) {
     const deduction = deductCredit(
       workspaceId,
       1,
-      `Master Shot Dirigé IA — ${chosenIntent.titleFr} (${productDNA.productName})`
+      {
+        productName: productDNA.productName || productName || 'Master Shot Dirigé IA',
+        category: 'studio',
+        aspect: chosenAspect,
+      }
     );
 
     recordApiUsage({
+      workspaceId,
       endpoint: '/api/master-shot',
       model: 'dall-e-3 + sharp-compositor',
-      tokensUsed: 600,
-      generationTimeMs: Date.now() - startTime,
-      workspaceId,
-      metadata: {
+      totalTokens: 600,
+      latencyMs: Date.now() - startTime,
+      statusCode: 200,
+      status: 'SUCCESS',
+      costUSD: 0.04,
+      creditsDeducted: 1,
+      productName: productDNA.productName,
+      category: 'studio',
+      details: {
         productName: productDNA.productName,
         intent: chosenIntent.id,
         aspect: chosenAspect,

@@ -2,12 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { PADDLE_PLANS } from './paddle';
+import type { PaddleInstance } from './paddle-sdk';
 
-declare global {
-  interface Window {
-    Paddle?: any;
-  }
-}
 
 export interface OpenPaddleCheckoutOptions {
   packId: string;

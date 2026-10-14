@@ -127,7 +127,7 @@ export async function generateIntegratedSceneWithGPT1(params: {
   try {
     const formData = new FormData();
     formData.append('model', 'gpt-image-1');
-    const blob = new Blob([imageBuffer], { type: 'image/png' });
+    const blob = new Blob([new Uint8Array(imageBuffer)], { type: 'image/png' });
     formData.append('image', blob, 'product_stage.png');
     formData.append('prompt', prompt);
     formData.append('size', size);

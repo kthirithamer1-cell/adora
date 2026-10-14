@@ -110,7 +110,7 @@ const GOAL_OPTIONS = [
 ];
 
 // 2. DÉFINITION DES 6 STYLES VISUELS (PHASE 2)
-const STYLE_OPTIONS = [
+const STYLE_OPTIONS: TailoredStyleOption[] = [
   {
     id: 'luxury',
     name: 'Editorial Luxury',

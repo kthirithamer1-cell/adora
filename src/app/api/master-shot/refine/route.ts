@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import sharp from 'sharp';
+import sharp, { OverlayOptions } from 'sharp';
 import path from 'path';
 import fs from 'fs';
 import { MasterSceneSpec } from '@/lib/artDirector';
@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
     `;
 
     const shadowBuffer = await sharp(Buffer.from(shadowSvg)).png().toBuffer();
-    const layers: sharp.OverlayOptions[] = [
+    const layers: OverlayOptions[] = [
       { input: shadowBuffer, top: 0, left: 0 },
     ];
 
