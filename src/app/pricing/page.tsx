@@ -191,7 +191,20 @@ export default async function PricingPage() {
           <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>•</span>
           <span style={{ fontWeight: 700, color: '#00E5FF' }}>Paddle Merchant of Record (Sandbox & Production)</span>
         </div>
-        <p>© 2026 ADORA AI — Studio E-commerce Haute Définition. Tous droits réservés.</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', margin: '12px 0 8px' }}>
+          <Link href="/terms" style={{ color: '#94A3B8', textDecoration: 'none', fontWeight: 600 }}>
+            Conditions Générales (Terms)
+          </Link>
+          <span style={{ color: 'rgba(255, 255, 255, 0.15)' }}>•</span>
+          <Link href="/privacy" style={{ color: '#94A3B8', textDecoration: 'none', fontWeight: 600 }}>
+            Confidentialité (Privacy)
+          </Link>
+          <span style={{ color: 'rgba(255, 255, 255, 0.15)' }}>•</span>
+          <Link href="/refunds" style={{ color: '#94A3B8', textDecoration: 'none', fontWeight: 600 }}>
+            Politique de Remboursement (Refunds)
+          </Link>
+        </div>
+        <p style={{ margin: '6px 0 0' }}>© 2026 ADORA AI — Studio E-commerce Haute Définition. Tous droits réservés.</p>
       </footer>
     </div>
   );

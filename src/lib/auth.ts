@@ -326,3 +326,55 @@ export function createNewWorkspace(
   memoryWorkspaces.push(newWs);
   return newWs;
 }
+
+export function registerUserAndWorkspace(params: {
+  name: string;
+  email: string;
+  phone?: string;
+  shopName?: string;
+  plan?: 'flash' | 'pro' | 'agency' | 'trial';
+}): { user: User; workspace: Workspace } {
+  const { name, email, phone, shopName, plan = 'trial' } = params;
+  const cleanEmail = email.trim().toLowerCase();
+  
+  let user = findUserByEmail(cleanEmail);
+  if (!user) {
+    user = {
+      id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      email: cleanEmail,
+      name: name.trim() || cleanEmail.split('@')[0],
+      phone: phone?.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    memoryUsers.push(user);
+  }
+
+  const wsName = shopName?.trim() || `${user.name}'s Boutique`;
+  const slug = wsName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+  // Free trial gets 3 free visuals / credits
+  const credits = plan === 'trial' ? 3 : plan === 'agency' ? 200 : plan === 'pro' ? 20 : 10;
+
+  const newWs: Workspace = {
+    id: `ws_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    name: wsName,
+    slug,
+    ownerId: user.id,
+    plan: plan === 'trial' ? 'flash' : plan,
+    creditsRemaining: credits,
+    whiteLabelEnabled: plan === 'agency',
+    members: [
+      {
+        userId: user.id,
+        userEmail: user.email,
+        userName: user.name,
+        role: 'owner',
+        joinedAt: new Date().toISOString(),
+      },
+    ],
+    createdAt: new Date().toISOString(),
+  };
+
+  memoryWorkspaces.unshift(newWs);
+  return { user, workspace: newWs };
+}
+

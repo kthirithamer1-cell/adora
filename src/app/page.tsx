@@ -213,9 +213,8 @@ export default function HomePage() {
                 cursor: 'pointer',
               }}
             >
-              <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>🇹🇳</span>
-              <span>TND</span>
-              <ChevronDown size={13} color="#64748B" />
+              <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>🇺🇸</span>
+              <span>USD ($)</span>
             </div>
 
             {/* Login ou Menu Compte Utilisateur */}
@@ -406,23 +405,44 @@ export default function HomePage() {
                 )}
               </div>
             ) : (
-              <Link
-                href="/login"
-                style={{
-                  color: '#475569',
-                  textDecoration: 'none',
-                  fontWeight: '700',
-                  fontSize: '0.88rem',
-                  padding: '6px 10px',
-                }}
-              >
-                Connexion
-              </Link>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Link
+                  href="/login"
+                  style={{
+                    color: '#475569',
+                    textDecoration: 'none',
+                    fontWeight: '700',
+                    fontSize: '0.88rem',
+                    padding: '6px 10px',
+                  }}
+                >
+                  Connexion
+                </Link>
+                <Link
+                  href="/signup?plan=free-trial"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    borderRadius: '9999px',
+                    background: '#F5F3FF',
+                    border: '1px solid #DDD6FE',
+                    color: '#7C3AED',
+                    fontWeight: '800',
+                    fontSize: '0.84rem',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <Sparkles size={14} />
+                  <span>Essai Gratuit</span>
+                </Link>
+              </div>
             )}
 
             {/* Primary Action Button */}
             <Link
-              href={user ? "/dashboard" : "/studio"}
+              href={user ? "/dashboard" : "/signup?plan=free-trial"}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -438,8 +458,8 @@ export default function HomePage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              <span className="landing-nav-cta-text">{user ? "Mon Dashboard" : "Créer ma première publicité"}</span>
-              <span className="landing-nav-cta-text-short">{user ? "Dashboard ➔" : "Créer ➔"}</span>
+              <span className="landing-nav-cta-text">{user ? "Mon Dashboard" : "3 Visuels Offerts ➔"}</span>
+              <span className="landing-nav-cta-text-short">{user ? "Dashboard ➔" : "Essai ➔"}</span>
               <ArrowRight size={15} />
             </Link>
 
@@ -617,7 +637,7 @@ export default function HomePage() {
               {/* Dual Action Buttons */}
               <div className="landing-hero-cta-group" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '32px' }}>
                 <Link
-                  href="/studio"
+                  href={user ? "/studio" : "/signup?plan=free-trial"}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -632,7 +652,8 @@ export default function HomePage() {
                     boxShadow: '0 8px 24px rgba(124, 58, 237, 0.35)',
                   }}
                 >
-                  <span>Créer ma première publicité</span>
+                  <Sparkles size={17} />
+                  <span>{user ? "Accéder au Studio" : "Essai Gratuit : 3 visuels offerts"}</span>
                   <ArrowRight size={17} />
                 </Link>
 
@@ -1943,31 +1964,31 @@ export default function HomePage() {
                   <span style={{ fontSize: '2.8rem', fontWeight: '900', color: '#0F172A' }}>
                     {billingCycle === 'monthly' ? '19' : '15'}
                   </span>
-                  <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0F172A' }}>DT</span>
+                  <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0F172A' }}>$</span>
                   <span style={{ fontSize: '0.85rem', color: '#64748B' }}>/mois</span>
                 </div>
                 <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#7C3AED', marginBottom: '24px' }}>
-                  30 crédits / mois
+                  10 crédits / mois
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: '#334155' }}>
                     <Check size={16} color="#16A34A" />
-                    <span>Créations IA</span>
+                    <span>Créations IA HD Feed & Stories</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: '#334155' }}>
                     <Check size={16} color="#16A34A" />
-                    <span>Formats réseaux sociaux</span>
+                    <span>Formats réseaux sociaux prêts</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: '#334155' }}>
                     <Check size={16} color="#16A34A" />
-                    <span>Historique des créations</span>
+                    <span>Support standard par e-mail</span>
                   </div>
                 </div>
               </div>
 
               <Link
-                href="/checkout?plan=starter"
+                href={user ? "/pricing" : "/signup?plan=starter&redirect=/pricing"}
                 style={{
                   display: 'block',
                   textAlign: 'center',
@@ -1981,7 +2002,7 @@ export default function HomePage() {
                   textDecoration: 'none',
                 }}
               >
-                Choisir Starter
+                Choisir Starter ($19)
               </Link>
             </div>
 
@@ -2026,31 +2047,31 @@ export default function HomePage() {
                   <span style={{ fontSize: '2.8rem', fontWeight: '900', color: '#0F172A' }}>
                     {billingCycle === 'monthly' ? '49' : '39'}
                   </span>
-                  <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0F172A' }}>DT</span>
+                  <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0F172A' }}>$</span>
                   <span style={{ fontSize: '0.85rem', color: '#64748B' }}>/mois</span>
                 </div>
                 <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#7C3AED', marginBottom: '24px' }}>
-                  100 crédits / mois
+                  30 crédits / mois
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: '#334155' }}>
                     <Check size={16} color="#7C3AED" />
-                    <span><strong>Toutes les fonctionnalités Starter</strong></span>
+                    <span><strong>Tous les formats (Feed, Stories, Ads)</strong></span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: '#334155' }}>
                     <Check size={16} color="#7C3AED" />
-                    <span>Analytics de vente</span>
+                    <span>Export ZIP structuré complet</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: '#334155' }}>
                     <Check size={16} color="#7C3AED" />
-                    <span>Catalogue produits complet</span>
+                    <span>Contrôle qualité automatique IA</span>
                   </div>
                 </div>
               </div>
 
               <Link
-                href="/checkout?plan=pro"
+                href={user ? "/pricing" : "/signup?plan=pro&redirect=/pricing"}
                 style={{
                   display: 'block',
                   textAlign: 'center',
@@ -2064,11 +2085,11 @@ export default function HomePage() {
                   boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
                 }}
               >
-                Choisir Pro
+                Choisir Pro ($49)
               </Link>
             </div>
 
-            {/* Plan 3 : Agency */}
+            {/* Plan 3 : Advanced */}
             <div
               style={{
                 background: '#FFFFFF',
@@ -2083,17 +2104,17 @@ export default function HomePage() {
             >
               <div>
                 <div style={{ fontSize: '1.25rem', fontWeight: '900', color: '#0F172A', marginBottom: '8px' }}>
-                  Agency
+                  Advanced
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '8px' }}>
                   <span style={{ fontSize: '2.8rem', fontWeight: '900', color: '#0F172A' }}>
-                    {billingCycle === 'monthly' ? '99' : '79'}
+                    {billingCycle === 'monthly' ? '100' : '80'}
                   </span>
-                  <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0F172A' }}>DT</span>
+                  <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0F172A' }}>$</span>
                   <span style={{ fontSize: '0.85rem', color: '#64748B' }}>/mois</span>
                 </div>
                 <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#7C3AED', marginBottom: '24px' }}>
-                  300 crédits / mois
+                  100 crédits / mois
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
@@ -2103,17 +2124,17 @@ export default function HomePage() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: '#334155' }}>
                     <Check size={16} color="#16A34A" />
-                    <span>Multi-utilisateurs & clients</span>
+                    <span>Mode Marque Blanche totale</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: '#334155' }}>
                     <Check size={16} color="#16A34A" />
-                    <span>Support prioritaire</span>
+                    <span>Directeur de compte dédié 24/7</span>
                   </div>
                 </div>
               </div>
 
               <Link
-                href="/checkout?plan=agency"
+                href={user ? "/pricing" : "/signup?plan=advanced&redirect=/pricing"}
                 style={{
                   display: 'block',
                   textAlign: 'center',
@@ -2127,7 +2148,7 @@ export default function HomePage() {
                   textDecoration: 'none',
                 }}
               >
-                Choisir Agency
+                Choisir Advanced ($100)
               </Link>
             </div>
 
@@ -2413,9 +2434,15 @@ export default function HomePage() {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', color: '#475569' }}>
-                <span style={{ cursor: 'pointer', fontWeight: '700' }}>Instagram</span>
-                <span style={{ cursor: 'pointer', fontWeight: '700' }}>Facebook</span>
-                <span style={{ cursor: 'pointer', fontWeight: '700' }}>TikTok</span>
+                <Link href="/terms" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '700', fontSize: '0.85rem' }}>
+                  Conditions
+                </Link>
+                <Link href="/privacy" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '700', fontSize: '0.85rem' }}>
+                  Confidentialité
+                </Link>
+                <Link href="/refunds" style={{ color: '#64748B', textDecoration: 'none', fontWeight: '700', fontSize: '0.85rem' }}>
+                  Remboursements
+                </Link>
               </div>
               <span style={{ color: '#CBD5E1' }}>|</span>
               <div style={{ fontWeight: '700', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}>
