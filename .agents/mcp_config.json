@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "git": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-git",
+        "c:\\Users\\MEDIA INFOPLUS\\.gemini\\antigravity-ide\\scratch\\adora"
+      ]
+    }
+  }
+}

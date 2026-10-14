@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80">
+  <defs>
+    <linearGradient id="shieldBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="goldBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <filter id="badgeShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <rect x="4" y="4" width="312" height="72" rx="36" fill="url(#shieldBg)" filter="url(#badgeShadow)"/>
+  <rect x="6" y="6" width="308" height="68" rx="34" fill="none" stroke="url(#goldBorder)" stroke-width="2"/>
+
+  <!-- Icon Circle -->
+  <circle cx="42" cy="40" r="24" fill="#FBBF24" fill-opacity="0.15"/>
+  <circle cx="42" cy="40" r="22" stroke="#FBBF24" stroke-width="1.5" fill="none"/>
+  <!-- Shield Icon -->
+  <g transform="translate(30, 27) scale(1.15)" stroke="#FBBF24" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    <path d="M9 12l2 2 4-4"/>
+  </g>
+
+  <!-- Text -->
+  <text x="78" y="34" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="900" fill="#FDE68A" letter-spacing="0.5">100% AUTHENTIQUE</text>
+  <text x="78" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="600" fill="#94A3B8" letter-spacing="0.2">Import Officiel &amp; Certifié Conforme</text>
+</svg>

@@ -1,0 +1,4 @@
+start_time,end_time,start_time_iso,end_time_iso,amount_value,amount_currency,quantity,quantity_unit,line_item,user_id,api_key_id,project_id,organization_id,project_name,organization_name,user_email,api_source
+1790985600,1791072000,2026-10-03T00:00:00,2026-10-04T00:00:00,0.06637500000000000000000000000,usd,,,,,,,org-ZrKPdiURpnParfy7N4cWZ8Uh,,thamer,,
+1791072000,1791158400,2026-10-04T00:00:00+00:00,2026-10-05T00:00:00+00:00,,,,,,,,,,,,,
+1791158400,1791244800,2026-10-05T00:00:00,2026-10-06T00:00:00,0.9958688000000000000000000000,usd,,,,,,,org-ZrKPdiURpnParfy7N4cWZ8Uh,,thamer,,

@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adora — Studio IA Multi-Formats pour E-commerce en Tunisie</title>
+  <meta name="description" content="Uploadez 1 photo produit + infos, puis générez instantanément tous les formats marketing : Studio Pro, Lifestyle, E-commerce, Soldes, Prix, Instagram Posts, Stories 9:16, Ads Facebook, WhatsApp, Bannières et Carrousels.">
+
+  <link rel="icon" href="/images/Adora_logo.png" type="image/png">
+  <link rel="shortcut icon" href="/images/Adora_logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="/images/Adora_logo.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- JSZip pour le téléchargement du pack structuré -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #FFFFFF;
+      --bg-surface: #F8FAFC;
+      --bg-subtle: #F1F5F9;
+      --border: #E2E8F0;
+      --border-dark: #CBD5E1;
+      
+      --accent-indigo: #4F46E5;
+      --accent-indigo-hover: #4338CA;
+      --accent-pink: #E11D48;
+      --accent-emerald: #10B981;
+      --accent-amber: #D97706;
+      --accent-sky: #0284C7;
+      
+      --text-main: #0F172A;
+      --text-secondary: #334155;
+      --text-muted: #64748B;
+      --text-light: #94A3B8;
+      
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+      --shadow-lg: 0 12px 24px -4px rgba(15,23,42,0.08);
+      --shadow-xl: 0 20px 30px -6px rgba(15,23,42,0.1);
+      
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; color: var(--text-main); }
+    .container { max-width: 1320px; margin: 0 auto; padding: 0 24px; }
+
+    /* White Cards */
+    .white-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+    .white-card:hover {
+      box-shadow: var(--shadow-lg);
+      border-color: var(--border-dark);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #0F172A 10%, #4F46E5 55%, #E11D48 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 13px 26px;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px -5px rgba(79, 70, 229, 0.5);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #FFFFFF;
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 12px 22px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .btn-secondary:hover {
+      background: #F8FAFC;
+      border-color: var(--border-dark);
+    }
+
+    .btn-emerald {
+      background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+      color: #FFF;
+      box-shadow: 0 10px 20px -5px rgba(16,185,129,0.4);
+    }
+    .btn-emerald:hover {
+      background: linear-gradient(135deg, #047857 0%, #059669 100%);
+      box-shadow: 0 14px 28px -5px rgba(16,185,129,0.5);
+    }
+
+    /* Category Filter Buttons */
+    .cat-btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      color: var(--text-secondary);
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cat-btn:hover {
+      border-color: var(--accent-indigo);
+      background: #F8FAFC;
+    }
+    .cat-btn.active {
+      background: #EEF2FF;
+      border-color: #C7D2FE;
+      color: var(--accent-indigo);
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+    }
+
+    /* Form Inputs */
+    .input-field {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-family: inherit;
+      font-size: 0.88rem;
+      color: var(--text-main);
+      background: #FFF;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .input-field:focus {
+      border-color: var(--accent-indigo);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Instagram Social Proof Elements */
+    .insta-post-card {
+      background: #FFF;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP STATUS BAR -->
+  <div style="background: #F8FAFC; border-bottom: 1px solid var(--border); padding: 8px 0; font-size: 0.8rem; color: var(--text-secondary);">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+        <span id="apiStatusText">Moteur OpenAI Connecté (Clé validée)</span>
+      </div>
+      <div style="display: flex; gap: 16px; font-weight: 600;">
+        <span>⚡ Optimisé Token-Efficient</span>
+        <span>🇹🇳 Adapté Marché Tunisien</span>
+        <span>📦 11 Formats Complets</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header style="border-bottom: 1px solid var(--border); background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 100;">
+    <div class="container" style="display: flex; align-items: center; justify-content: space-between; height: 72px;">
+      <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+        <img
+          src="/images/Adora_logo.png"
+          alt="Adora Logo"
+          style="width: 44px; height: 44px; border-radius: 12px; object-fit: contain; background: #FFF; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);"
+        >
+        <div>
+          <span style="font-size: 1.4rem; font-weight: 900; letter-spacing: -0.03em; color: var(--text-main);">ADORA</span>
+          <span style="margin-left: 6px; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: #EEF2FF; color: var(--accent-indigo);">STUDIO E-COMMERCE</span>
+        </div>
+      </a>
+
+      <nav style="display: flex; align-items: center; gap: 20px;">
+        <a href="#formats" style="color: var(--text-secondary); text-decoration: none; font-weight: 600; font-size: 0.88rem;">Les 11 Formats</a>
+        <a href="#studio" style="color: var(--text-secondary); text-decoration: none; font-weight: 600; font-size: 0.88rem;">Studio de Génération</a>
+        <a href="#pricing" style="color: var(--text-secondary); text-decoration: none; font-weight: 600; font-size: 0.88rem;">Tarifs (DT)</a>
+        <a href="#studio" class="btn-primary" style="padding: 10px 22px; font-size: 0.88rem;">
+          Générer Mon Pack ➔
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section style="padding: 55px 0 40px; text-align: center; background: radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.08) 0%, rgba(225, 29, 72, 0.03) 40%, rgba(255,255,255,0) 80%);">
+    <div class="container" style="max-width: 1020px;">
+      <div style="display: inline-flex; align-items: center; gap: 8px; background: #EEF2FF; border: 1px solid #C7D2FE; color: var(--accent-indigo); padding: 5px 16px; border-radius: 9999px; font-size: 0.8rem; font-weight: 800; margin-bottom: 20px;">
+        📸 1 Seule Photo Produit ➔ 11 Formats Marketing Clés en Main
+      </div>
+
+      <h1 style="font-size: 3.4rem; line-height: 1.15; margin-bottom: 20px;">
+        Le Commerçant uploade 1 photo, <br>
+        <span class="gradient-text">Votre SaaS génère toute la campagne marketing</span>
+      </h1>
+
+      <p style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 30px; max-width: 820px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+        Photos studio, scènes lifestyle, visuels e-commerce avec prix & promos, stories Instagram, posts à fort engagement, bannières et visuels WhatsApp. Le tout avec votre API OpenAI sans gaspiller vos tokens !
+      </p>
+
+      <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+        <a href="#studio" class="btn-primary" style="font-size: 1.05rem; padding: 14px 34px;">
+          Lancer la Génération ⚡
+        </a>
+        <a href="#formats" class="btn-secondary" style="font-size: 1.05rem; padding: 14px 28px;">
+          Découvrir les 11 Formats
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LES 11 FORMATS GÉNÉRÉS (RÉSUMÉ VISUEL) -->
+  <section id="formats" style="padding: 45px 0 60px; background: #F8FAFC; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div class="container">
+      <div style="text-align: center; margin-bottom: 36px;">
+        <h2 style="font-size: 2.2rem; margin-bottom: 8px;">Les 11 Visuels Prêts à Poster Générés par Adora</h2>
+        <p style="color: var(--text-muted);">Tout ce dont une boutique e-commerce a besoin pour vendre au quotidien en Tunisie.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px;">
+        <div class="white-card" style="padding: 18px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">📸</div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;">Photos Studio Pro</h4>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">Podium 4K, reflets, ombres d'occlusion réalistes</p>
+        </div>
+        <div class="white-card" style="padding: 18px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🏋️</div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;">Scènes Lifestyle</h4>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">En situation réelle (salle, rue, salon, extérieur)</p>
+        </div>
+        <div class="white-card" style="padding: 18px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🛍️</div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;">Packshots E-commerce</h4>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">Fonds neutres doux parfaits pour catalogues web</p>
+        </div>
+        <div class="white-card" style="padding: 18px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🔥</div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;">Promotions & Soldes</h4>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">Bandeaux promo flash, stickers d'urgence</p>
+        </div>
+        <div class="white-card" style="padding: 18px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">💰</div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;">Visuels avec Prix</h4>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">Affichage clair en Dinars Tunisiens (TND)</p>
+        </div>
+        <div class="white-card" style="padding: 18px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">📱</div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;">Posts Instagram Feed</h4>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">Carré 1:1 avec légendes en Darija et Français</p>
+        </div>
+        <div class="white-card" style="padding: 18px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">📲</div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;">Stories Instagram 9:16</h4>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">Format vertical immersif avec sondages et stickers</p>
+        </div>
+        <div class="white-card" style="padding: 18px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">📢</div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;">Facebook Ads</h4>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">Accroches publicitaires testées pour fort taux de clic</p>
+        </div>
+        <div class="white-card" style="padding: 18px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">💬</div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;">Visuels WhatsApp</h4>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">Format léger prêt à envoyer en diffusion WhatsApp</p>
+        </div>
+        <div class="white-card" style="padding: 18px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🎨</div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;">Bannières Web</h4>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">Bannières hero header pour boutiques en ligne</p>
+        </div>
+        <div class="white-card" style="padding: 18px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🖼️</div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;">Carrousels Instagram</h4>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">Séquence multi-diapositive (bénéfices, détails, avis)</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE STUDIO SECTION -->
+  <section id="studio" style="padding: 60px 0; background: #FFFFFF;">
+    <div class="container">
+      <div style="text-align: center; margin-bottom: 36px;">
+        <div style="display: inline-block; background: #EEF2FF; color: var(--accent-indigo); font-size: 0.75rem; font-weight: 800; padding: 4px 14px; border-radius: 9999px; text-transform: uppercase; margin-bottom: 10px;">
+          ESPACE STUDIO EN DIRECT
+        </div>
+        <h2 style="font-size: 2.5rem; margin-bottom: 8px;">Configurez Votre Produit & Lancez la Campagne</h2>
+        <p style="color: var(--text-muted); font-size: 1.05rem;">Uploadez une image ou testez nos modèles prédéfinis pour voir les 11 formats se créer.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 380px 1fr; gap: 32px;" id="studioLayout">
+        
+        <!-- SIDEBAR DE CONFIGURATION -->
+        <aside style="display: flex; flex-direction: column; gap: 20px;">
+          
+          <!-- 1. Photo Produit & Upload -->
+          <div class="white-card" style="padding: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h3 style="font-size: 1rem; color: var(--text-main);">1. Photo de Votre Produit</h3>
+              <span style="font-size: 0.72rem; color: var(--accent-indigo); font-weight: 700; background: #EEF2FF; padding: 2px 8px; border-radius: 4px;">Étape 1/3</span>
+            </div>
+
+            <!-- Aperçu Actuel -->
+            <div style="background: #F8FAFC; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 12px; border: 1px dashed var(--border-dark); position: relative;">
+              <img id="previewImg" src="/images/bottle_nutrex.png" alt="Produit" style="height: 130px; object-fit: contain; margin: 0 auto; display: block;">
+              <p id="previewName" style="font-size: 0.85rem; font-weight: 800; color: var(--text-main); margin-top: 8px;">Nutrex IsoFit 100% Isolate</p>
+            </div>
+
+            <!-- Bouton Upload Réel -->
+            <input type="file" id="uploadInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+            <button onclick="document.getElementById('uploadInput').click()" class="btn-secondary" style="width: 100%; font-size: 0.82rem; padding: 10px; margin-bottom: 12px;">
+              📁 Uploader Ma Photo Produit (Smartphone)
+            </button>
+
+            <!-- Démo Rapide par Niche -->
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Ou tester avec un exemple :</p>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
+              <button onclick="selectSample('/images/bottle_nutrex.png', 'Nutrex IsoFit 100% Isolate', 'Sport & Nutrition', '49 DT au lieu de 79 DT')" style="padding: 6px; font-size: 0.72rem; background: #F8FAFC; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; text-align: left;">🏋️ Whey Isolate</button>
+              <button onclick="selectSample('/images/bottle_avvatar.png', 'Sérum Anti-Âge Figue de Barbarie', 'Cosmétiques & Beauté', '39 DT')" style="padding: 6px; font-size: 0.72rem; background: #F8FAFC; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; text-align: left;">💄 Sérum Bio</button>
+              <button onclick="selectSample('/images/bottle_denzour.png', 'Sneakers Urban Sport 2026', 'Mode & Chaussures', '89 DT au lieu de 120 DT')" style="padding: 6px; font-size: 0.72rem; background: #F8FAFC; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; text-align: left;">👟 Sneakers Mode</button>
+              <button onclick="selectSample('/images/bottle_denziso.png', 'Montre Chrono Black Gold', 'Horlogerie & Luxe', '149 DT')" style="padding: 6px; font-size: 0.72rem; background: #F8FAFC; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; text-align: left;">⌚ Montre Luxe</button>
+            </div>
+          </div>
+
+          <!-- 2. Informations du Commerçant (Prix, Offre, Niche) -->
+          <div class="white-card" style="padding: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h3 style="font-size: 1rem; color: var(--text-main);">2. Infos & Offre Commerciale</h3>
+              <span style="font-size: 0.72rem; color: var(--accent-emerald); font-weight: 700; background: #ECFDF5; padding: 2px 8px; border-radius: 4px;">Étape 2/3</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div>
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">Nom du Produit :</label>
+                <input type="text" id="inputProductName" value="Nutrex IsoFit 100% Isolate" class="input-field">
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                  <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">Prix en DT :</label>
+                  <input type="text" id="inputProductPrice" value="59 DT (au lieu de 89 DT)" class="input-field">
+                </div>
+                <div>
+                  <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">Niche :</label>
+                  <select id="selectNiche" class="input-field">
+                    <option value="Sport & Nutrition">Sport & Nutrition</option>
+                    <option value="Mode & Streetwear">Mode & Streetwear</option>
+                    <option value="Cosmétiques & Beauté">Cosmétiques & Beauté</option>
+                    <option value="Horlogerie & Bijoux">Horlogerie & Bijoux</option>
+                    <option value="High-Tech">High-Tech</option>
+                    <option value="Maison & Décoration">Maison & Décoration</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">Badge Promo Local :</label>
+                <select id="selectBadge" class="input-field">
+                  <option value="🚚 Livraison 24 Gouvernorats">🚚 Livraison 24 Gouvernorats (Toute la Tunisie)</option>
+                  <option value="💵 Paiement à la Livraison">💵 Paiement à la Livraison (COD)</option>
+                  <option value="🔥 Offre Promo Limitée">🔥 Offre Promo Limitée</option>
+                  <option value="🛡️ Produit Certifié Conforme">🛡️ Produit Certifié Conforme</option>
+                  <option value="🎁 Cadeau avec Votre Commande">🎁 Cadeau avec Votre Commande</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Contrôle du Modèle IA & Prompt Personnalisé (Sans Achat Requis) -->
+          <div class="white-card" style="padding: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h3 style="font-size: 1rem; color: var(--text-main);">3. Modèle IA & Prompting Libre</h3>
+              <span style="font-size: 0.72rem; color: #D97706; font-weight: 700; background: #FEF3C7; padding: 2px 8px; border-radius: 4px;">Accès Libre</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div>
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">Modèle d'Image OpenAI :</label>
+                <select id="selectAiModel" class="input-field" style="font-weight: 700; color: var(--accent-indigo);">
+                  <option value="gpt-image-1" selected>gpt-image-1 (Recommandé & Rapide ⚡)</option>
+                  <option value="gpt-image-1.5">gpt-image-1.5 (Précision textures)</option>
+                  <option value="gpt-image-2">gpt-image-2 (Qualité Studio Ultra)</option>
+                  <option value="chatgpt-image-latest">chatgpt-image-latest</option>
+                  <option value="gpt-image-1-mini">gpt-image-1-mini (Super économique)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">Prompt de Décor / Ambiance (Optionnel) :</label>
+                <textarea id="customPromptInput" class="input-field" rows="2" placeholder="Ex: Luxury marble podium, soft neon rim lights, dramatic shadows, photorealistic 8k..." style="resize: vertical;"></textarea>
+              </div>
+
+              <div style="display: flex; gap: 8px;">
+                <button id="btnGenerateAll" onclick="generateAllPacks()" class="btn-primary" style="flex: 1; padding: 13px; font-size: 0.95rem;">
+                  🚀 Générer les 11 Formats
+                </button>
+                <button onclick="generateCustomDirect()" class="btn-secondary" style="padding: 13px 16px; font-size: 0.9rem;" title="Générer 1 image directement avec le prompt ci-dessus">
+                  🎨 Test Prompt
+                </button>
+              </div>
+            </div>
+
+            <p style="font-size: 0.72rem; color: var(--text-muted); text-align: center; margin-top: 10px;">
+              ✅ Accès direct et illimité avec votre propre clé OpenAI (Aucun achat de pack requis).
+            </p>
+          </div>
+        </aside>
+
+        <!-- MAIN DISPLAY AREA (RÉSULTATS DES 11 FORMATS) -->
+        <main style="display: flex; flex-direction: column; gap: 24px;">
+          
+          <!-- ANALYSE GPT-4o EN TEMPS RÉEL -->
+          <div id="aiAnalysisCard" class="white-card" style="padding: 20px 24px; border-color: #C7D2FE; background: #F8FAFC;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span style="font-size: 0.8rem; font-weight: 800; color: var(--accent-indigo); text-transform: uppercase;">
+                🧠 Analyse IA (GPT-4o Mini) & Textes Haute Conversion
+              </span>
+              <span id="aiCategoryBadge" style="font-size: 0.72rem; background: #EEF2FF; color: var(--accent-indigo); font-weight: 700; padding: 2px 8px; border-radius: 4px;">
+                NUTRITION & SPORT
+              </span>
+            </div>
+
+            <!-- Grille de Textes Rédigés par l'IA -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <!-- Légende Instagram en Darija -->
+              <div style="background: #FFF; padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-indigo); box-shadow: var(--shadow-sm);">
+                <span style="font-size: 0.72rem; font-weight: 800; color: var(--accent-indigo); text-transform: uppercase;">Légende Instagram en Darija (Prête à copier) :</span>
+                <p id="captionDarija" style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.4;">
+                  🔥 Arrivage exclusif fi boutique mteena ! Qualité 100% originale certifiée, finition luxe w disponibilité limitée. Livri fisaa fi tounes el kol w khlas fel livraison !
+                </p>
+              </div>
+
+              <!-- Message Prêt pour WhatsApp -->
+              <div style="background: #FFF; padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-emerald); box-shadow: var(--shadow-sm);">
+                <span style="font-size: 0.72rem; font-weight: 800; color: var(--accent-emerald); text-transform: uppercase;">Message Prêt pour WhatsApp (Vente Directe) :</span>
+                <p id="whatsappMessage" style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.4;">
+                  Salam marhba bik ! 👋 Le produit est disponible en stock avec promo spéciale. Répondez avec votre Nom & Adresse pour confirmer l'envoi en 24h !
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- LOADER DE GÉNÉRATION PROGRESSIVE -->
+          <div id="loaderBox" class="white-card" style="display: none; padding: 28px; text-align: center; border-color: var(--accent-indigo);">
+            <h3 style="font-size: 1.25rem; color: var(--text-main); margin-bottom: 8px;">Génération des 11 formats marketing en cours...</h3>
+            <div style="height: 8px; width: 100%; background: #E2E8F0; border-radius: 9999px; overflow: hidden; margin: 12px 0;">
+              <div id="progressBar" style="height: 100%; width: 15%; background: linear-gradient(90deg, #4F46E5, #E11D48); transition: width 0.25s;"></div>
+            </div>
+            <p id="progressStatus" style="font-size: 0.82rem; color: var(--text-muted);">Création des visuels studio, lifestyle et déclinaisons sociales...</p>
+          </div>
+
+          <!-- GALERIE DES 11 FORMATS -->
+          <div id="galleryArea">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h3 id="galleryTitle" style="font-size: 1.4rem; color: var(--text-main);">Les 11 Formats Prêts à Télécharger</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Sélectionnez un format ou téléchargez le pack complet classé en dossiers ZIP.</p>
+              </div>
+
+              <button onclick="downloadStructuredZip()" class="btn-primary btn-emerald">
+                📦 Télécharger le Pack Complet (.ZIP)
+              </button>
+            </div>
+
+            <!-- BARRE DE FILTRES DES 11 CATÉGORIES -->
+            <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;">
+              <button onclick="filterCategory('all', this)" class="cat-btn active">🌟 Tous (11 Formats)</button>
+              <button onclick="filterCategory('studio', this)" class="cat-btn">📸 Studio Pro</button>
+              <button onclick="filterCategory('lifestyle', this)" class="cat-btn">🏋️ Lifestyle</button>
+              <button onclick="filterCategory('ecommerce', this)" class="cat-btn">🛍️ E-commerce</button>
+              <button onclick="filterCategory('promo', this)" class="cat-btn">🔥 Promo / Soldes</button>
+              <button onclick="filterCategory('price', this)" class="cat-btn">💰 Avec Prix (DT)</button>
+              <button onclick="filterCategory('post', this)" class="cat-btn">📱 Post Instagram</button>
+              <button onclick="filterCategory('story', this)" class="cat-btn">📲 Story 9:16</button>
+              <button onclick="filterCategory('ads', this)" class="cat-btn">📢 Facebook Ads</button>
+              <button onclick="filterCategory('whatsapp', this)" class="cat-btn">💬 WhatsApp</button>
+              <button onclick="filterCategory('banner', this)" class="cat-btn">🎨 Bannière Web</button>
+              <button onclick="filterCategory('carousel', this)" class="cat-btn">🖼️ Carrousel</button>
+            </div>
+
+            <!-- GRILLE DE CARTES VISUELLES -->
+            <div id="visualGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px;">
+              <!-- Cartes injectées dynamiquement par JS -->
+            </div>
+          </div>
+
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <!-- TARIFS DÉTAILLÉS EN DT -->
+  <section id="pricing" style="padding: 60px 0; background: #F8FAFC; border-top: 1px solid var(--border);">
+    <div class="container">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <h2 style="font-size: 2.4rem; margin-bottom: 8px;">Tarifs Simples en Dinars Tunisiens</h2>
+        <p style="color: var(--text-muted); font-size: 1.05rem;">Chaque pack vous donne les 11 formats indispensables pour exploser vos ventes.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+        <div class="white-card" style="padding: 28px;">
+          <h3 style="font-size: 1.25rem; margin-bottom: 6px;">Pack 1 Produit</h3>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">11 formats complets pour 1 article</p>
+          <div style="font-size: 2.5rem; font-weight: 900; color: var(--text-main); margin-bottom: 18px;">29 <span style="font-size: 1rem; color: var(--text-muted);">DT / pack</span></div>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 20px;">
+            <li>✓ Les 11 formats inclus</li>
+            <li>✓ Badges de livraison 24 gouvernorats</li>
+            <li>✓ Textes Darija + WhatsApp</li>
+            <li>✓ Export instantané en .ZIP</li>
+          </ul>
+          <a href="#studio" class="btn-secondary" style="width: 100%; text-align: center;">Choisir ce Pack</a>
+        </div>
+
+        <div class="white-card" style="padding: 28px; border-color: var(--accent-indigo); box-shadow: 0 15px 35px rgba(79, 70, 229, 0.12); position: relative;">
+          <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent-indigo); color: #FFF; padding: 2px 14px; border-radius: 9999px; font-size: 0.72rem; font-weight: 800;">
+            RECOMMANDÉ
+          </div>
+          <h3 style="font-size: 1.25rem; margin-bottom: 6px;">Pack 3 Produits (Pro)</h3>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">33 visuels complets pour vos best-sellers</p>
+          <div style="font-size: 2.5rem; font-weight: 900; color: var(--accent-indigo); margin-bottom: 18px;">59 <span style="font-size: 1rem; color: var(--text-muted);">DT</span></div>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: var(--text-main); margin-bottom: 20px;">
+            <li>✓ 33 visuels multi-formats</li>
+            <li>✓ Stories 9:16 + Carrousels</li>
+            <li>✓ Textes Facebook Ads optimisés</li>
+            <li>✓ Support prioritaire WhatsApp</li>
+          </ul>
+          <a href="#studio" class="btn-primary" style="width: 100%; text-align: center;">Créer Mon Pack Pro ➔</a>
+        </div>
+
+        <div class="white-card" style="padding: 28px;">
+          <h3 style="font-size: 1.25rem; margin-bottom: 6px;">Abonnement Mensuel</h3>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">Pour les boutiques actives au quotidien</p>
+          <div style="font-size: 2.5rem; font-weight: 900; color: var(--text-main); margin-bottom: 18px;">99 <span style="font-size: 1rem; color: var(--text-muted);">DT / mois</span></div>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 20px;">
+            <li>✓ Plus de 100 visuels par mois</li>
+            <li>✓ Générations illimitées</li>
+            <li>✓ Campagnes soldes & fêtes</li>
+            <li>✓ Tous paiements tunisiens acceptés</li>
+          </ul>
+          <a href="#studio" class="btn-secondary" style="width: 100%; text-align: center;">Abonnement Mensuel</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="border-top: 1px solid var(--border); padding: 36px 0; text-align: center; color: var(--text-muted); font-size: 0.85rem; background: #FFFFFF;">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px;">
+      <img src="/images/Adora_logo.png" alt="Adora Logo" style="width: 32px; height: 32px; border-radius: 8px; object-fit: contain;">
+      <span style="font-weight: 900; font-size: 1.15rem; color: var(--text-main); letter-spacing: -0.02em;">ADORA</span>
+    </div>
+    <p>© 2026 ADORA AI — Le SaaS e-commerce n°1 en Tunisie. Connecté avec OpenAI DALL-E 3 & GPT-4o Mini.</p>
+    <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Product photos. Endless possibilities.</p>
+  </footer>
+
+  <!-- SCRIPT LOGIQUE DU STUDIO (11 FORMATS & OPENAI ENGINE) -->
+  <script>
+    let uploadedBase64 = null;
+    let currentProductName = "Nutrex IsoFit 100% Isolate";
+    let currentPrice = "59 DT (au lieu de 89 DT)";
+    let currentNiche = "Sport & Nutrition";
+    let currentBadge = "🚚 Livraison 24 Gouvernorats";
+    let currentProductImg = "/images/bottle_nutrex.png";
+
+    // Les 11 formats à afficher
+    let allFormats = [];
+
+    // Initialisation
+    window.addEventListener('DOMContentLoaded', () => {
+      checkApiStatus();
+      buildDefaultFormats();
+    });
+
+    async function checkApiStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const json = await res.json();
+        const el = document.getElementById('apiStatusText');
+        if (json.hasOpenAiKey) {
+          el.innerText = `OpenAI API Connectée (${json.keyPreview}) ✅`;
+          el.parentElement.querySelector('span').style.background = '#10B981';
+        } else {
+          el.innerText = `Clé OpenAI non détectée (Mode Démo actif) ⚠️`;
+          el.parentElement.querySelector('span').style.background = '#F59E0B';
+        }
+      } catch (e) {
+        console.warn('Statut API non accessible:', e);
+      }
+    }
+
+    function selectSample(img, name, niche, price) {
+      currentProductImg = img;
+      currentProductName = name;
+      currentNiche = niche;
+      currentPrice = price;
+
+      document.getElementById('previewImg').src = img;
+      document.getElementById('previewName').innerText = name;
+      document.getElementById('inputProductName').value = name;
+      document.getElementById('inputProductPrice').value = price;
+      document.getElementById('selectNiche').value = niche;
+
+      // Met à jour les textes en direct
+      document.getElementById('captionDarija').innerText = `🔥 Weslet el ${name} fi boutique mteena ! Qualité 100% originale certifiée, finition luxe w prix exceptionnel ${price}. Livri fisaa fi tounes el kol w khlas fel livraison !`;
+      document.getElementById('whatsappMessage').innerText = `Salam marhba bik ! 👋 Le produit ${name} est disponible au prix promo de ${price}. Répondez avec votre Nom & Adresse pour confirmer l'envoi en 24h !`;
+      
+      buildDefaultFormats();
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        uploadedBase64 = evt.target.result;
+        currentProductImg = uploadedBase64;
+        document.getElementById('previewImg').src = uploadedBase64;
+        document.getElementById('previewName').innerText = file.name.replace(/\.[^/.]+$/, "");
+        document.getElementById('inputProductName').value = file.name.replace(/\.[^/.]+$/, "");
+        buildDefaultFormats();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function generateAllPacks() {
+      currentProductName = document.getElementById('inputProductName').value || currentProductName;
+      currentPrice = document.getElementById('inputProductPrice').value || currentPrice;
+      currentNiche = document.getElementById('selectNiche').value;
+      currentBadge = document.getElementById('selectBadge').value;
+
+      const loader = document.getElementById('loaderBox');
+      const progressBar = document.getElementById('progressBar');
+      const progressStatus = document.getElementById('progressStatus');
+
+      loader.style.display = 'block';
+      progressBar.style.width = '20%';
+      progressStatus.innerText = "Étape 1/3: Analyse intelligente du produit avec GPT-4o Mini (optimisé en tokens)...";
+
+      try {
+        // 1. Appel API analyse token-efficient
+        const res = await fetch('/api/analyze-product', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageBase64: uploadedBase64,
+            userNotes: `Produit: ${currentProductName}, Prix: ${currentPrice}`,
+            niche: currentNiche
+          })
+        });
+
+        const json = await res.json();
+        progressBar.style.width = '60%';
+
+        if (json.success && json.data) {
+          const d = json.data;
+          document.getElementById('captionDarija').innerText = d.darijaHook || d.instagramCaption || '';
+          document.getElementById('whatsappMessage').innerText = d.whatsappText || '';
+          document.getElementById('aiCategoryBadge').innerText = d.category ? d.category.toUpperCase() : currentNiche.toUpperCase();
+        }
+
+        progressStatus.innerText = "Étape 2/3: Génération et composition des 11 formats visuels...";
+        progressBar.style.width = '90%';
+
+        setTimeout(() => {
+          progressBar.style.width = '100%';
+          progressStatus.innerText = "Étape 3/3: Finalisation des 11 formats terminée !";
+          setTimeout(() => {
+            loader.style.display = 'none';
+            buildDefaultFormats();
+          }, 400);
+        }, 600);
+
+      } catch (err) {
+        console.warn('Erreur appel analyse:', err);
+        loader.style.display = 'none';
+        buildDefaultFormats();
+      }
+    }
+
+    function buildDefaultFormats() {
+      currentProductName = document.getElementById('inputProductName').value || currentProductName;
+      currentPrice = document.getElementById('inputProductPrice').value || currentPrice;
+      currentBadge = document.getElementById('selectBadge').value || currentBadge;
+
+      allFormats = [
+        {
+          id: 'studio',
+          icon: '📸',
+          title: 'Photo Produit Pro',
+          desc: 'Rendu studio 4K sur podium avec éclairage commercial',
+          category: 'studio',
+          format: '1:1',
+          bgImg: '/images/whey_studio_podium.jpg',
+          badge: currentBadge,
+          badgeColor: '#4F46E5'
+        },
+        {
+          id: 'lifestyle',
+          icon: '🏋️',
+          title: 'Scène Lifestyle',
+          desc: 'Mise en situation réelle pour susciter l\'envie',
+          category: 'lifestyle',
+          format: '1:1',
+          bgImg: '/images/hero_lifestyle.jpg',
+          badge: '✨ Tendance 2026',
+          badgeColor: '#0F172A'
+        },
+        {
+          id: 'ecommerce',
+          icon: '🛍️',
+          title: 'Visuel E-commerce',
+          desc: 'Packshot clean pour boutique web et marketplace',
+          category: 'ecommerce',
+          format: '1:1',
+          bgImg: '/images/gnc_pro_whey_tub_1791150838901.jpg',
+          badge: '📦 En Stock',
+          badgeColor: '#10B981'
+        },
+        {
+          id: 'promo',
+          icon: '🔥',
+          title: 'Promotion / Soldes',
+          desc: 'Visuel percutant d\'urgence marketing pour booster les clics',
+          category: 'promo',
+          format: '1:1',
+          bgImg: '/images/hero_lifestyle.jpg',
+          badge: '🔥 OFFRE SPÉCIALE -30%',
+          badgeColor: '#E11D48'
+        },
+        {
+          id: 'price',
+          icon: '💰',
+          title: 'Visuel avec Prix',
+          desc: `Mise en avant claire du tarif (${currentPrice})`,
+          category: 'price',
+          format: '1:1',
+          bgImg: '/images/whey_studio_podium.jpg',
+          badge: `💵 ${currentPrice}`,
+          badgeColor: '#D97706'
+        },
+        {
+          id: 'post',
+          icon: '📱',
+          title: 'Post Instagram Feed',
+          desc: 'Format carré 1080x1080 prêt pour générer des commentaires',
+          category: 'post',
+          format: '1:1',
+          bgImg: '/images/gnc_pro_whey_tub_1791150838901.jpg',
+          badge: '💬 1 420 Commentaires',
+          badgeColor: '#4F46E5',
+          isSocialPost: true
+        },
+        {
+          id: 'story',
+          icon: '📲',
+          title: 'Story Instagram 9:16',
+          desc: 'Plein écran vertical pour Instagram & TikTok',
+          category: 'story',
+          format: '9:16',
+          bgImg: '/images/creatine_story.jpg',
+          badge: '⏳ Fin dans 03:42:15',
+          badgeColor: '#E11D48',
+          isStory: true
+        },
+        {
+          id: 'ads',
+          icon: '📢',
+          title: 'Facebook Ads',
+          desc: 'Format optimisé pour les campagnes publicitaires Meta',
+          category: 'ads',
+          format: '1:1',
+          bgImg: '/images/hero_lifestyle.jpg',
+          badge: '🚚 Paiement à la Livraison',
+          badgeColor: '#0284C7'
+        },
+        {
+          id: 'whatsapp',
+          icon: '💬',
+          title: 'Image WhatsApp Promo',
+          desc: 'Optimisé pour le partage rapide en groupe et statut WhatsApp',
+          category: 'whatsapp',
+          format: '1:1',
+          bgImg: '/images/whey_studio_podium.jpg',
+          badge: '📲 Commander par WhatsApp',
+          badgeColor: '#10B981'
+        },
+        {
+          id: 'banner',
+          icon: '🎨',
+          title: 'Bannière Site Web',
+          desc: 'Format hero panoramique 16:9 pour entête de site',
+          category: 'banner',
+          format: '16:9',
+          bgImg: '/images/hero_lifestyle.jpg',
+          badge: '🏷️ Nouvelle Arrivage',
+          badgeColor: '#4F46E5'
+        },
+        {
+          id: 'carousel',
+          icon: '🖼️',
+          title: 'Carrousel Instagram',
+          desc: 'Planche de 3 diapositives (Bénéfices + Ingrédients + Avis)',
+          category: 'carousel',
+          format: '1:1',
+          bgImg: '/images/gnc_pro_whey_tub_1791150838901.jpg',
+          badge: '➡️ Glissez pour voir plus',
+          badgeColor: '#0F172A'
+        }
+      ];
+
+      renderVisualsGrid('all');
+    }
+
+    function filterCategory(cat, btn) {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderVisualsGrid(cat);
+    }
+
+    function renderVisualsGrid(cat) {
+      const grid = document.getElementById('visualGrid');
+      grid.innerHTML = '';
+
+      const filtered = cat === 'all' ? allFormats : allFormats.filter(f => f.category === cat);
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'white-card';
+        card.style.overflow = 'hidden';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+
+        const isStory = item.format === '9:16';
+        const isBanner = item.format === '16:9';
+        const imgHeight = isStory ? '320px' : (isBanner ? '150px' : '200px');
+
+        card.innerHTML = `
+          <div style="position: relative; width: 100%; height: ${imgHeight}; background: #0F172A; overflow: hidden;">
+            <img src="${item.bgImg}" alt="${item.title}" style="width: 100%; height: 100%; object-fit: cover;">
+            
+            <!-- Badge Promo Flottant -->
+            <div style="position: absolute; top: 10px; right: 10px; background: ${item.badgeColor}; color: #FFF; font-size: 0.68rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.25);">
+              ${item.badge}
+            </div>
+
+            <!-- Format Label -->
+            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(15,23,42,0.85); color: #FFF; font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; backdrop-filter: blur(4px);">
+              ${item.format}
+            </div>
+
+            ${item.isSocialPost ? `
+              <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(225,29,72,0.9); color: #FFF; font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;">
+                ❤️ 18.4K
+              </div>
+            ` : ''}
+          </div>
+
+          <div style="padding: 14px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 0.9rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                <span>${item.icon}</span> ${item.title}
+              </span>
+              <span style="font-size: 0.7rem; color: var(--text-muted); background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">${item.category}</span>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.35; flex: 1;">
+              ${item.desc}
+            </p>
+            <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F1F5F9; pt: 8px; gap: 8px;">
+              <button onclick="regenerateWithDalle('${item.id}', this)" style="background: #EEF2FF; border: 1px solid #C7D2FE; color: var(--accent-indigo); font-size: 0.72rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                ✨ Générer avec IA
+              </button>
+              <a href="${item.bgImg}" download="adora_${item.id}_${currentProductName.replace(/\s+/g, '_')}.jpg" style="color: var(--accent-indigo); font-size: 0.78rem; font-weight: 800; text-decoration: none;">
+                Télécharger ↓
+              </a>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function regenerateWithDalle(formatId, btnElement) {
+      const originalText = btnElement.innerText;
+      const chosenModel = document.getElementById('selectAiModel')?.value || 'gpt-image-1';
+      const customPrompt = document.getElementById('customPromptInput')?.value?.trim();
+
+      btnElement.innerText = `⏳ ${chosenModel}...`;
+      btnElement.disabled = true;
+
+      const formatItem = allFormats.find(f => f.id === formatId);
+      if (!formatItem) return;
+
+      const promptMap = {
+        'studio': `Luxury commercial podium pedestal, sleek clean background, dramatic rim lighting, 4k commercial product photography, clean empty central space`,
+        'lifestyle': `Authentic lifestyle scene, modern room or gym interior, natural daylight, high-end commercial photography`,
+        'ecommerce': `Pure minimal soft white and light grey studio background, subtle soft shadows, high-end ecommerce catalog look`,
+        'promo': `High energy commercial promotional sale event, dynamic backdrop, luxury vibe, vibrant accents`,
+        'price': `Modern elegant pedestal with soft spotlight, premium commercial retail stage`,
+        'post': `Vibrant social media commercial scene, dramatic bokeh, premium aesthetic`,
+        'story': `Vertical 9:16 commercial mobile framing, dramatic top spotlight, cinematic mobile format`,
+        'ads': `High-converting commercial advertisement background, dramatic contrast, clean modern setting`,
+        'whatsapp': `Bright clean studio product display, inviting modern commercial lighting`,
+        'banner': `Wide 16:9 cinematic commercial studio background, panoramic modern depth`,
+        'carousel': `Sequential sleek modern studio set, consistent luxury lighting`
+      };
+
+      const finalPrompt = customPrompt ? `${customPrompt}, ${promptMap[formatId] || ''}` : (promptMap[formatId] || 'Professional commercial studio background');
+
+      try {
+        const res = await fetch('/api/generate-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: finalPrompt,
+            size: formatItem.format === '9:16' ? '9:16' : '1024x1024',
+            category: formatId,
+            model: chosenModel
+          })
+        });
+
+        const json = await res.json();
+        if (json.success && json.url) {
+          formatItem.bgImg = json.url;
+          renderVisualsGrid(document.querySelector('.cat-btn.active')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || 'all');
+        } else {
+          alert("Erreur de génération : " + (json.error || "Impossible de générer l'image"));
+        }
+      } catch (err) {
+        alert("Erreur de connexion : " + err.message);
+      } finally {
+        btnElement.innerText = originalText;
+        btnElement.disabled = false;
+      }
+    }
+
+    async function generateCustomDirect() {
+      const chosenModel = document.getElementById('selectAiModel')?.value || 'gpt-image-1';
+      let customPrompt = document.getElementById('customPromptInput')?.value?.trim();
+
+      if (!customPrompt) {
+        customPrompt = `Luxury studio podium for ${currentProductName}, elegant lighting, 4k commercial photography`;
+        document.getElementById('customPromptInput').value = customPrompt;
+      }
+
+      const btn = event?.target;
+      const originalText = btn ? btn.innerText : 'Test Prompt';
+      if (btn) { btn.innerText = "⏳ En cours..."; btn.disabled = true; }
+
+      try {
+        const res = await fetch('/api/generate-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: customPrompt,
+            size: '1024x1024',
+            category: 'studio',
+            model: chosenModel
+          })
+        });
+
+        const json = await res.json();
+        if (json.success && json.url) {
+          // Remplace le 1er format (Studio Pro) avec cette nouvelle image générée
+          if (allFormats[0]) {
+            allFormats[0].bgImg = json.url;
+            allFormats[0].title = `Généré avec ${chosenModel}`;
+            renderVisualsGrid('all');
+            document.getElementById('galleryArea').scrollIntoView({ behavior: 'smooth' });
+          }
+        } else {
+          alert("Erreur : " + (json.error || "Échec de la génération"));
+        }
+      } catch (e) {
+        alert("Erreur réseau : " + e.message);
+      } finally {
+        if (btn) { btn.innerText = originalText; btn.disabled = false; }
+      }
+    }
+
+    async function downloadStructuredZip() {
+      if (typeof JSZip === 'undefined') {
+        alert("Erreur: Bibliothèque de compression en cours de chargement...");
+        return;
+      }
+
+      const zip = new JSZip();
+      
+      // Dossiers structurés pour les 11 formats
+      const folderStudio = zip.folder("01_Photos_Studio_Professionnelles");
+      const folderLifestyle = zip.folder("02_Scenes_Lifestyle");
+      const folderEcommerce = zip.folder("03_Packshots_Ecommerce");
+      const folderPromos = zip.folder("04_Promotions_Et_Soldes");
+      const folderPrice = zip.folder("05_Visuels_Avec_Prix");
+      const folderInstagram = zip.folder("06_Posts_Instagram_Feed");
+      const folderStories = zip.folder("07_Stories_Instagram_9x16");
+      const folderFbAds = zip.folder("08_Facebook_Ads");
+      const folderWhatsApp = zip.folder("09_Visuels_WhatsApp");
+      const folderBanners = zip.folder("10_Bannieres_Site_Web");
+      const folderCarousels = zip.folder("11_Carrousels_Instagram");
+
+      // Fichier texte de copywriting rédigé par l'IA
+      const copyContent = `==================================================================
+ADORA AI — PACK MARKETING COMPLET (11 FORMATS)
+Produit : ${currentProductName}
+Prix : ${currentPrice}
+Badge : ${currentBadge}
+Niche : ${currentNiche}
+==================================================================
+
+1. LÉGENDE INSTAGRAM FEED (FRANÇAIS) :
+------------------------------------------------------------------
+⚡ NOUVEL ARRIVAGE : ${currentProductName} !
+Formule certifiée et qualité 100% originale.
+Prix spécial : ${currentPrice}
+🚚 Livraison express 24/48h sur toute la Tunisie.
+💵 Paiement à la livraison garanti !
+
+2. LÉGENDE INSTAGRAM EN DARIJA TUNISIENNE :
+------------------------------------------------------------------
+${document.getElementById('captionDarija').innerText}
+
+3. MESSAGE DE VENTE WHATSAPP EN 1 CLIC :
+------------------------------------------------------------------
+${document.getElementById('whatsappMessage').innerText}
+
+4. HASHTAGS TUNISIENS HAUTE VISIBILITÉ :
+------------------------------------------------------------------
+#tunisie_commerce #ecommerce_tunisie #livraisontunisie #shop_tunisie #promotunisie #tunis #sfax #sousse
+`;
+
+      zip.file("TEXTES_MARKETING_ET_LEGENDES.txt", copyContent);
+
+      folderStudio.file("README.txt", "Photos studio haute définition sur podium 4K");
+      folderLifestyle.file("README.txt", "Visuels lifestyle en contexte d'utilisation");
+      folderEcommerce.file("README.txt", "Packshots sur fond blanc/neutre pour boutique en ligne");
+      folderPromos.file("README.txt", "Bannières soldes & promotions chocs");
+      folderPrice.file("README.txt", `Visuels avec prix affiché en dinars (${currentPrice})`);
+      folderInstagram.file("README.txt", "Posts feed carré 1:1");
+      folderStories.file("README.txt", "Stories 9:16 verticales avec stickers");
+      folderFbAds.file("README.txt", "Visuels optimisés conversion Facebook & Meta Ads");
+      folderWhatsApp.file("README.txt", "Images légères pour statuts et messages WhatsApp");
+      folderBanners.file("README.txt", "Bannière panoramique web 16:9");
+      folderCarousels.file("README.txt", "Diapositives carrousel Instagram");
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Pack_Complet_11Formats_${currentProductName.replace(/\s+/g, '_')}_Adora.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

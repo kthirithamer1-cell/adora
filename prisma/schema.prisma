@@ -1,0 +1,179 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  fullName     String      @map("full_name")
+  phone        String?
+  passwordHash String?     @map("password_hash")
+  avatarUrl    String?     @map("avatar_url")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  workspaces   Workspace[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id               String              @id @default(uuid())
+  ownerId          String              @map("owner_id")
+  name             String
+  slug             String              @unique
+  plan             String              @default("flash") // flash, pro, agency
+  creditsRemaining Int                 @default(10) @map("credits_remaining")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  owner            User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  brandKit         BrandKit?
+  products         Product[]
+  generations      Generation[]
+  creditLedger     CreditTransaction[]
+  invoices         Invoice[]
+  socialPosts      SocialPost[]
+
+  @@map("workspaces")
+}
+
+model BrandKit {
+  id                String    @id @default(uuid())
+  workspaceId       String    @unique @map("workspace_id")
+  shopName          String    @map("shop_name")
+  logoUrl           String    @map("logo_url")
+  primaryColor      String    @default("#00E5FF") @map("primary_color")
+  secondaryColor    String    @default("#FF5722") @map("secondary_color")
+  accentColor       String    @default("#10B981") @map("accent_color")
+  fontFamily        String    @default("Outfit, sans-serif") @map("font_family")
+  sloganDarija      String?   @map("slogan_darija")
+  sloganFr          String?   @map("slogan_fr")
+  instagramHandle   String?   @map("instagram_handle")
+  whatsappNumber    String?   @map("whatsapp_number")
+  deliveryMention   String    @default("Livraison 24-48h sur les 24 gouvernorats") @map("delivery_mention")
+  watermarkEnabled  Boolean   @default(false) @map("watermark_enabled")
+  watermarkPosition String    @default("top-right") @map("watermark_position")
+  aiPreferences     Json?     @default("{}") @map("ai_preferences")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("brand_kits")
+}
+
+model Product {
+  id                String          @id @default(uuid())
+  workspaceId       String          @map("workspace_id")
+  name              String
+  category          String          @default("general")
+  priceTND          Decimal         @map("price_tnd") @db.Decimal(10, 3)
+  originalImageUrl  String          @map("original_image_url")
+  cutoutImageUrl    String?         @map("cutout_image_url")
+  descriptionFr     String?         @map("description_fr")
+  descriptionDarija String?         @map("description_darija")
+  badgeLabel        String?         @map("badge_label")
+  isActive          Boolean         @default(true) @map("is_active")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  workspace         Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  generations       Generation[]
+  creativeAssets    CreativeAsset[]
+
+  @@map("products")
+}
+
+model Generation {
+  id              String          @id @default(uuid())
+  workspaceId     String          @map("workspace_id")
+  productId       String?         @map("product_id")
+  promptUsed      String          @map("prompt_used")
+  status          String          @default("completed")
+  creditsDeducted Int             @default(1) @map("credits_deducted")
+  createdAt       DateTime        @default(now()) @map("created_at")
+
+  workspace       Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  product         Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  assets          CreativeAsset[]
+
+  @@map("generations")
+}
+
+model CreativeAsset {
+  id                String       @id @default(uuid())
+  generationId      String       @map("generation_id")
+  productId         String?      @map("product_id")
+  formatType        String       @map("format_type") // story, facebook, instagram_post
+  aspectRatio       String       @map("aspect_ratio")
+  finalImageUrl     String       @map("final_image_url")
+  backgroundUrl     String       @map("background_url")
+  headline          String
+  subheadlineDarija String?      @map("subheadline_darija")
+  ctaText           String       @default("Commander") @map("cta_text")
+  priceDisplayed    String?      @map("price_displayed")
+  badgeText         String?      @map("badge_text")
+  shadowPhysics     Json?        @default("{}") @map("shadow_physics")
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  generation        Generation   @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  product           Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  socialPosts       SocialPost[]
+
+  @@map("creative_assets")
+}
+
+model CreditTransaction {
+  id           String    @id @default(uuid())
+  workspaceId  String    @map("workspace_id")
+  type         String    // TOPUP, CONSUME, REFUND
+  amount       Int
+  balanceAfter Int       @map("balance_after")
+  reason       String
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("credit_transactions")
+}
+
+model Invoice {
+  id               String    @id @default(uuid())
+  workspaceId      String    @map("workspace_id")
+  invoiceNumber    String    @unique @map("invoice_number")
+  amountTND        Decimal   @map("amount_tnd") @db.Decimal(10, 3)
+  packId           String    @map("pack_id")
+  paymentGateway   String    @map("payment_gateway") // flouci, konnect, credit_card, b2b_invoice
+  paymentStatus    String    @default("PENDING") @map("payment_status")
+  gatewayReference String?   @map("gateway_reference")
+  customerName     String    @map("customer_name")
+  customerPhone    String?   @map("customer_phone")
+  matriculeFiscal  String?   @map("matricule_fiscal")
+  paidAt           DateTime? @map("paid_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+model SocialPost {
+  id              String         @id @default(uuid())
+  workspaceId     String         @map("workspace_id")
+  creativeAssetId String?        @map("creative_asset_id")
+  platform        String         // instagram, facebook, tiktok
+  captionDarija   String         @map("caption_darija")
+  scheduledAt     DateTime?      @map("scheduled_at")
+  status          String         @default("draft")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  workspace       Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creativeAsset   CreativeAsset? @relation(fields: [creativeAssetId], references: [id], onDelete: Cascade)
+
+  @@map("social_posts")
+}
