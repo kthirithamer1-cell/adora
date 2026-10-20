@@ -1,7 +1,7 @@
 'use server';
 
+import { getCurrentSession, savePersistedStore } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { getCurrentSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
 export interface VisualAssetPayload {
@@ -24,6 +24,9 @@ export async function recordGenerationAction(payload: {
 }) {
   try {
     const session = await getCurrentSession();
+    if (!session) {
+      return { success: false, error: 'Session expirée. Veuillez vous reconnecter.' };
+    }
     const wsId = session.workspace.id;
     const cost = payload.creditsCost || 1;
 
@@ -94,7 +97,7 @@ export async function recordGenerationAction(payload: {
     }
 
     revalidatePath('/studio');
-    revalidatePath('/dashboard');
+    revalidatePath('/studio');
 
     return {
       success: true,

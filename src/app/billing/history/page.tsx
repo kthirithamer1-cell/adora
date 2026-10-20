@@ -38,6 +38,7 @@ export default function BillingHistoryPage() {
   const totalSpentTND = transactions.reduce((acc, t) => acc + t.amountTND, 0);
 
   const gatewayBadges: Record<string, { label: string; color: string; bg: string }> = {
+    whop: { label: 'Whop MoR', color: '#FF6243', bg: 'rgba(255, 98, 67, 0.15)' },
     flouci: { label: 'Flouci Mobile', color: '#00E5FF', bg: 'rgba(0, 229, 255, 0.15)' },
     konnect: { label: 'Konnect Gateway', color: '#FF5722', bg: 'rgba(255, 87, 34, 0.15)' },
     b2b_invoice: { label: 'Virement / Chèque B2B', color: '#A855F7', bg: 'rgba(168, 85, 247, 0.15)' },
@@ -46,7 +47,7 @@ export default function BillingHistoryPage() {
   return (
     <AppShell activeNav="billing-history" pageTitle="Historique des Factures & Recharges">
       <div style={{ maxWidth: '1160px', margin: '0 auto' }}>
-        
+
         {/* En-tête de la page */}
         <div style={{
           display: 'flex',
@@ -226,7 +227,7 @@ export default function BillingHistoryPage() {
               gap: '8px',
             }}
           >
-            <span>⚡ Audit Trail des Appels API & Coûts IA (ADORA-74)</span>
+            <span>⚡ Audit Trail des Appels API & Coûts IA (MarkMosaiq-74)</span>
             <span style={{
               background: activeTab === 'audit_trail' ? '#059669' : '#E2E8F0',
               color: activeTab === 'audit_trail' ? '#FFF' : '#475569',
@@ -357,7 +358,7 @@ export default function BillingHistoryPage() {
           </div>
         )}
 
-        {/* CONTENU ONGLET 2 : AUDIT TRAIL API & COÛTS RÉELS IA (ADORA-74 & ADORA-73) */}
+        {/* CONTENU ONGLET 2 : AUDIT TRAIL API & COÛTS RÉELS IA (MarkMosaiq-74 & MarkMosaiq-73) */}
         {activeTab === 'audit_trail' && (
           <div style={{
             background: '#FFFFFF',
@@ -372,7 +373,7 @@ export default function BillingHistoryPage() {
                   Audit Trail Détaillé des Appels API (OpenAI & Moteur Studio)
                 </h3>
                 <p style={{ color: '#64748B', fontSize: '13px', margin: '4px 0 0' }}>
-                  Suivi unitaire des modèles, tokens consommés, latence réseau, débits de crédits et coûts réels en Dinars Tunisiens (TND).
+                  Suivi unitaire des modèles, tokens consommés, latence réseau, débits de crédits et coûts réels en Dinars Tunisiens (USD).
                 </p>
               </div>
               <div style={{
@@ -502,12 +503,12 @@ export default function BillingHistoryPage() {
               boxShadow: '0 30px 60px rgba(0, 0, 0, 0.8)',
               fontFamily: 'Plus Jakarta Sans, sans-serif',
             }}>
-              
+
               {/* En-tête facture */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #07090E', paddingBottom: '20px', marginBottom: '24px' }}>
                 <div>
                   <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
-                    ADORA STUDIO SARL
+                    MarkMosaiq STUDIO SARL
                   </h2>
                   <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
                     Plateforme IA E-Commerce Tunisie<br />

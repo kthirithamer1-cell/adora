@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { TIERS, Tier } from '@/config/tiers';
-import { getPaddleInstance, PaddlePricePreviewParams } from '@/lib/paddle-sdk';
-import { Check, Sparkles, Zap, ShieldCheck, ArrowRight, Loader2, Globe } from 'lucide-react';
+import { PACKS, formatPrice, PackId } from '@/config/packs';
+import { buildCheckoutUrl } from '@/lib/checkout/params';
+import { Check, Sparkles, Zap, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 
 interface PricingTableProps {
   countryCode?: string;
@@ -12,103 +13,36 @@ interface PricingTableProps {
 
 export default function PricingTable({ countryCode, customerEmail }: PricingTableProps) {
   const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
-  const [prices, setPrices] = useState<Record<string, string>>({});
-  const [loadingPrices, setLoadingPrices] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [subscribingTier, setSubscribingTier] = useState<string | null>(null);
 
-  // Fetch Paddle localized prices via Paddle.PricePreview()
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function loadLocalizedPrices() {
-      setLoadingPrices(true);
-      setError(null);
-
-      try {
-        const paddle = await getPaddleInstance();
-
-        // Construit les items avec les price IDs correspondants au cycle sélectionné
-        const items = TIERS.map((tier) => ({
-          priceId: tier.priceId[billingCycle],
-          quantity: 1,
-        }));
-
-        // Si countryCode est détecté côté serveur (code ISO 2 lettres), on le passe.
-        // Tarification demandée en Dollar USD ($)
-        const params: PaddlePricePreviewParams = {
-          items,
-          currencyCode: 'USD',
-        };
-        if (countryCode && countryCode.length === 2 && countryCode !== 'OTHERS') {
-          params.address = { countryCode: countryCode.toUpperCase() };
-        }
-
-        const previewResponse = await paddle.PricePreview(params);
-
-        if (isCancelled) return;
-
-        const lineItems = previewResponse?.data?.details?.lineItems || [];
-        const mappedPrices: Record<string, string> = {};
-
-        TIERS.forEach((tier) => {
-          const expectedPriceId = tier.priceId[billingCycle];
-          const matchedItem = lineItems.find(
-            (item: any) => item.price?.id === expectedPriceId || item.priceId === expectedPriceId
-          );
-
-          if (matchedItem?.formattedTotals?.total) {
-            // Affiche STRICTEMENT le total formaté par Paddle — aucun recalcul, aucun formattage
-            mappedPrices[tier.name] = matchedItem.formattedTotals.total;
-          } else {
-            // Tarif officiel configuré : $19 (Starter), $49 (Pro), $100 (Advanced)
-            mappedPrices[tier.name] = tier.priceUSD[billingCycle];
-          }
-        });
-
-        setPrices(mappedPrices);
-      } catch (err: any) {
-        if (!isCancelled) {
-          console.error('[Paddle PricePreview Error]:', err);
-          setError(
-            err.message || 'Impossible de charger les prix localisés. Vous pouvez continuer vers le checkout sécurisé.'
-          );
-        }
-      } finally {
-        if (!isCancelled) {
-          setLoadingPrices(false);
-        }
-      }
-    }
-
-    loadLocalizedPrices();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [billingCycle, countryCode]);
-
-  // Ouverture du checkout Paddle en overlay one-page
+  // Redirection vers le checkout canonique
   const handleSubscribe = async (tier: Tier) => {
     try {
       setSubscribingTier(tier.name);
-      const paddle = await getPaddleInstance();
-      const selectedPriceId = tier.priceId[billingCycle];
+      const packMap: Record<string, PackId> = {
+        Starter: 'flash',
+        Pro: 'pro',
+        Advanced: 'agency_299',
+      };
+      const packId: PackId = packMap[tier.name] || 'pro';
+      const cycle = billingCycle === 'year' ? 'annual' : 'monthly';
+      const currency = 'USD';
 
-      paddle.Checkout.open({
-        items: [{ priceId: selectedPriceId, quantity: 1 }],
-        customer: customerEmail ? { email: customerEmail } : undefined,
-        settings: {
-          displayMode: 'overlay',
-          variant: 'one-page',
-          theme: 'dark',
-          locale: 'fr',
-          successUrl: `${window.location.origin}/welcome`,
-        },
-      });
+      // Enregistre l'intention dans le cookie signé mm_intent
+      try {
+        await fetch('/api/checkout/intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pack: packId, cycle, currency }),
+        });
+      } catch {
+        // Continue even if pre-fetch fails
+      }
+
+      window.location.href = buildCheckoutUrl({ pack: packId, cycle, currency });
     } catch (checkoutErr: any) {
-      console.error('[Paddle Checkout Error]:', checkoutErr);
-      alert(checkoutErr.message || 'Erreur lors de l’ouverture du checkout Paddle.');
+      console.error('[Checkout Error]:', checkoutErr);
+      alert(checkoutErr.message || 'Erreur lors de la redirection vers le paiement.');
     } finally {
       setSubscribingTier(null);
     }
@@ -126,83 +60,59 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
           marginBottom: '40px',
         }}
       >
-        {/* Badge pays détecté */}
-        {countryCode && countryCode.length === 2 && (
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 800,
-              color: '#00E5FF',
-              background: 'rgba(0, 229, 255, 0.08)',
-              border: '1px solid rgba(0, 229, 255, 0.25)',
-              padding: '4px 14px',
-              borderRadius: '999px',
-            }}
-          >
-            <Globe size={13} color="#00E5FF" />
-            <span>Tarifs automatiques pour votre pays ({countryCode})</span>
-          </div>
-        )}
-
-        {/* Toggle Facturation */}
         <div
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            background: '#131823',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: '#0E131F',
             borderRadius: '999px',
             padding: '4px',
-            position: 'relative',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
           }}
         >
           <button
             type="button"
             onClick={() => setBillingCycle('month')}
             style={{
+              padding: '10px 24px',
+              borderRadius: '999px',
+              fontSize: '0.88rem',
+              fontWeight: 800,
               background: billingCycle === 'month' ? 'linear-gradient(135deg, #00E5FF, #3B82F6)' : 'transparent',
               color: billingCycle === 'month' ? '#07090E' : '#94A3B8',
               border: 'none',
-              borderRadius: '999px',
-              padding: '8px 20px',
-              fontSize: '0.85rem',
-              fontWeight: 800,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
             }}
           >
-            Mensuel
+            Facturation Mensuelle
           </button>
-
           <button
             type="button"
             onClick={() => setBillingCycle('year')}
             style={{
+              padding: '10px 24px',
+              borderRadius: '999px',
+              fontSize: '0.88rem',
+              fontWeight: 800,
               background: billingCycle === 'year' ? 'linear-gradient(135deg, #00E5FF, #3B82F6)' : 'transparent',
               color: billingCycle === 'year' ? '#07090E' : '#94A3B8',
               border: 'none',
-              borderRadius: '999px',
-              padding: '8px 20px',
-              fontSize: '0.85rem',
-              fontWeight: 800,
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              transition: 'all 0.2s ease',
             }}
           >
-            <span>Annuel</span>
+            <span>Facturation Annuelle</span>
             <span
               style={{
-                fontSize: '0.65rem',
+                fontSize: '0.68rem',
                 fontWeight: 900,
-                color: billingCycle === 'year' ? '#07090E' : '#10B981',
-                background: billingCycle === 'year' ? 'rgba(7, 9, 14, 0.2)' : 'rgba(16, 185, 129, 0.15)',
-                padding: '2px 6px',
+                color: '#10B981',
+                background: 'rgba(16, 185, 129, 0.15)',
+                padding: '2px 8px',
                 borderRadius: '6px',
               }}
             >
@@ -211,25 +121,6 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
           </button>
         </div>
       </div>
-
-      {/* MESSAGE D'ERREUR ÉVENTUEL */}
-      {error && (
-        <div
-          style={{
-            maxWidth: '680px',
-            margin: '0 auto 24px',
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: '12px',
-            padding: '12px 18px',
-            color: '#FCA5A5',
-            fontSize: '0.84rem',
-            textAlign: 'center',
-          }}
-        >
-          {error}
-        </div>
-      )}
 
       {/* GRILLE DES 3 TIERS (STARTER, PRO, ADVANCED) */}
       <div
@@ -244,7 +135,7 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
       >
         {TIERS.map((tier) => {
           const isHighlighted = tier.highlight;
-          const displayPrice = prices[tier.name];
+          const displayPrice = tier.priceUSD[billingCycle];
 
           return (
             <div
@@ -310,7 +201,7 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
                 {tier.description}
               </p>
 
-              {/* ZONE DE PRIX LOCALISÉ DEPUIS PADDLE */}
+              {/* ZONE DE PRIX */}
               <div
                 style={{
                   marginBottom: '28px',
@@ -318,29 +209,22 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
                   borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
                 }}
               >
-                {loadingPrices ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '48px' }}>
-                    <Loader2 size={20} color="#00E5FF" className="animate-spin" />
-                    <span style={{ fontSize: '0.86rem', color: '#64748B' }}>Calcul du prix localisé…</span>
+                <div>
+                  <div
+                    style={{
+                      fontSize: '2.4rem',
+                      fontWeight: 900,
+                      color: isHighlighted ? '#00E5FF' : '#FFFFFF',
+                      lineHeight: 1,
+                      letterSpacing: '-0.03em',
+                    }}
+                  >
+                    {displayPrice}
                   </div>
-                ) : (
-                  <div>
-                    <div
-                      style={{
-                        fontSize: '2.4rem',
-                        fontWeight: 900,
-                        color: isHighlighted ? '#00E5FF' : '#FFFFFF',
-                        lineHeight: 1,
-                        letterSpacing: '-0.03em',
-                      }}
-                    >
-                      {displayPrice || '—'}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '6px' }}>
-                      facturé {billingCycle === 'month' ? 'par mois' : 'par an'} via Paddle
-                    </div>
+                  <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '6px' }}>
+                    facturé {billingCycle === 'month' ? 'par mois' : 'par an'} via Whop MoR
                   </div>
-                )}
+                </div>
               </div>
 
               {/* LISTE DES FONCTIONNALITÉS */}
@@ -377,7 +261,7 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
                 ))}
               </ul>
 
-              {/* BOUTON SUBSCRIBE -> PADDLE CHECKOUT OVERLAY ONE-PAGE */}
+              {/* BOUTON SUBSCRIBE */}
               <button
                 type="button"
                 onClick={() => handleSubscribe(tier)}
@@ -405,7 +289,7 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
                 {subscribingTier === tier.name ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    <span>Ouverture de Paddle…</span>
+                    <span>Redirection vers Whop…</span>
                   </>
                 ) : (
                   <>
@@ -419,7 +303,7 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
         })}
       </div>
 
-      {/* RASSURANCE PADDLE CHECKOUT */}
+      {/* RASSURANCE WHOP CHECKOUT */}
       <div
         style={{
           marginTop: '48px',
@@ -434,7 +318,7 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <ShieldCheck size={16} color="#10B981" /> Paiement sécurisé Paddle (MoR)
+          <ShieldCheck size={16} color="#10B981" /> Paiement sécurisé Whop (Merchant of Record)
         </span>
         <span>•</span>
         <span>Cartes Bancaires Internationales (Visa, Mastercard, Amex)</span>

@@ -1,6 +1,6 @@
 /**
- * Moteur d'Audit Trail & Journalisation Granulaire des Appels API — Adora SaaS
- * Tickets Jira : ADORA-73 & ADORA-74
+ * Moteur d'Audit Trail & Journalisation Granulaire des Appels API — MarkMosaiq SaaS
+ * Tickets Jira : MarkMosaiq-73 & MarkMosaiq-74
  * Traçabilité complète : Tokens, Modèles, Résolutions, Latence, Coûts Réels ($ et DT) et Débit des Crédits
  */
 
@@ -26,7 +26,7 @@ export interface ApiUsageLogEntry {
   details?: Record<string, any>;
 }
 
-// Taux de change officiel USD vers Dinar Tunisien (TND)
+// Taux de change officiel USD vers Dinar Tunisien (USD)
 export const USD_TO_TND_RATE = 3.120;
 
 /**
@@ -82,7 +82,7 @@ export function calculateApiCost(
     costUSD = 0.030;
   }
 
-  // Arrondi à 6 décimales pour USD et 4 décimales pour TND (millimes précis)
+  // Arrondi à 6 décimales pour USD et 4 décimales pour USD (millimes précis)
   costUSD = Math.round(costUSD * 1000000) / 1000000;
   const costTND = Math.round(costUSD * USD_TO_TND_RATE * 10000) / 10000;
 

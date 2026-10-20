@@ -8,6 +8,9 @@ import {
 export async function POST(req: NextRequest) {
   try {
     const session = await getCurrentSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Non autorisé' }, { status: 401 });
+    }
     const body = await req.json();
     const { workspaceId } = body;
 

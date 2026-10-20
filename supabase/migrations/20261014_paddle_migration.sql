@@ -1,6 +1,6 @@
 -- Migration : Intégration de Paddle Billing en remplacement de Flouci
 -- Date : 2026-10-14
--- Auteur : Adora AI Studio
+-- Auteur : MarkMosaiq AI Studio
 
 -- 1. Mise à jour de la contrainte CHECK sur le gateway de paiement
 ALTER TABLE public.invoices 

@@ -3,9 +3,9 @@ import LegalLayout, { TocItem } from '@/components/legal/LegalLayout';
 import { ShieldCheck, CheckCircle2, AlertTriangle, FileText, Scale, Sparkles } from 'lucide-react';
 
 export const metadata = {
-  title: "Conditions Générales d'Utilisation et de Vente (Terms of Service) — Adora",
+  title: "Conditions Générales d'Utilisation et de Vente (Terms of Service) — MarkMosaiq",
   description:
-    "Consultez les Conditions Générales d'Adora AI : modalités d'abonnement, propriété des visuels e-commerce, paiement sécurisé Paddle Merchant of Record et droits d'utilisation.",
+    "Consultez les Conditions Générales d'MarkMosaiq AI : modalités d'abonnement, propriété des visuels e-commerce, paiement sécurisé Whop Merchant of Record et droits d'utilisation.",
 };
 
 const TOC: TocItem[] = [
@@ -13,7 +13,7 @@ const TOC: TocItem[] = [
   { id: 'acceptation', title: '2. Acceptation & Évolution' },
   { id: 'comptes', title: '3. Inscription & Sécurité' },
   { id: 'abonnements-tarifs', title: '4. Formules & Crédits' },
-  { id: 'paddle-paiement', title: '5. Paiement & Paddle (MoR)' },
+  { id: 'whop-paiement', title: '5. Paiement & Whop (MoR)' },
   { id: 'propriete-intellectuelle', title: '6. Propriété & Droits Commerciaux' },
   { id: 'usage-acceptable', title: '7. Usages Acceptables & Restrictions' },
   { id: 'fiabilite-ia', title: '8. Nature des Générations IA' },
@@ -26,12 +26,12 @@ export default function TermsPage() {
     <LegalLayout
       currentTab="terms"
       title="Conditions Générales d'Utilisation & de Vente"
-      subtitle="Cadre contractuel régissant l'utilisation de la plateforme Adora AI, les crédits de génération visuelle pour le commerce électronique et les transactions opérées via Paddle."
+      subtitle="Cadre contractuel régissant l'utilisation de la plateforme MarkMosaiq AI, les crédits de génération visuelle pour le commerce électronique et les transactions opérées via Whop."
       lastUpdated="14 Octobre 2026"
       toc={TOC}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '36px', color: '#CBD5E1', fontSize: '0.96rem', lineHeight: 1.75 }}>
-        
+
         {/* Intro Banner */}
         <div
           style={{
@@ -50,7 +50,7 @@ export default function TermsPage() {
               Synthèse en langage clair pour les marchands
             </h4>
             <p style={{ margin: 0, fontSize: '0.9rem', color: '#94A3B8', lineHeight: 1.6 }}>
-              Vous conservez <strong>100% de la propriété intellectuelle</strong> de vos produits et des images publicitaires générées sur Adora. Vous êtes libre d’utiliser ces créations à des fins commerciales sans redevance. Nos abonnements et achats de crédits sont sans engagement caché et nos paiements internationaux sont sécurisés par Paddle (Merchant of Record).
+              Vous conservez <strong>100% de la propriété intellectuelle</strong> de vos produits et des images publicitaires générées sur MarkMosaiq. Vous êtes libre d’utiliser ces créations à des fins commerciales sans redevance. Nos abonnements et achats de crédits sont sans engagement caché et nos paiements internationaux sont sécurisés par Whop (Merchant of Record).
             </p>
           </div>
         </div>
@@ -61,7 +61,7 @@ export default function TermsPage() {
             1. Présentation du Service
           </h2>
           <p>
-            La plateforme <strong>Adora</strong> (accessible via le domaine web officiel et ses sous-domaines) est une solution SaaS de studio créatif assisté par intelligence artificielle. Adora permet aux marchands en ligne, marques, créateurs et agences d’importer leurs photos de produits brutes pour générer automatiquement des mises en scène publicitaires, des décors studio haute définition, des déclinaisons pour les réseaux sociaux (Instagram, TikTok, Facebook) ainsi que des argumentaires de vente adaptés.
+            La plateforme <strong>MarkMosaiq</strong> (accessible via le domaine web officiel et ses sous-domaines) est une solution SaaS de studio créatif assisté par intelligence artificielle. MarkMosaiq permet aux marchands en ligne, marques, créateurs et agences d’importer leurs photos de produits brutes pour générer automatiquement des mises en scène publicitaires, des décors studio haute définition, des déclinaisons pour les réseaux sociaux (Instagram, TikTok, Facebook) ainsi que des argumentaires de vente adaptés.
           </p>
           <p>
             Le terme « Utilisateur » ou « Client » désigne toute personne physique ou morale accédant à la plateforme et utilisant ses fonctionnalités gratuites ou payantes.
@@ -74,10 +74,10 @@ export default function TermsPage() {
             2. Acceptation & Évolution des Conditions
           </h2>
           <p>
-            L’inscription, l’accès ou l’utilisation de la plateforme Adora emporte acceptation sans réserve des présentes Conditions Générales d’Utilisation et de Vente (CGU/CGV). Si l’Utilisateur n’accepte pas l’intégralité de ces dispositions, il est prié de cesser immédiatement l’utilisation de la plateforme.
+            L’inscription, l’accès ou l’utilisation de la plateforme MarkMosaiq emporte acceptation sans réserve des présentes Conditions Générales d’Utilisation et de Vente (CGU/CGV). Si l’Utilisateur n’accepte pas l’intégralité de ces dispositions, il est prié de cesser immédiatement l’utilisation de la plateforme.
           </p>
           <p>
-            Adora se réserve le droit de modifier unilatéralement les présentes conditions à tout moment pour tenir compte des évolutions techniques, législatives ou commerciales. Les Utilisateurs inscrits seront informés des modifications substantielles par e-mail ou notification sur leur espace de travail au moins 15 jours avant leur entrée en vigueur.
+            MarkMosaiq se réserve le droit de modifier unilatéralement les présentes conditions à tout moment pour tenir compte des évolutions techniques, législatives ou commerciales. Les Utilisateurs inscrits seront informés des modifications substantielles par e-mail ou notification sur leur espace de travail au moins 15 jours avant leur entrée en vigueur.
           </p>
         </section>
 
@@ -87,11 +87,11 @@ export default function TermsPage() {
             3. Inscription & Sécurité des Comptes Marchands
           </h2>
           <p>
-            Pour accéder aux fonctionnalités complètes du Studio Adora, l’Utilisateur doit créer un compte en fournissant une adresse e-mail professionnelle valide ainsi qu’un mot de passe sécurisé. L’Utilisateur garantit l’exactitude des données transmises et s’engage à mettre à jour ses coordonnées en cas de changement.
+            Pour accéder aux fonctionnalités complètes du Studio MarkMosaiq, l’Utilisateur doit créer un compte en fournissant une adresse e-mail professionnelle valide ainsi qu’un mot de passe sécurisé. L’Utilisateur garantit l’exactitude des données transmises et s’engage à mettre à jour ses coordonnées en cas de changement.
           </p>
           <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <li><strong>Confidentialité des accès :</strong> Les identifiants sont strictement individuels. L'Utilisateur est seul responsable de toute activité réalisée depuis son compte ou ses espaces de travail multi-tenants.</li>
-            <li><strong>Suspicion d'intrusion :</strong> Tout usage frauduleux ou tentative d’accès non autorisé doit être notifié sans délai à l'adresse <code style={{ color: '#00E5FF' }}>support@adora.ai</code>.</li>
+            <li><strong>Suspicion d'intrusion :</strong> Tout usage frauduleux ou tentative d’accès non autorisé doit être notifié sans délai à l'adresse <code style={{ color: '#00E5FF' }}>support@MarkMosaiq.ai</code>.</li>
           </ul>
         </section>
 
@@ -101,23 +101,23 @@ export default function TermsPage() {
             4. Formules d'Abonnement, Packs de Crédits & Tarification
           </h2>
           <p>
-            Adora propose plusieurs offres commerciales adaptées aux besoins des e-commerçants :
+            MarkMosaiq propose plusieurs offres commerciales adaptées aux besoins des e-commerçants :
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', margin: '18px 0' }}>
             <div style={{ background: '#131823', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
               <div style={{ color: '#00E5FF', fontWeight: 800, fontSize: '0.92rem' }}>Pack Starter Découverte</div>
-              <div style={{ color: '#FFFFFF', fontSize: '1.25rem', fontWeight: 900, margin: '6px 0' }}>$19 / 59 DT</div>
-              <p style={{ fontSize: '0.82rem', color: '#94A3B8', margin: 0 }}>Pack ponctuel de 10 visuels studio ultra-HD, sans récurrence obligatoire.</p>
+              <div style={{ color: '#FFFFFF', fontSize: '1.25rem', fontWeight: 900, margin: '6px 0' }}>$19</div>
+              <p style={{ fontSize: '0.82rem', color: '#94A3B8', margin: 0 }}>Pack ponctuel de 20 visuels studio ultra-HD, sans récurrence obligatoire.</p>
             </div>
             <div style={{ background: '#131823', border: '1px solid rgba(0, 229, 255, 0.25)', borderRadius: '12px', padding: '16px' }}>
               <div style={{ color: '#00E5FF', fontWeight: 800, fontSize: '0.92rem' }}>Pack Pro Lancement ⚡</div>
-              <div style={{ color: '#FFFFFF', fontSize: '1.25rem', fontWeight: 900, margin: '6px 0' }}>$49 / 149 DT</div>
-              <p style={{ fontSize: '0.82rem', color: '#94A3B8', margin: 0 }}>Pack étendu de 30 générations studio, déclinaisons multiformats et copies marketing.</p>
+              <div style={{ color: '#FFFFFF', fontSize: '1.25rem', fontWeight: 900, margin: '6px 0' }}>$49</div>
+              <p style={{ fontSize: '0.82rem', color: '#94A3B8', margin: 0 }}>Pack étendu de 50 générations studio, déclinaisons multiformats et copies marketing.</p>
             </div>
             <div style={{ background: '#131823', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
               <div style={{ color: '#A855F7', fontWeight: 800, fontSize: '0.92rem' }}>Abonnement Agence Advanced</div>
-              <div style={{ color: '#FFFFFF', fontSize: '1.25rem', fontWeight: 900, margin: '6px 0' }}>$100 / 299 DT /mois</div>
-              <p style={{ fontSize: '0.82rem', color: '#94A3B8', margin: 0 }}>100 crédits mensuels rechargeables, multi-espaces clients et support prioritaire 24/7.</p>
+              <div style={{ color: '#FFFFFF', fontSize: '1.25rem', fontWeight: 900, margin: '6px 0' }}>$99 /mois</div>
+              <p style={{ fontSize: '0.82rem', color: '#94A3B8', margin: 0 }}>120 crédits mensuels rechargeables, multi-espaces clients et support prioritaire 24/7.</p>
             </div>
           </div>
           <p>
@@ -126,9 +126,9 @@ export default function TermsPage() {
         </section>
 
         {/* Section 5 */}
-        <section id="paddle-paiement" style={{ scrollMarginTop: '100px' }}>
+        <section id="whop-paiement" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            5. Modalités de Paiement & Rôle de Paddle (Merchant of Record)
+            5. Modalités de Paiement & Rôle de Whop (Merchant of Record)
           </h2>
           <div
             style={{
@@ -140,14 +140,14 @@ export default function TermsPage() {
             }}
           >
             <p style={{ margin: 0, fontSize: '0.92rem', color: '#E2E8F0', lineHeight: 1.6 }}>
-              <strong>Important :</strong> Pour toutes les commandes internationales réglées par carte bancaire ou PayPal, <strong>Paddle Payments Ltd</strong> (ou Paddle Inc.) intervient en qualité de <em>Merchant of Record</em> (commerçant officiel).
+              <strong>Important :</strong> Pour toutes les commandes internationales réglées par carte bancaire ou Apple/Google Pay, <strong>Whop Inc.</strong> intervient en qualité de <em>Merchant of Record</em> (commerçant officiel).
             </p>
           </div>
           <p>
-            À ce titre, Paddle encaisse le paiement pour le compte d’Adora, émet les factures officielles incluant la TVA, la Sales Tax ou toute taxe locale applicable selon le pays de l’acheteur, et traite les demandes d’autorisation bancaire 3D Secure v2.
+            À ce titre, Whop encaisse le paiement pour le compte d’MarkMosaiq, émet les factures officielles incluant la TVA, la Sales Tax ou toute taxe locale applicable selon le pays de l’acheteur, et traite les demandes d’autorisation bancaire 3D Secure v2.
           </p>
           <p>
-            Pour les règlements locaux en Tunisie (Dinars Tunisiens TND), les marchands bénéficient d’options de règlement agréées (passerelles nationales Konnect, Flouci ou virement bancaire inter-entreprises avec facturation locale émise par l’entité exploitante).
+            Pour les règlements locaux en Tunisie (Dinars Tunisiens USD), les marchands bénéficient d’options de règlement agréées (passerelles nationales Konnect, Flouci ou virement bancaire inter-entreprises avec facturation locale émise par l’entité exploitante).
           </p>
         </section>
 
@@ -157,25 +157,25 @@ export default function TermsPage() {
             6. Propriété Intellectuelle & Droits Commerciaux sur les Visuels
           </h2>
           <p>
-            Le respect des marques et des créations de nos clients est au cœur de l’éthique d’Adora :
+            Le respect des marques et des créations de nos clients est au cœur de l’éthique d’MarkMosaiq :
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '14px 0' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
               <CheckCircle2 size={18} color="#10B981" style={{ flexShrink: 0, marginTop: '3px' }} />
               <div>
-                <strong style={{ color: '#FFFFFF' }}>Vos Produits & Photos Brutes :</strong> Vous conservez l’intégralité de vos droits d’auteur, marques déposées et droits de propriété industrielle sur les photos de vos articles téléversées dans le Studio. Adora n’acquiert aucun droit de propriété sur vos produits.
+                <strong style={{ color: '#FFFFFF' }}>Vos Produits & Photos Brutes :</strong> Vous conservez l’intégralité de vos droits d’auteur, marques déposées et droits de propriété industrielle sur les photos de vos articles téléversées dans le Studio. MarkMosaiq n’acquiert aucun droit de propriété sur vos produits.
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
               <CheckCircle2 size={18} color="#10B981" style={{ flexShrink: 0, marginTop: '3px' }} />
               <div>
-                <strong style={{ color: '#FFFFFF' }}>Visuels Publicitaires Générés :</strong> Dès la génération complète et le débit de vos crédits, Adora vous accorde une <strong>licence commerciale exclusive, mondiale, perpétuelle et sans redevance</strong> pour exploiter, modifier, reproduire et diffuser les visuels générés (boutiques Shopify/WooCommerce, catalogues papier, campagnes sponsorisées Meta, TikTok, Google Shopping, etc.).
+                <strong style={{ color: '#FFFFFF' }}>Visuels Publicitaires Générés :</strong> Dès la génération complète et le débit de vos crédits, MarkMosaiq vous accorde une <strong>licence commerciale exclusive, mondiale, perpétuelle et sans redevance</strong> pour exploiter, modifier, reproduire et diffuser les visuels générés (boutiques Shopify/WooCommerce, catalogues papier, campagnes sponsorisées Meta, TikTok, Google Shopping, etc.).
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
               <CheckCircle2 size={18} color="#10B981" style={{ flexShrink: 0, marginTop: '3px' }} />
               <div>
-                <strong style={{ color: '#FFFFFF' }}>Technologie Adora :</strong> L’architecture applicative, l’interface graphique, les algorithmes de compositing d’ombres physiques et les modèles logiciels demeurent la propriété exclusive d’Adora.
+                <strong style={{ color: '#FFFFFF' }}>Technologie MarkMosaiq :</strong> L’architecture applicative, l’interface graphique, les algorithmes de compositing d’ombres physiques et les modèles logiciels demeurent la propriété exclusive d’MarkMosaiq.
               </div>
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function TermsPage() {
             7. Usages Acceptables & Restrictions d'Utilisation
           </h2>
           <p>
-            En accédant au service Adora, l’Utilisateur s’interdit rigoureusement de :
+            En accédant au service MarkMosaiq, l’Utilisateur s’interdit rigoureusement de :
           </p>
           <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <li>Téléverser des images de produits contrefaits, illicites, dangereux, diffamatoires ou contraires à l’ordre public.</li>
@@ -195,7 +195,7 @@ export default function TermsPage() {
             <li>Générer des visuels à caractère haineux, pornographique ou violant les droits de tiers.</li>
           </ul>
           <p>
-            Tout manquement donne droit à Adora de suspendre immédiatement le compte de l’Utilisateur sans préavis ni remboursement des crédits résiduels.
+            Tout manquement donne droit à MarkMosaiq de suspendre immédiatement le compte de l’Utilisateur sans préavis ni remboursement des crédits résiduels.
           </p>
         </section>
 
@@ -205,7 +205,7 @@ export default function TermsPage() {
             8. Nature des Générations par Intelligence Artificielle
           </h2>
           <p>
-            L’Utilisateur reconnaît que les fonds de décors et éclairages sont synthétisés à l’aide de modèles d’apprentissage profond génératifs. Bien qu’Adora applique un protocole physique strict (détourage haute précision, occlusion ambiante et projection d’ombres relatives), le résultat dépend de la qualité de la photo originale fournie.
+            L’Utilisateur reconnaît que les fonds de décors et éclairages sont synthétisés à l’aide de modèles d’apprentissage profond génératifs. Bien qu’MarkMosaiq applique un protocole physique strict (détourage haute précision, occlusion ambiante et projection d’ombres relatives), le résultat dépend de la qualité de la photo originale fournie.
           </p>
           <p>
             L’Utilisateur est invité à vérifier l’exactitude de chaque visuel et des textes publicitaires suggérés avant de lancer des dépenses publicitaires à large échelle.
@@ -218,7 +218,7 @@ export default function TermsPage() {
             9. Résiliation & Clôture de Compte
           </h2>
           <p>
-            L’Utilisateur peut mettre fin à son abonnement récurrent à tout moment, sans justification ni pénalité, directement depuis l’onglet « Facturation » de son compte ou via le portail de gestion Paddle reçu lors de sa commande.
+            L’Utilisateur peut mettre fin à son abonnement récurrent à tout moment, sans justification ni pénalité, directement depuis l’onglet « Facturation » de son compte ou via le portail client Whop reçu lors de sa commande.
           </p>
           <p>
             La résiliation prend effet au terme de la période mensuelle en cours. L’Utilisateur conserve l’accès à son espace et à ses crédits jusqu’à l’échéance du cycle de facturation payé.
@@ -234,7 +234,7 @@ export default function TermsPage() {
             Les présentes Conditions Générales sont régies par le droit applicable aux prestations de services numériques et par les dispositions protectrices des transactions commerciales internationales de notre Merchant of Record.
           </p>
           <p>
-            En cas de contestation ou de litige, l’Utilisateur s’engage à rechercher en priorité une solution amiable avec le service client d’Adora en écrivant à :
+            En cas de contestation ou de litige, l’Utilisateur s’engage à rechercher en priorité une solution amiable avec le service client d’MarkMosaiq en écrivant à :
           </p>
           <div
             style={{
@@ -247,9 +247,9 @@ export default function TermsPage() {
               gap: '6px',
             }}
           >
-            <div><strong>ADORA AI Studio — Service Juridique & Conformité</strong></div>
-            <div>E-mail de support : <a href="mailto:support@adora.ai" style={{ color: '#00E5FF' }}>support@adora.ai</a></div>
-            <div>Contact Paddle Billing : <a href="https://paddle.net" target="_blank" rel="noopener noreferrer" style={{ color: '#00E5FF' }}>paddle.net</a></div>
+            <div><strong>MarkMosaiq AI Studio — Service Juridique & Conformité</strong></div>
+            <div>E-mail de support : <a href="mailto:support@MarkMosaiq.ai" style={{ color: '#00E5FF' }}>support@MarkMosaiq.ai</a></div>
+            <div>Contact Whop Commerce : <a href="https://whop.com" target="_blank" rel="noopener noreferrer" style={{ color: '#00E5FF' }}>whop.com</a></div>
           </div>
         </section>
 

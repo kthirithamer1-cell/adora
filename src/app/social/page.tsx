@@ -141,13 +141,13 @@ export default function SocialHubPage() {
     { id: 'mock_3', imageUrl: '/images/creatine_story.jpg', caption: 'Creatine Boost' },
     { id: 'mock_4', imageUrl: '/images/bottle_nutrex.png', caption: 'IsoFit Pure' },
     { id: 'mock_5', imageUrl: '/images/gnc_pro_whey_tub_1791150838901.jpg', caption: 'GNC Whey' },
-    { id: 'mock_6', imageUrl: '/images/Adora_logo.png', caption: 'Adora Official' },
+    { id: 'mock_6', imageUrl: '/images/logo.png', caption: 'MarkMosaiq Official' },
   ].slice(0, 9);
 
   return (
     <AppShell activeNav="social" pageTitle="Calendrier Social Media Hub">
       <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
-        
+
         {/* En-tête du Hub */}
         <div style={{
           display: 'flex',
@@ -294,7 +294,7 @@ export default function SocialHubPage() {
         {/* CONTENU ONGLET 1 : CALENDRIER & POSTS PLANIFIÉS */}
         {activeTab === 'calendar' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '28px', alignItems: 'start' }}>
-            
+
             {/* Liste des publications chronologiques */}
             <div>
               <div style={{
@@ -570,8 +570,8 @@ export default function SocialHubPage() {
                     fontWeight: 800,
                     transition: 'opacity 0.2s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
                   >
                     Post #{idx + 1}
                   </div>
@@ -724,7 +724,7 @@ export default function SocialHubPage() {
               </div>
 
               <form onSubmit={(e) => handleSchedulePost(e, false)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                
+
                 {/* Sélection de l'image */}
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', color: '#334155', marginBottom: '6px', fontWeight: 600 }}>

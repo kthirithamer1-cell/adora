@@ -1,4 +1,4 @@
-# 🌟 Adora — AI Content & Product Staging Studio pour l'E-Commerce en Tunisie
+# 🌟 MarkMosaiq — AI Content & Product Staging Studio pour l'E-Commerce en Tunisie
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.3.8-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2.8-blue?style=for-the-badge&logo=react)](https://react.dev/)
@@ -6,7 +6,7 @@
 [![Supabase](https://img.shields.io/badge/Supabase-Database-emerald?style=for-the-badge&logo=supabase)](https://supabase.com/)
 [![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)]()
 
-> **Adora** est la plateforme SaaS d'IA de nouvelle génération conçue spécifiquement pour les commerçants, revendeurs et agences e-commerce en Tunisie.  
+> **MarkMosaiq** est la plateforme SaaS d'IA de nouvelle génération conçue spécifiquement pour les commerçants, revendeurs et agences e-commerce en Tunisie.  
 > Transformez une simple photo de produit prise au smartphone en un **Pack Marketing Complet de 20 à 25 visuels prêts à publier** (Feed Instagram, Stories 9:16, publicités Facebook/TikTok Ads et accroches Darija haute conversion).
 
 ---
@@ -32,7 +32,7 @@ Vendre de simples "crédits d'images brutes" à des commerçants présente 3 ver
 2. **La déformation de marque** : Une IA générative pure réinvente les étiquettes, logos et textes des produits réels.
 3. **Une faible valeur perçue** : 20 crédits d'images ressemblent à un gadget. En revanche, un **Pack de Lancement Clé en Main** prêt pour Facebook Ads, Instagram et WhatsApp a une valeur perçue de **150 à 300 DT** par rapport à un shooting studio ou une prestation graphique.
 
-**La solution Adora** : Vendre des packs structurés clé en main où le produit d'origine est **100% préservé**, avec un détourage net, des ombres portées réalistes et des badges de conversion adaptés au marché local.
+**La solution MarkMosaiq** : Vendre des packs structurés clé en main où le produit d'origine est **100% préservé**, avec un détourage net, des ombres portées réalistes et des badges de conversion adaptés au marché local.
 
 ---
 
@@ -47,7 +47,7 @@ Vendre de simples "crédits d'images brutes" à des commerçants présente 3 ver
 ### 2. 🛡️ Brand Kit Multi-Tenant avec Extracteur Automatique (`/brand-kit`)
 - **Extracteur de couleurs de logo par échantillonnage pixel (Canvas)** : Analyse instantanée du logo (PNG, SVG, JPG, Base64) pour extraire la couleur primaire (CTA), secondaire (badges) et d'accentuation.
 - **Harmonie typographique** : Prise en charge des polices premium *Outfit* et *Plus Jakarta Sans*.
-- **Catalogue produits intégré** : Enregistrement des fiches produits, prix en TND et descriptions associées.
+- **Catalogue produits intégré** : Enregistrement des fiches produits, prix en USD et descriptions associées.
 - **Extraction automatique IA via URL / Instagram** : Importation de l'identité visuelle et du positionnement de marque en un clic via GPT-4o.
 
 ### 3. 🇹🇳 Copywriting Darija & Accroches E-Commerce Haute Conversion
@@ -97,7 +97,7 @@ flowchart TD
 ## 🇹🇳 Standards E-Commerce Tunisie
 
 - **Géographie stricte** : Prise en charge exclusive des **24 Gouvernorats** de Tunisie (Tunis, Ariana, Ben Arous, Manouba, Nabeul, Zaghouan, Bizerte, Béja, Jendouba, Le Kef, Siliana, Sousse, Monastir, Mahdia, Sfax, Kairouan, Kasserine, Sidi Bouzid, Gabès, Médenine, Tataouine, Gafsa, Tozeur, Kébili).
-- **Monnaie & Tarification** : Tous les prix sont affichés en **DT** ou **TND** (ex: `29 DT`, `59 DT`, `189 DT`).
+- **Monnaie & Tarification** : Tous les prix sont affichés en **DT** ou **USD** (ex: `29 DT`, `59 DT`, `189 DT`).
 - **Livraison & Réassurance** : Mentions adaptées au contexte commercial local (paiement à la livraison, délais 24-48h).
 
 ---
@@ -105,9 +105,9 @@ flowchart TD
 ## 📂 Structure du Projet
 
 ```
-adora/
+MarkMosaiq/
 ├── docs/                                  # Spécifications et plans stratégiques
-│   ├── PLAN_STRATEGIQUE_ADORA.md          # Thèse commerciale, coûts API & marges
+│   ├── PLAN_STRATEGIQUE_MarkMosaiq.md          # Thèse commerciale, coûts API & marges
 │   ├── PROMPT_ENGINEERING_ARCHITECTURE.md # Règles DALL-E 3, safe zones et ombres
 │   └── PLAN_BIBLIOTHEQUE_INSPIRATION.md   # Bibliothèque de décors et presets
 ├── public/                                # Assets statiques, badges SVG & démos
@@ -156,7 +156,7 @@ adora/
 ### 1. Cloner le projet et installer les dépendances
 ```bash
 git clone <url-du-repo>
-cd adora
+cd MarkMosaiq
 npm install
 ```
 
@@ -208,11 +208,11 @@ KONNECT_API_KEY=...
 
 ## 📚 Documentation Connexe
 
-- [AGENTS.md](file:///c:/Users/MEDIA%20INFOPLUS/.gemini/antigravity-ide/scratch/adora/AGENTS.md) : Constitution technique, protocole cognitif et standards de code.
-- [docs/PLAN_STRATEGIQUE_ADORA.md](file:///c:/Users/MEDIA%20INFOPLUS/.gemini/antigravity-ide/scratch/adora/docs/PLAN_STRATEGIQUE_ADORA.md) : Plan stratégique et analyse financière détaillée.
-- [docs/PROMPT_ENGINEERING_ARCHITECTURE.md](file:///c:/Users/MEDIA%20INFOPLUS/.gemini/antigravity-ide/scratch/adora/docs/PROMPT_ENGINEERING_ARCHITECTURE.md) : Spécifications des prompts et des ombres portées.
-- [docs/PLAN_BIBLIOTHEQUE_INSPIRATION.md](file:///c:/Users/MEDIA%20INFOPLUS/.gemini/antigravity-ide/scratch/adora/docs/PLAN_BIBLIOTHEQUE_INSPIRATION.md) : Architecture de la bibliothèque de décors.
+- [AGENTS.md](file:///c:/Users/MEDIA%20INFOPLUS/.gemini/antigravity-ide/scratch/MarkMosaiq/AGENTS.md) : Constitution technique, protocole cognitif et standards de code.
+- [docs/PLAN_STRATEGIQUE_MarkMosaiq.md](file:///c:/Users/MEDIA%20INFOPLUS/.gemini/antigravity-ide/scratch/MarkMosaiq/docs/PLAN_STRATEGIQUE_MarkMosaiq.md) : Plan stratégique et analyse financière détaillée.
+- [docs/PROMPT_ENGINEERING_ARCHITECTURE.md](file:///c:/Users/MEDIA%20INFOPLUS/.gemini/antigravity-ide/scratch/MarkMosaiq/docs/PROMPT_ENGINEERING_ARCHITECTURE.md) : Spécifications des prompts et des ombres portées.
+- [docs/PLAN_BIBLIOTHEQUE_INSPIRATION.md](file:///c:/Users/MEDIA%20INFOPLUS/.gemini/antigravity-ide/scratch/MarkMosaiq/docs/PLAN_BIBLIOTHEQUE_INSPIRATION.md) : Architecture de la bibliothèque de décors.
 
 ---
 
-© 2026 **Adora SaaS** — Développé avec passion pour l'écosystème E-Commerce en Tunisie.
+© 2026 **MarkMosaiq SaaS** — Développé avec passion pour l'écosystème E-Commerce en Tunisie.

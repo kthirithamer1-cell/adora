@@ -1,5 +1,5 @@
 /**
- * BANQUE VALIDÉE DE DARIJA TUNISIEN COMMERCIAL & NOUVEAUX FORMATS (ADORA-48)
+ * BANQUE VALIDÉE DE DARIJA TUNISIEN COMMERCIAL & NOUVEAUX FORMATS (MarkMosaiq-48)
  * 
  * Zéro faute grammaticale ou phonétique :
  * - Paiement : « El khlass waqt el livri » / « Khallas ki touslek el commande »

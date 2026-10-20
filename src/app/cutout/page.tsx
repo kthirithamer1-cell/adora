@@ -4,14 +4,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import AppShell from '@/components/AppShell';
 import { useWorkspace } from '@/lib/WorkspaceContext';
+import { Scissors, Zap, Sparkles } from 'lucide-react';
 
 export default function CutoutStudioPage() {
-  const { workspace } = useWorkspace();
+  const { workspace, updateCredits } = useWorkspace();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [inputImage, setInputImage] = useState<string>('/images/bottle_nutrex.png');
   const [outputTransparent, setOutputTransparent] = useState<string | null>(null);
-  const [threshold, setThreshold] = useState<number>(238);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [bgPreview, setBgPreview] = useState<'checker' | 'dark' | 'white' | 'studio'>('checker');
   const [viewMode, setViewMode] = useState<'compare' | 'result'>('compare');
@@ -25,18 +25,22 @@ export default function CutoutStudioPage() {
     { label: 'Robe Élégante Tunis', url: '/images/hero_lifestyle.jpg' },
   ];
 
-  useEffect(() => {
-    runCutout(inputImage, threshold);
-  }, []);
+  const runCutout = async (imgSource: string) => {
+    if (workspace && workspace.creditsRemaining <= 0) {
+      setStatusMessage({
+        text: '⚠️ Solde de crédits insuffisant (0 crédit). Veuillez recharger vos crédits pour détourer vos produits.',
+        error: true,
+      });
+      return;
+    }
 
-  const runCutout = async (imgSource: string, thresh: number) => {
     setIsProcessing(true);
     setStatusMessage(null);
     try {
       const isBase64 = imgSource.startsWith('data:');
       const payload = isBase64
-        ? { imageBase64: imgSource, threshold: thresh }
-        : { sampleFile: imgSource, threshold: thresh };
+        ? { imageBase64: imgSource, workspaceId: workspace?.id }
+        : { sampleFile: imgSource, workspaceId: workspace?.id };
 
       const res = await fetch('/api/cutout', {
         method: 'POST',
@@ -47,8 +51,13 @@ export default function CutoutStudioPage() {
       const data = await res.json();
       if (data.success && data.transparentBase64) {
         setOutputTransparent(data.transparentBase64);
-        setStatusMessage({ text: `✓ Détourage 4K réussi (${data.width}x${data.height}px)` });
-        setTimeout(() => setStatusMessage(null), 3000);
+        if (data.creditsRemaining !== undefined) {
+          updateCredits(data.creditsRemaining);
+        }
+        setStatusMessage({
+          text: `✓ Détourage IA réussi (${data.width}x${data.height}px) • 1 crédit déduit • Solde : ${data.creditsRemaining ?? workspace?.creditsRemaining ?? 0} crédits`,
+        });
+        setTimeout(() => setStatusMessage(null), 4500);
       } else {
         setStatusMessage({ text: data.error || 'Erreur lors du détourage', error: true });
       }
@@ -67,7 +76,7 @@ export default function CutoutStudioPage() {
     reader.onload = () => {
       const b64 = reader.result as string;
       setInputImage(b64);
-      runCutout(b64, threshold);
+      runCutout(b64);
     };
     reader.readAsDataURL(file);
   };
@@ -76,7 +85,7 @@ export default function CutoutStudioPage() {
     if (!outputTransparent) return;
     const a = document.createElement('a');
     a.href = outputTransparent;
-    a.download = `produit_detoure_adora_${Date.now()}.png`;
+    a.download = `produit_detoure_MarkMosaiq_${Date.now()}.png`;
     a.click();
   };
 
@@ -87,7 +96,7 @@ export default function CutoutStudioPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: `Produit Détouré Studio (${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })})`,
+          name: `Produit Détouré IA (${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })})`,
           brand: workspace?.name || 'Ma Boutique',
           priceTND: 49,
           originalImageUrl: inputImage,
@@ -107,7 +116,7 @@ export default function CutoutStudioPage() {
   return (
     <AppShell activeNav="cutout" pageTitle="Studio Détourage IA & Prise de Vue">
       <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
-        
+
         {/* En-tête de la page */}
         <div style={{
           display: 'flex',
@@ -130,21 +139,21 @@ export default function CutoutStudioPage() {
                 borderRadius: '6px',
                 border: '1px solid #C7D2FE',
               }}>
-                Moteur Sharp Chromatique Haute Définition
+                Moteur IA Haute Définition
               </span>
               <span style={{ fontSize: '13px', color: '#64748B' }}>
-                Extraction d'objets sans perte pour le e-commerce
+                Extraction d&apos;objets sans perte pour le e-commerce
               </span>
             </div>
             <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
-              Studio Détourage IA & Prise de Vue Smartphone
+              Studio Détourage IA & Prise de Vue
             </h1>
             <p style={{ color: '#64748B', fontSize: '14px', marginTop: '6px' }}>
-              Photographiez vos produits au téléphone sur fond blanc ou clair, et transformez-les en PNG transparents ultra-nets prêts pour vos mises en scène 4K.
+              Transformez vos photos de produits en PNG transparents ultra-nets prêts pour vos mises en scène commerciales.
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <input
               type="file"
               ref={fileInputRef}
@@ -158,18 +167,38 @@ export default function CutoutStudioPage() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '11px 20px',
-                background: '#4F46E5',
+                padding: '11px 18px',
+                background: '#FFFFFF',
+                borderRadius: '8px',
+                border: '1px solid #CBD5E1',
+                color: '#0F172A',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Importer une Photo
+            </button>
+            <button
+              onClick={() => runCutout(inputImage)}
+              disabled={isProcessing}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '11px 22px',
+                background: 'linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)',
                 borderRadius: '8px',
                 border: 'none',
                 color: '#FFFFFF',
                 fontSize: '13px',
                 fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
+                cursor: isProcessing ? 'wait' : 'pointer',
+                boxShadow: '0 2px 10px rgba(124, 58, 237, 0.35)',
               }}
             >
-              Importer une Photo Smartphone
+              <Scissors size={15} />
+              <span>{isProcessing ? 'Détourage IA...' : "Détourer l'objet (1 crédit)"}</span>
             </button>
           </div>
         </div>
@@ -201,10 +230,10 @@ export default function CutoutStudioPage() {
 
         {/* Grille principale : Paramètres & Visualiseur */}
         <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '28px', alignItems: 'start' }}>
-          
-          {/* Panneau Latéral : Réglages du Détourage */}
+
+          {/* Panneau Latéral : Réglages */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
+
             {/* Boîte 1 : Exemples prêts à l'emploi */}
             <div style={{
               background: '#FFFFFF',
@@ -222,7 +251,7 @@ export default function CutoutStudioPage() {
                     key={idx}
                     onClick={() => {
                       setInputImage(s.url);
-                      runCutout(s.url, threshold);
+                      runCutout(s.url);
                     }}
                     style={{
                       background: '#F8FAFC',
@@ -246,62 +275,7 @@ export default function CutoutStudioPage() {
               </div>
             </div>
 
-            {/* Boîte 2 : Réglages de Tolérance IA */}
-            <div style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              border: '1px solid #E2E8F0',
-              padding: '20px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                  Sensibilité & Seuil de Blanc
-                </h3>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: '#4F46E5' }}>
-                  {threshold} / 255
-                </span>
-              </div>
-              <p style={{ color: '#64748B', fontSize: '12px', margin: '0 0 16px 0', lineHeight: 1.4 }}>
-                Ajustez pour supprimer les ombres résiduelles ou préserver les reflets doux sur les bords.
-              </p>
-
-              <input
-                type="range"
-                min={200}
-                max={250}
-                value={threshold}
-                onChange={(e) => setThreshold(Number(e.target.value))}
-                style={{ width: '100%', accentColor: '#4F46E5', cursor: 'pointer' }}
-              />
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748B', marginTop: '6px' }}>
-                <span>Bords Doux (200)</span>
-                <span>Standard (238)</span>
-                <span>Coupe Nette (250)</span>
-              </div>
-
-              <button
-                onClick={() => runCutout(inputImage, threshold)}
-                disabled={isProcessing}
-                style={{
-                  width: '100%',
-                  marginTop: '16px',
-                  padding: '10px',
-                  background: '#EEF2FF',
-                  border: '1px solid #C7D2FE',
-                  borderRadius: '8px',
-                  color: '#4F46E5',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: isProcessing ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {isProcessing ? 'Calcul en cours...' : 'Réappliquer le Détourage'}
-              </button>
-            </div>
-
-            {/* Boîte 3 : Fond de Prévisualisation */}
+            {/* Boîte 2 : Fond de Prévisualisation */}
             <div style={{
               background: '#FFFFFF',
               borderRadius: '16px',
@@ -310,7 +284,7 @@ export default function CutoutStudioPage() {
               boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
             }}>
               <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0' }}>
-                Fond d'Aperçu
+                Fond d&apos;Aperçu
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
                 {[
@@ -351,7 +325,7 @@ export default function CutoutStudioPage() {
             flexDirection: 'column',
             boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
           }}>
-            
+
             {/* Barre de contrôle du visualiseur */}
             <div style={{
               display: 'flex',
@@ -395,7 +369,7 @@ export default function CutoutStudioPage() {
               </div>
 
               <div style={{ fontSize: '12px', color: '#64748B' }}>
-                Algorithme : <strong style={{ color: '#059669' }}>Sharp Edge Antialiasing</strong>
+                Moteur : <strong style={{ color: '#4F46E5' }}>Studio IA Détourage Haute Précision</strong>
               </div>
             </div>
 
@@ -417,7 +391,7 @@ export default function CutoutStudioPage() {
               backgroundSize: '20px 20px',
               backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
             }}>
-              
+
               {/* Photo originale (si mode compare) */}
               {viewMode === 'compare' && (
                 <div style={{ textAlign: 'center', position: 'relative' }}>
@@ -470,7 +444,7 @@ export default function CutoutStudioPage() {
 
                 {isProcessing ? (
                   <div style={{ height: '340px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4F46E5', fontSize: '14px', fontWeight: 700 }}>
-                    Suppression du fond en cours...
+                    Suppression du fond via OpenAI en cours...
                   </div>
                 ) : outputTransparent ? (
                   <img
@@ -485,8 +459,30 @@ export default function CutoutStudioPage() {
                     }}
                   />
                 ) : (
-                  <div style={{ height: '340px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
-                    Aucun rendu disponible
+                  <div style={{ height: '340px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
+                    <div style={{ fontSize: '14px', color: '#64748B', fontWeight: 600 }}>
+                      Prêt pour le détourage haute précision
+                    </div>
+                    <button
+                      onClick={() => runCutout(inputImage)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 22px',
+                        background: 'linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)',
+                        borderRadius: '10px',
+                        border: 'none',
+                        color: '#FFFFFF',
+                        fontSize: '14px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
+                      }}
+                    >
+                      <Scissors size={16} />
+                      <span>Détourer l'objet (1 crédit)</span>
+                    </button>
                   </div>
                 )}
               </div>

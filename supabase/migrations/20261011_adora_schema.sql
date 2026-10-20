@@ -1,5 +1,5 @@
 -- =========================================================================
--- ADORA SAAS — MIGRATION INITIALE SUPABASE & POSTGRESQL
+-- MarkMosaiq SAAS — MIGRATION INITIALE SUPABASE & POSTGRESQL
 -- Projet Ref : ucgslhophamzwqbkkayu
 -- =========================================================================
 

@@ -1,5 +1,5 @@
 /**
- * BOUCLE DE FEEDBACK META ADS API & ANALYTICS PUBLICITAIRES (ADORA-47)
+ * BOUCLE DE FEEDBACK META ADS API & ANALYTICS PUBLICITAIRES (MarkMosaiq-47)
  * 
  * Synchronise les performances réelles des campagnes Meta Ads (CTR, CPC, ROAS)
  * et réinjecte les angles et styles gagnants dans les futurs briefs de création IA.

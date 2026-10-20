@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const systemPrompt = `Tu es l'expert mondial en stratégie de marque et directeur artistique e-commerce d'Adora SaaS.
+    const systemPrompt = `Tu es l'expert mondial en stratégie de marque et directeur artistique e-commerce d'MarkMosaiq SaaS.
 Ton objectif est d'extraire et structurer l'ADN complet de la marque pour un marchand en Tunisie à partir des informations fournies (site web, compte Instagram ou description).
 Tu dois renvoyer STRICTEMENT un objet JSON conforme à cette structure :
 {

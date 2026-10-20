@@ -1,15 +1,19 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import s from './studio.module.css';
 import { LOCAL_BADGES } from '@/lib/templates';
 import CheckoutModal from '@/components/CheckoutModal';
 import BrandKitModal from '@/components/BrandKitModal';
 import ProductCatalogModal from '@/components/ProductCatalogModal';
+import StudioSidebar from '@/components/StudioSidebar';
+import StudioNavbar from '@/components/StudioNavbar';
 import SocialPublisherModal from '@/components/SocialPublisherModal';
 import SmartQuestionsModal, { SmartQuestionsPayload } from '@/components/SmartQuestionsModal';
 import WorkspaceSelector from '@/components/WorkspaceSelector';
+import OnboardingChecklist from '@/components/OnboardingChecklist';
 import { CatalogProduct, BrandKit, getBrandKitByWorkspace } from '@/lib/brandkit';
 import { getAdBenchmarksForProduct } from '@/lib/adBenchmarks';
 import {
@@ -20,9 +24,11 @@ import {
   generateCreativeIntents,
   DynamicDirectorQuestion,
   generateDynamicDirectorQuestions,
+  buildArtDirectedPrompt,
 } from '@/lib/artDirector';
 import { VisionCriticEvaluation } from '@/lib/visionCritic';
 import { useWorkspace } from '@/lib/WorkspaceContext';
+import { useLanguage } from '@/lib/LanguageContext';
 import {
   Sparkles,
   ShoppingBag,
@@ -70,6 +76,8 @@ import {
   Bookmark,
   ThumbsUp,
   Trash2,
+  LogOut,
+  User as UserIcon,
 } from 'lucide-react';
 import { extractPaletteFromLogo } from '@/lib/colorExtractor';
 
@@ -116,14 +124,14 @@ export const BRAND_COLOR_PRESETS = [
 export const OBJECTIVE_VISIONS: Record<AdObjective, { title: string; desc: string; focus: string; icon: string }> = {
   vente: {
     title: 'Vision Vente Directe & Conversion',
-    desc: 'Mise en avant immédiate du prix clair en Dinars, de la réassurance de livraison 24-48h et du paiement à la réception pour déclencher l\'achat immédiat.',
-    focus: 'Prix en DT • Livraison 24-48h • Bouton Acheter',
+    desc: 'Mise en avant immédiate du prix clair, de la réassurance de livraison et de la garantie de satisfaction pour déclencher l\'achat immédiat.',
+    focus: 'Prix clair • Livraison Express • Bouton Acheter',
     icon: '🛒',
   },
   promotion: {
     title: 'Vision Urgence Commerciale (FOMO)',
-    desc: 'Crée un fort sentiment de rareté avec mise en valeur de la réduction, compte à rebours visuel et stock limité en Tunisie.',
-    focus: 'Remise Flash • Stock Restreint • Réserver tawa',
+    desc: 'Crée un fort sentiment de rareté avec mise en valeur de la réduction, compte à rebours visuel et stock limité.',
+    focus: 'Remise Flash • Stock Restreint • Réserver maintenant',
     icon: '🔥',
   },
   branding: {
@@ -133,9 +141,9 @@ export const OBJECTIVE_VISIONS: Record<AdObjective, { title: string; desc: strin
     icon: '👑',
   },
   social: {
-    title: 'Vision Viralité Réseaux & Commandes DM',
-    desc: 'Accroches authentiques en Darija tunisienne créées pour générer des partages, des commentaires et des commandes directes en message privé (DM).',
-    focus: 'Darija certifié • Commande en DM • Preuve sociale',
+    title: 'Vision Viralité Réseaux & Commandes Directes',
+    desc: 'Accroches engageantes créées pour générer des partages, des commentaires et des commandes directes en message privé (DM).',
+    focus: 'Accroche percutante • Commande en DM • Preuve sociale',
     icon: '💬',
   },
 };
@@ -146,90 +154,123 @@ export const isArabicText = (text?: string): boolean => {
 
 export function getCopyPropositions(
   obj: AdObjective,
-  lang: 'ar' | 'fr' | 'darija' | 'mixte',
+  lang: 'en' | 'fr' | 'ar' | 'autre' | string,
   prodName: string,
   price: string
 ): CopyProposition[] {
+  // 1. OBJECTIF VENTE DIRECTE
   if (obj === 'vente') {
+    if (lang === 'en') {
+      return [
+        {
+          id: 'v-en-1',
+          angleTag: '🎯 Client Benefit & Comfort',
+          headline: `Elevate Your Everyday Style with ${prodName}`,
+          subheadline: `Discover ${prodName}: crafted to elevate your daily routine without compromise. Available now for ${price}.`,
+          bulletPoints: ['Certified Premium Quality', 'Fast Express Shipping', '100% Satisfaction Guarantee'],
+          badgeText: '🚚 Express Delivery',
+          ctaText: 'Order Now →',
+        },
+        {
+          id: 'v-en-2',
+          angleTag: '💵 Unbeatable Value',
+          headline: `The Smartest Choice for Your Lifestyle`,
+          subheadline: `Enjoy unmatched quality at the exclusive price of ${price} with full satisfaction guarantee.`,
+          bulletPoints: ['100% Authentic Product', '7/7 Dedicated Support', 'Easy & Secure Checkout'],
+          badgeText: '⭐ Top Rated Choice',
+          ctaText: 'Claim Your Offer →',
+        },
+        {
+          id: 'v-en-3',
+          angleTag: '⭐ Best-Seller Proven',
+          headline: `Trusted by Over 1,200+ Happy Customers`,
+          subheadline: `Our boutique's flagship product. Order yours today before current inventory runs out.`,
+          bulletPoints: ['4.9/5 Rating ★', 'Limited Inventory', 'Dispatched in 24h'],
+          badgeText: '⭐ Best-Seller N°1',
+          ctaText: 'Buy in 1 Click →',
+        },
+      ];
+    }
     if (lang === 'ar') {
       return [
         {
           id: 'v-ar-1',
-          angleTag: '🎯 وصول جديد وفوائد',
-          headline: `وصلت الكوموند في البوتيك متاعنا !`,
-          subheadline: `أقوى جودة في تونس لـ ${prodName} مع الخلاص عند الاستلام وباب الدار بسعر ${price}.`,
-          bulletPoints: ['سلعة أصلية 100%', 'توصيل سريع 24-48h', 'خلاص عند الاستلام'],
-          badgeText: '🚚 توصيل لكامل تراب الجمهورية',
-          ctaText: 'اطلب توة ➔',
+          angleTag: '🎯 الأناقة والراحة اليومية',
+          headline: `الأناقة والجودة العالية بين يديك`,
+          subheadline: `اكتشف ${prodName} : صُمم خصيصاً ليمنحك تجربة استثنائية بسعر ${price} فقط.`,
+          bulletPoints: ['جودة أصلية ومضمونة', 'شحن سريع ومباشر', 'دفع آمن ومريح'],
+          badgeText: '🚚 توصيل سريع',
+          ctaText: 'اطلب الآن ➔',
         },
         {
           id: 'v-ar-2',
-          angleTag: '💵 أحسن سوم وجودة',
-          headline: `أقوى جودة وأحسن سوم في تونس !`,
-          subheadline: `متوفر حالياً بسعر استثنائي ${price} لكافة الولايات الـ 24 مع ضمان الرضا.`,
-          bulletPoints: ['أحسن سوم مضمون', 'خدمة حرفاء 7/7', 'ضمان الاسترجاع'],
-          badgeText: '💵 خلاص عند التسليم',
-          ctaText: 'ابعثلنا ميساج ➔',
+          angleTag: '💵 قيمة استثنائية مقابل السعر',
+          headline: `الخيار الأفضل والمثالي لاحتياجاتك`,
+          subheadline: `متوفر حالياً بسعر خاص ${price} مع ضمان الرضا الكامل وخدمة عملاء راقية.`,
+          bulletPoints: ['أفضل سعر مضمون', 'دعم فني 7/7', 'ضمان استرجاع سهل'],
+          badgeText: '⭐ جودة معتمدة',
+          ctaText: 'استفد من السعر ➔',
         },
         {
           id: 'v-ar-3',
-          angleTag: '⭐ ثقة الحرفاء',
-          headline: `أكثر من 1000 حريف راضي في تونس !`,
-          subheadline: `الكل يحكيو عليه في إنستغرام. احجز متاعك اليوم قبل ما يوفى الستوك.`,
-          bulletPoints: ['تقييم 5 نجوم ★', 'كمية محدودة', 'أفضل المبيعات'],
-          badgeText: '⭐ المنتج رقم 1 في تونس',
-          ctaText: 'احجز قطعتك توة ➔',
+          angleTag: '⭐ ثقة العملاء',
+          headline: `أكثر من 1200 عميل يثقون بجودتنا`,
+          subheadline: `المنتج الأكثر طلباً في متجرنا. احجز طلبك اليوم قبل نفاد الكمية المتاحة.`,
+          bulletPoints: ['تقييم 4.9/5 ★', 'كمية محدودة', 'تجهيز سريع للطلب'],
+          badgeText: '⭐ الأكثر مبيعاً',
+          ctaText: 'احجز طلبك الآن ➔',
         },
       ];
     }
-    if (lang === 'darija') {
+    if (lang === 'autre') {
       return [
         {
-          id: 'v-d-1',
-          angleTag: '🎯 Bénéfice & Arrivage',
-          headline: `Weslet el ${prodName} fi boutique mteena !`,
-          subheadline: `A7sen qualité fi tounes w el khlas waqt el livri l beb eddar b ${price}.`,
-          bulletPoints: ['100% Original', 'Livri fisaa 24-48h', 'Khlas and el livri'],
-          badgeText: '🚚 Livraison 24-48h',
-          ctaText: 'Commander tawa →',
+          id: 'v-aut-1',
+          angleTag: '🎯 Arrivage & Qualité',
+          headline: `Dispo dès maintenant : ${prodName}`,
+          subheadline: `Profitez d'un tarif exceptionnel de ${price} avec livraison rapide et paiement facile.`,
+          bulletPoints: ['Qualité originale 100%', 'Livraison rapide', 'Paiement à la réception'],
+          badgeText: '🚚 Livraison Rapide',
+          ctaText: 'Commander →',
         },
         {
-          id: 'v-d-2',
+          id: 'v-aut-2',
           angleTag: '💵 Rapport Qualité/Prix',
-          headline: `Aqwé rapport qualité / soum fi tounes`,
-          subheadline: `Dispo tawa b ${price} kahaw fi 24 gouvernorats. Zéro risque.`,
-          bulletPoints: ['Aswem tayara', 'Garantie mteena', 'Khlas fel livraison'],
-          badgeText: '💵 Khlas fel livraison',
-          ctaText: 'Abathna message →',
+          headline: `Le meilleur choix au meilleur prix`,
+          subheadline: `Qualité garantie au prix de ${price}. Contactez-nous pour réserver.`,
+          bulletPoints: ['Garantie totale', 'Service rapide', 'Zéro risque'],
+          badgeText: '💵 Paiement Réception',
+          ctaText: 'Envoyer un message →',
         },
         {
-          id: 'v-d-3',
+          id: 'v-aut-3',
           angleTag: '⭐ Preuve Sociale',
-          headline: `Akther men 1 000 client radi fi tounes !`,
-          subheadline: `El kol yahkiw alih fi Instagram. Khoudh mteek qbal ma youfa le stock.`,
-          bulletPoints: ['Avis 5 njoum ★', 'Stock limité', 'Khlas fel livri'],
+          headline: `Le produit préféré de nos clients`,
+          subheadline: `Faites comme des centaines de clients satisfaits. Commandez avant rupture.`,
+          bulletPoints: ['Avis 5 étoiles', 'Stock limité', 'Service premium'],
           badgeText: '⭐ Best-Seller N°1',
-          ctaText: 'Rezervi mteek →',
+          ctaText: 'Réserver maintenant →',
         },
       ];
     }
+    // Langue par défaut : Français (fr)
     return [
       {
         id: 'v-f-1',
         angleTag: '🎯 Bénéfice Client & Confort',
         headline: `L'élégance et la qualité au quotidien`,
         subheadline: `Découvrez ${prodName} : conçu pour sublimer votre style sans compromis. Seulement ${price}.`,
-        bulletPoints: ['Qualité certifiée', 'Livraison 24h Express', 'Paiement à la réception'],
-        badgeText: '🚚 Livraison 24-48h',
+        bulletPoints: ['Qualité certifiée', 'Livraison Express', 'Paiement sécurisé'],
+        badgeText: '🚚 Livraison Express',
         ctaText: 'Commander maintenant →',
       },
       {
         id: 'v-f-2',
-        angleTag: '💵 Rapport Qualité/Prix Tunisie',
+        angleTag: '💵 Rapport Qualité/Prix',
         headline: `Le meilleur choix pour votre budget`,
-        subheadline: `Disponible au tarif exclusif de ${price} sur toute la Tunisie avec garantie satisfaction.`,
+        subheadline: `Disponible au tarif exclusif de ${price} avec garantie de satisfaction complète.`,
         bulletPoints: ['Garantie 100%', 'Service client 7j/7', 'Retour facile'],
-        badgeText: '💵 Khlas fel livraison',
+        badgeText: '✓ Qualité Certifiée',
         ctaText: 'Profiter du prix →',
       },
       {
@@ -243,69 +284,103 @@ export function getCopyPropositions(
       },
     ];
   }
+
+  // 2. OBJECTIF PROMOTION & URGENCE
   if (obj === 'promotion') {
+    if (lang === 'en') {
+      return [
+        {
+          id: 'p-en-1',
+          angleTag: '🔥 24H Flash Sale',
+          headline: `24-Hour Flash Sale: Once-in-a-Lifetime Deal!`,
+          subheadline: `Take advantage of our exclusive discount now for only ${price}. Almost sold out!`,
+          bulletPoints: ['Instant Discount', 'Fast Express Shipping', 'Very Limited Quantity'],
+          badgeText: '🔥 Limited Offer',
+          ctaText: 'Claim Discount →',
+        },
+        {
+          id: 'p-en-2',
+          angleTag: '📦 Special Value Pack',
+          headline: `Value Pack: Save Big Today!`,
+          subheadline: `The ultimate opportunity to experience ${prodName} with fast shipping and full guarantee.`,
+          bulletPoints: ['Maximum Savings', 'Priority Dispatch', 'Certified Authentic'],
+          badgeText: '🎁 Value Pack',
+          ctaText: 'View Special Offer →',
+        },
+        {
+          id: 'p-en-3',
+          angleTag: '⏳ Final Batch Alert',
+          headline: `Final Units Remaining Before Sold Out!`,
+          subheadline: `Order now to secure your piece before orders close for this batch.`,
+          bulletPoints: ['Last Remaining Pieces', 'Secure Payment', '100% Original'],
+          badgeText: '⚡ Selling Out Fast',
+          ctaText: 'Order Immediately →',
+        },
+      ];
+    }
     if (lang === 'ar') {
       return [
         {
           id: 'p-ar-1',
-          angleTag: '🔥 برومو فلاش 24 ساعة',
-          headline: `برومو فلاش 24 ساعة : سوم ما يتعاودش !`,
-          subheadline: `استغل التخفيض الاستثنائي توة بسعر ${price} كهو. قريب يوفى الستوك !`,
-          bulletPoints: ['-30% تخفيض فوري', 'توصيل سريع 24h', 'كمية محدودة جداً'],
+          angleTag: '🔥 عرض فلاش 24 ساعة',
+          headline: `عرض فلاش 24 ساعة : فرصة استثنائية !`,
+          subheadline: `استفد من التخفيض الحصري الآن بسعر ${price} فقط. الكمية المتبقية محدودة جداً !`,
+          bulletPoints: ['خصم فوري ومباشر', 'شحن سريع وموثوق', 'كمية محدودة'],
           badgeText: '🔥 عرض محدود',
-          ctaText: 'احجز بالتخفيض ➔',
+          ctaText: 'احصل على الخصم ➔',
         },
         {
           id: 'p-ar-2',
-          angleTag: '🎁 باك إقتصادي مميز',
-          headline: `باك إقتصادي : اربحها من توة !`,
-          subheadline: `أحسن فرصة بش تاخو ${prodName} مع توصيل مجاني لكامل تراب الجمهورية.`,
-          bulletPoints: ['ربح كبير في السوم', 'توصيل مجاني لباب الدار', 'جودة أصلية'],
-          badgeText: '🎁 باك إقتصادي',
-          ctaText: 'شوف العرض ➔',
+          angleTag: '🎁 باقة التوفير الكبرى',
+          headline: `باقة التوفير : وفّر الكثير اليوم !`,
+          subheadline: `أفضل فرصة للحصول على ${prodName} بأفضل سعر مع توصيل سريع وضمان شامل.`,
+          bulletPoints: ['توفير حقيقي في السعر', 'توصيل ميسر', 'جودة أصلية معتمدة'],
+          badgeText: '🎁 باقة مميزة',
+          ctaText: 'اكتشف العرض ➔',
         },
         {
           id: 'p-ar-3',
           angleTag: '⚡ آخر قطع متوفرة',
           headline: `آخر قطع متوفرة قبل نفاد المخزون !`,
-          subheadline: `ابعثلنا ميساج توة بش تحجز طلبك قبل ما نغلقوا باب الطلبيات.`,
-          bulletPoints: ['آخر فرصة', 'خلاص عند الاستلام', 'أصلي 100%'],
+          subheadline: `سارع بحجز طلبك الآن قبل إغلاق باب الطلبيات لهذه الدفعة الاستثنائية.`,
+          bulletPoints: ['آخر فرصة للشراء', 'دفع مريح', 'أصلي 100%'],
           badgeText: '⚡ اقتراب النفاد',
-          ctaText: 'اطلب بصفة عاجلة ➔',
+          ctaText: 'اطلب فوراً ➔',
         },
       ];
     }
-    if (lang === 'darija') {
+    if (lang === 'autre') {
       return [
         {
-          id: 'p-d-1',
-          angleTag: '🔥 Promo Flash 24H',
-          headline: `Promo Flash 24h : Soum ma yet3awadhch !`,
-          subheadline: `Profiti fel remise tawa b ${price} kahaw. Qrib youfa el stock fi tounes !`,
-          bulletPoints: ['-30% Immédiat', 'Livri fisaa 24h', 'Stock limité'],
+          id: 'p-aut-1',
+          angleTag: '🔥 Vente Flash',
+          headline: `Offre Flash : Profitez de la remise !`,
+          subheadline: `Disponible au tarif réduit de ${price}. Quantités très limitées !`,
+          bulletPoints: ['Remise immédiate', 'Livraison rapide', 'Stock limité'],
           badgeText: '🔥 Offre Limitée',
-          ctaText: 'Rezervi tawa →',
+          ctaText: 'Réserver →',
         },
         {
-          id: 'p-d-2',
-          angleTag: '📦 Pack Promo Découverte',
-          headline: `Pack Économique : Rab7ha men tawa !`,
-          subheadline: `A7sen forsa bech tekhou ${prodName} b a7sen soum w livraison gratuite.`,
-          bulletPoints: ['Rabha kbira', 'Livraison gratuite', 'Qualité garantie'],
+          id: 'p-aut-2',
+          angleTag: '📦 Pack Promo',
+          headline: `Pack Spécial : Économisez maintenant`,
+          subheadline: `La meilleure offre sur ${prodName} avec livraison rapide chez vous.`,
+          bulletPoints: ['Belle économie', 'Livraison prioritaire', 'Garantie totale'],
           badgeText: '🎁 Pack Économique',
-          ctaText: 'Chouf l\'offre →',
+          ctaText: 'Voir l\'offre →',
         },
         {
-          id: 'p-d-3',
-          angleTag: '⏳ Derniers Flacons',
-          headline: `Akhir forsa qbal ma youfa le stock !`,
-          subheadline: `Abathna message tawa bech thot commondtek qbal el rupture.`,
-          bulletPoints: ['Dernières pièces', 'Khlas waqt el livri', '100% Original'],
+          id: 'p-aut-3',
+          angleTag: '⏳ Fin Proche',
+          headline: `Dernières pièces en stock !`,
+          subheadline: `Envoyez-nous un message pour réserver avant la rupture complète.`,
+          bulletPoints: ['Derniers exemplaires', 'Paiement à réception', 'Original certifié'],
           badgeText: '⚡ Rupture Proche',
           ctaText: 'Commander d\'urgence →',
         },
       ];
     }
+    // Langue par défaut : Français (fr)
     return [
       {
         id: 'p-f-1',
@@ -320,7 +395,7 @@ export function getCopyPropositions(
         id: 'p-f-2',
         angleTag: '📦 Pack Duo Économique',
         headline: `Pack Économique : 1 Acheté = Le 2ème à -50%`,
-        subheadline: `L'opportunité du mois sur ${prodName}. Livraison rapide sur les 24 gouvernorats.`,
+        subheadline: `L'opportunité du mois sur ${prodName}. Livraison rapide et soignée.`,
         bulletPoints: ['Économie maximale', 'Livraison offerte', 'Édition spéciale'],
         badgeText: '🎁 Pack Économique',
         ctaText: 'Profiter du pack →',
@@ -332,73 +407,107 @@ export function getCopyPropositions(
         subheadline: `Ne ratez pas les dernières pièces disponibles à ce tarif promotionnel unique.`,
         bulletPoints: ['Derniers stocks', 'Expédition le jour même', 'Zéro risque'],
         badgeText: '⚡ Rupture Proche',
-        ctaText: 'Réserver mon pot →',
+        ctaText: 'Réserver mon exemplaire →',
       },
     ];
   }
+
+  // 3. OBJECTIF BRANDING & NOTORIÉTÉ
   if (obj === 'branding') {
+    if (lang === 'en') {
+      return [
+        {
+          id: 'b-en-1',
+          angleTag: '👑 Pure Prestige & Luxury',
+          headline: `The True Art of Excellence & Elegance`,
+          subheadline: `A signature creation tailored for connoisseurs who value fine craftsmanship. Rediscover ${prodName}.`,
+          bulletPoints: ['Exclusive Creation', 'Noble Materials', 'Timeless Architectural Design'],
+          badgeText: '💎 Pure Prestige',
+          ctaText: 'Explore Maison →',
+        },
+        {
+          id: 'b-en-2',
+          angleTag: '✨ Authentic Heritage',
+          headline: `Uncompromising Authenticity & Trust`,
+          subheadline: `Where timeless aesthetics meet master craft. Discover the universe of our house.`,
+          bulletPoints: ['Clean Formulation', 'Ethical & Transparent', 'Globally Recognized'],
+          badgeText: '🛡️ 100% Authentic',
+          ctaText: 'Discover the Brand →',
+        },
+        {
+          id: 'b-en-3',
+          angleTag: '🌟 Aspirational Living',
+          headline: `Elevate Your Signature Presence with ${prodName}`,
+          subheadline: `Express your identity with a refined piece crafted to naturally set you apart.`,
+          bulletPoints: ['Unique Signature', 'Immediate Impact', 'Prestige Collector Edition'],
+          badgeText: '🌟 Special Edition',
+          ctaText: 'View Collection →',
+        },
+      ];
+    }
     if (lang === 'ar') {
       return [
         {
           id: 'b-ar-1',
-          angleTag: '👑 فخامة وأناقة',
-          headline: `الفخامة والأناقة في كل تفصيل`,
-          subheadline: `تصميم راقي ومكونات فاخرة خُلقت للناس اللي تلوّج عالتميّز والجودة العالية.`,
-          bulletPoints: ['تصميم استثنائي', 'أصلي 100%', 'فخامة مضمونة'],
+          angleTag: '👑 فخامة وأناقة راقية',
+          headline: `الفخامة والأناقة في أدق التفاصيل`,
+          subheadline: `تصميم راقٍ ومكونات فاخرة صُممت لعشاق التميز والجودة الاستثنائية.`,
+          bulletPoints: ['تصميم استثنائي', 'أصلي 100%', 'فخامة لا تضاهى'],
           badgeText: '💎 جودة نقية وفاخرة',
-          ctaText: 'اكتشف المجموعة ➔',
+          ctaText: 'اكتشف التشكيلة ➔',
         },
         {
           id: 'b-ar-2',
-          angleTag: '✨ أصالة الماركة',
-          headline: `أصالة الماركة وثقة الحرفاء في تونس`,
-          subheadline: `خدمة نظيفة ومتقونة بكل حب بش نقدملك ديما الأفضل وأرقى المستويات.`,
-          bulletPoints: ['ماركة معتمدة', 'ثقة كبيرة', 'خدمة كبار الشخصيات'],
+          angleTag: '✨ أصالة العلامة التجارية',
+          headline: `أصالة العلامة وثقة عملائنا المميزين`,
+          subheadline: `صُنعت بكل إتقان واهتمام لنقدم لك دائماً أعلى معايير الجودة والتميز.`,
+          bulletPoints: ['علامة موثوقة', 'ثقة مستمرة', 'خدمة راقية'],
           badgeText: '🛡️ أصلي ومضمون 100%',
           ctaText: 'تصفح المتجر ➔',
         },
         {
           id: 'b-ar-3',
           angleTag: '🌟 أسلوب حياة متميز',
-          headline: `خلّي الستيل متاعك يتكلّم عليك`,
-          subheadline: `مش مجرد منتوج، هو أسلوب حياة يعبّر على شخصيتك وأناقتك مع ${prodName}.`,
-          bulletPoints: ['بصمة فريدة', 'إصدار مميز', 'توصيل لكامل تونس'],
+          headline: `اجعل أسلوبك يعبّر عن تميزك`,
+          subheadline: `ليس مجرد منتج، بل أسلوب حياة يعكس ذوقك الرفيع وأناقتك مع ${prodName}.`,
+          bulletPoints: ['بصمة فريدة', 'إصدار مميز', 'توصيل معتمد'],
           badgeText: '🌟 إصدار خاص',
           ctaText: 'اكتشف المزيد ➔',
         },
       ];
     }
-    if (lang === 'darija') {
+    if (lang === 'autre') {
       return [
         {
-          id: 'b-d-1',
-          angleTag: '👑 Luxe & Fkhama',
-          headline: `El grandeur wel fkhama fi kol détail`,
-          subheadline: `Créee spécialement l nass li y7ebou l'excellence wel qualité el tayara.`,
-          bulletPoints: ['Design 3alami', '100% Original', 'Prestige garanti'],
+          id: 'b-aut-1',
+          angleTag: '👑 Prestige & Qualité',
+          headline: `L'élégance dans chaque détail`,
+          subheadline: `Créé spécialement pour ceux qui recherchent l'excellence et la distinction.`,
+          bulletPoints: ['Design soigné', '100% Original', 'Prestige garanti'],
           badgeText: '💎 Qualité Pure',
-          ctaText: 'Iktachef el collection →',
+          ctaText: 'Découvrir la collection →',
         },
         {
-          id: 'b-d-2',
-          angleTag: '✨ Asalet el Marque',
-          headline: `Asalet el marque mteena wel thika mteek`,
-          subheadline: `Khedma ndhifa w ma3moula b 7ob bech tebherkom dima.`,
-          bulletPoints: ['Khedma ndhifa', 'Thika kbira', 'Service VIP'],
+          id: 'b-aut-2',
+          angleTag: '✨ Confiance & Marque',
+          headline: `L'authenticité d'une vraie marque`,
+          subheadline: `Un savoir-faire reconnu pour vous offrir le meilleur à chaque commande.`,
+          bulletPoints: ['Finition parfaite', 'Grande confiance', 'Service VIP'],
           badgeText: '🛡️ 100% Original',
-          ctaText: 'Chouf el boutique →',
+          ctaText: 'Voir la boutique →',
         },
         {
-          id: 'b-d-3',
-          angleTag: '🌟 Mode de Vie',
-          headline: `Khelli el style mteek yetkallem alik`,
-          subheadline: `Mouch juste produit, c'est un mode de vie li yelzem ykoun m3ak.`,
-          bulletPoints: ['Style unique', 'Qualité top', 'Livraison fi tounes'],
+          id: 'b-aut-3',
+          angleTag: '🌟 Signature Unique',
+          headline: `Affirmez votre style avec ${prodName}`,
+          subheadline: `Bien plus qu'un simple produit, c'est une véritable signature pour votre quotidien.`,
+          bulletPoints: ['Style unique', 'Qualité supérieure', 'Édition soignée'],
           badgeText: '🌟 Édition Spéciale',
-          ctaText: 'Chouf akther →',
+          ctaText: 'Voir plus →',
         },
       ];
     }
+    // Langue par défaut : Français (fr)
     return [
       {
         id: 'b-f-1',
@@ -416,7 +525,7 @@ export function getCopyPropositions(
         subheadline: `Quand l'élégance rencontre le savoir-faire artisanal. Découvrez l'univers de notre maison.`,
         bulletPoints: ['Formule pure', 'Éthique & Transparent', 'Marque reconnue'],
         badgeText: '🛡️ 100% Original',
-        ctaText: 'Découvrir le sillage →',
+        ctaText: 'Découvrir l\'univers →',
       },
       {
         id: 'b-f-3',
@@ -429,93 +538,126 @@ export function getCopyPropositions(
       },
     ];
   }
-  // social
+
+  // 4. OBJECTIF SOCIAL & VIRALITÉ
+  if (lang === 'en') {
+    return [
+      {
+        id: 's-en-1',
+        angleTag: '💬 Trending on Social Media',
+        headline: `The Season's Most Talked-About Product!`,
+        subheadline: `Everyone is loving ${prodName} on Instagram. Send us a quick direct message to secure yours!`,
+        bulletPoints: ['Trending N°1', 'Verified Quality', 'Fast Shipping'],
+        badgeText: '💬 Order via DM',
+        ctaText: 'Send a Message 💬',
+      },
+      {
+        id: 's-en-2',
+        angleTag: '📲 Instant 1-Click Order',
+        headline: `Order in 30 Seconds via Direct Message`,
+        subheadline: `Simply drop us a message with your details and have your package delivered to your door.`,
+        bulletPoints: ['Instant Support', 'Reliable Delivery', 'Secure Checkout'],
+        badgeText: '📲 Quick Message',
+        ctaText: 'Order via Chat 📲',
+      },
+      {
+        id: 's-en-3',
+        angleTag: '✨ Community Favorite',
+        headline: `100% Loved by Our Community ✨`,
+        subheadline: `Over 1,000+ positive reviews. Tag someone special who needs this in their life!`,
+        bulletPoints: ['5/5 Stars Rating', 'Active Community', '100% Guaranteed'],
+        badgeText: '⭐ Community Approved',
+        ctaText: 'Share & Order →',
+      },
+    ];
+  }
   if (lang === 'ar') {
     return [
       {
         id: 's-ar-1',
         angleTag: '💬 ترند السوشيال ميديا',
-        headline: `المنتج الأكثر طلباً وشهرة في تونس !`,
-        subheadline: `وصلت الكوموند في البوتيك متاعنا ! ابعثلنا ميساج عالباج بش تحجز قطعتك فيسع.`,
-        bulletPoints: ['ترند رقم 1', 'خلاص عند الاستلام', 'توصيل فيسع'],
+        headline: `المنتج الأكثر طلباً وشهرة هذا الموسم !`,
+        subheadline: `وصلت الدفعة الجديدة في متجرنا ! راسلنا عبر الرسائل الخاصة لحجز نسختك سريعاً.`,
+        bulletPoints: ['ترند رقم 1', 'دفع عند الاستلام', 'توصيل فوري'],
         badgeText: '💬 الطلب عبر الرسائل (DM)',
-        ctaText: 'ابعثلنا ميساج عالباج 💬',
+        ctaText: 'راسلنا على الخاص 💬',
       },
       {
         id: 's-ar-2',
-        angleTag: '📲 طلب سريع عالواتساب',
-        headline: `اطلب في 30 ثانية عبر الواتساب`,
-        subheadline: `ابعثلنا اسمك وولايتك في ميساج والطلبية توصلك لباب الدار في 24 ساعة.`,
-        bulletPoints: ['إجابة في 5 دقائق', '24 ولاية', 'الدفع عند الاستلام'],
-        badgeText: '📲 واتساب سريع',
-        ctaText: 'اطلب عالواتساب توة 📲',
+        angleTag: '📲 طلب سريع ومباشر',
+        headline: `اطلب في 30 ثانية عبر الرسائل`,
+        subheadline: `أرسل لنا اسمك وعنوانك في رسالة وستصلك طلبيتك مباشرة وبكل سهولة.`,
+        bulletPoints: ['إجابة فورية', 'توصيل شامل', 'دفع عند الاستلام'],
+        badgeText: '📲 رسالة سريعة',
+        ctaText: 'اطلب بالمحادثة 📲',
       },
       {
         id: 's-ar-3',
-        angleTag: '✨ الخيار رقم 1',
-        headline: `خيار الحرفاء الأول في تونس ✨`,
-        subheadline: `طاقي صاحبك اللي يستحق هذا! أكثر من 500 تقييم إيجابي من كل الولايات.`,
-        bulletPoints: ['تقييم 5/5', '100% تونسي', 'رضا مضمون'],
+        angleTag: '✨ خيار المجتمع الأول',
+        headline: `خيار العملاء المفضل والأول ✨`,
+        subheadline: `شارك المنشور مع من تحب ! أكثر من 1000 تقييم إيجابي ورضا كامل عن الجودة.`,
+        bulletPoints: ['تقييم 5/5 ★', 'ثقة تامة', 'رضا مضمون'],
         badgeText: '⭐ معتمد ومجرّب',
-        ctaText: 'بارطاجي واطلب ➔',
+        ctaText: 'شارك واطلب ➔',
       },
     ];
   }
-  if (lang === 'darija') {
+  if (lang === 'autre') {
     return [
       {
-        id: 's-d-1',
-        angleTag: '💬 Viral Instagram / TikTok',
-        headline: `Weslet el commande fi boutique mteena !`,
-        subheadline: `Abathna message al page bech treservi flacon mteek fisaa ! Khlas fel livri.`,
-        bulletPoints: ['Khlas fel livri', '100% Original', 'Livri fisaa'],
+        id: 's-aut-1',
+        angleTag: '💬 Viral Réseaux',
+        headline: `Le produit phare dont tout le monde parle !`,
+        subheadline: `Envoyez-nous un message privé pour réserver votre pièce rapidement.`,
+        bulletPoints: ['Très demandé', '100% Original', 'Livraison rapide'],
         badgeText: '💬 Commande en DM',
         ctaText: 'Envoyer un message 💬',
       },
       {
-        id: 's-d-2',
-        angleTag: '📲 Commande WhatsApp 1 Clic',
-        headline: `Commander fi 30 secondes sur WhatsApp`,
-        subheadline: `Abathna nom w ville mteek w el commande touslek l beb eddar fi 24h.`,
-        bulletPoints: ['Jawb en 5 min', '24 gouvernorats', 'Paiement à la livraison'],
-        badgeText: '📲 WhatsApp Rapide',
-        ctaText: 'Commander sur WhatsApp 📲',
+        id: 's-aut-2',
+        angleTag: '📲 Commande Rapide en 1 Clic',
+        headline: `Commandez en 30 secondes par message`,
+        subheadline: `Envoyez-nous votre nom et adresse pour recevoir votre commande rapidement.`,
+        bulletPoints: ['Réponse rapide', 'Livraison soignée', 'Paiement réception'],
+        badgeText: '📲 Message Rapide',
+        ctaText: 'Commander par message 📲',
       },
       {
-        id: 's-d-3',
-        angleTag: '✨ Coup de Cœur Communauté',
-        headline: `Votre Coup de Cœur du Moment ✨`,
-        subheadline: `Taggez un proche qui aimerait recevoir ce cadeau ! Déjà +500 clients conquis.`,
-        bulletPoints: ['Validé 100%', 'Avis 5 étoiles', 'Livraison express'],
-        badgeText: '⭐ Validé Communauté',
+        id: 's-aut-3',
+        angleTag: '✨ Coup de Cœur',
+        headline: `Votre coup de cœur du moment ✨`,
+        subheadline: `Recommandé par nos clients. Partagez l'offre avec vos proches !`,
+        bulletPoints: ['Validé 100%', 'Avis 5 étoiles', 'Livraison rapide'],
+        badgeText: '⭐ Validé Clients',
         ctaText: 'Partager l\'offre →',
       },
     ];
   }
+  // Langue par défaut : Français (fr)
   return [
     {
       id: 's-f-1',
       angleTag: '💬 Le Produit Viral Réseaux',
       headline: `Le coup de cœur de la saison sur Instagram !`,
       subheadline: `Craquez pour ${prodName} dont tout le monde parle. Commandez directement en message privé.`,
-      bulletPoints: ['Tendance N°1', 'Plein les yeux', 'Livraison 24h'],
+      bulletPoints: ['Tendance N°1', 'Plein les yeux', 'Livraison Express'],
       badgeText: '💬 Commande en DM',
       ctaText: 'Commander en DM 💬',
     },
     {
       id: 's-f-2',
-      angleTag: '📲 Commande WhatsApp Express',
+      angleTag: '📲 Commande Message Express',
       headline: `Commandez en 30 secondes par message`,
-      subheadline: `Envoyez-nous un message avec votre adresse pour recevoir votre colis chez vous en 24h.`,
-      bulletPoints: ['Réponse en 5 min', 'Livraison 24 Gouvernorats', 'Paiement à la livraison'],
-      badgeText: '📲 WhatsApp Rapide',
-      ctaText: 'Commander sur WhatsApp 📲',
+      subheadline: `Envoyez-nous un message avec votre adresse pour recevoir votre colis chez vous rapidement.`,
+      bulletPoints: ['Réponse en 5 min', 'Livraison rapide', 'Paiement sécurisé'],
+      badgeText: '📲 Message Rapide',
+      ctaText: 'Commander par Message 📲',
     },
     {
       id: 's-f-3',
       angleTag: '✨ Preuve Sociale & Partage',
       headline: `100% Validé par notre communauté`,
-      subheadline: `Plus de 500 avis positifs sur toute la Tunisie. Taggez un proche pour lui faire plaisir !`,
+      subheadline: `Plus de 1 000 avis positifs. Taggez un proche pour lui faire plaisir !`,
       bulletPoints: ['Avis 5/5 ★', 'Communauté active', 'Satisfaction 100%'],
       badgeText: '⭐ Validé Communauté',
       ctaText: 'Partager & Commander →',
@@ -558,7 +700,7 @@ const STYLES_LIST: { id: AdStyle; label: string; bgGradient: string; previewImg:
     id: 'moderne',
     label: 'Moderne',
     bgGradient: 'linear-gradient(135deg, #FCE7F3, #EDE9FE)',
-    previewImg: '/images/adora_hero_perfume.jpg',
+    previewImg: '/images/MarkMosaiq_hero_perfume.jpg',
     promptModifier: 'luxury contemporary soft pink and white floral marble pedestal, gentle ambient lighting, clean aesthetic'
   },
   {
@@ -572,7 +714,7 @@ const STYLES_LIST: { id: AdStyle; label: string; bgGradient: string; previewImg:
     id: 'minimaliste',
     label: 'Minimaliste',
     bgGradient: 'linear-gradient(135deg, #F1F5F9, #E2E8F0)',
-    previewImg: '/images/adora_sneakers_clean.jpg',
+    previewImg: '/images/MarkMosaiq_sneakers_clean.jpg',
     promptModifier: 'pure soft light grey studio pedestal, subtle contact shadow, ultra-clean catalog e-commerce look'
   },
   {
@@ -593,7 +735,7 @@ const STYLES_LIST: { id: AdStyle; label: string; bgGradient: string; previewImg:
     id: 'vintage',
     label: 'Vintage',
     bgGradient: 'linear-gradient(135deg, #E2D9C8, #C5B8A5)',
-    previewImg: '/images/adora_fashion_model.jpg',
+    previewImg: '/images/MarkMosaiq_fashion_model.jpg',
     promptModifier: 'warm retro architectural travertine stone, soft sepia hues, cinematic editorial atmosphere'
   },
   {
@@ -612,8 +754,8 @@ const INITIAL_VISUALS: VisualCardData[] = [
     formatLabel: 'Instagram 1:1 Post',
     formatRatio: '1:1',
     icon: 'instagram',
-    headline: "Visuel Commercial IA",
-    subheadline: "Accroche générée automatiquement par l'IA",
+    headline: "L'élégance au quotidien",
+    subheadline: "Découvrez notre collection exclusive avec livraison express et garantie de satisfaction.",
     ctaText: "Commander",
     bgImage: '/images/image.png',
     styleName: 'Scène IA',
@@ -626,9 +768,9 @@ const INITIAL_VISUALS: VisualCardData[] = [
     formatLabel: 'Instagram Story 9:16',
     formatRatio: '9:16',
     icon: 'story',
-    headline: "Promo & Conversion IA",
-    subheadline: "Accroche Darija & livraison 24 gouvernorats",
-    ctaText: "Réserver tawwa",
+    headline: "Limited Edition / Offre Spéciale",
+    subheadline: "Premium design and verified quality. Fast shipping right to your doorstep.",
+    ctaText: "Shop Now →",
     bgImage: '/images/image.png',
     styleName: 'Story IA',
     price: '89 DT',
@@ -640,11 +782,11 @@ const INITIAL_VISUALS: VisualCardData[] = [
     formatLabel: 'Facebook Ads Feed',
     formatRatio: '1.91:1',
     icon: 'facebook',
-    headline: "Campagne Meta Ads IA",
-    subheadline: "El khlass waqt el livri fi tounes el kol",
-    ctaText: "Acheter en 1 Clic",
+    headline: "التميز والجودة العالية",
+    subheadline: "تجربة فريدة مع جودة أصلية مضمونة وتوصيل فوري حتى باب منزلك.",
+    ctaText: "اطلب الآن ➔",
     bgImage: '/images/image.png',
-    bulletPoints: ['Qualité certifiée', 'Livraison 24-48h', 'Paiement à la livraison'],
+    bulletPoints: ['Qualité certifiée', 'Livraison Express', 'Paiement sécurisé'],
     styleName: 'Prestige Studio',
     price: '89 DT',
     badgeText: '⭐ Best-Seller N°1'
@@ -655,8 +797,8 @@ const INITIAL_VISUALS: VisualCardData[] = [
     formatLabel: 'Instagram Post Carré',
     formatRatio: '1:1',
     icon: 'instagram',
-    headline: "Édition Spéciale IA",
-    subheadline: "Bénéfice clé et réassurance client",
+    headline: "Pure Performance & Luxury",
+    subheadline: "Formulé pour sublimer votre quotidien avec des ingrédients nobles.",
     ctaText: "Découvrir →",
     bgImage: '/images/image.png',
     styleName: 'Édition Pure',
@@ -666,24 +808,48 @@ const INITIAL_VISUALS: VisualCardData[] = [
 ];
 
 export default function StudioCreativePage() {
-  const { workspace, user } = useWorkspace();
+  const { workspace, user, logout, updateCredits } = useWorkspace();
+  const { t, locale } = useLanguage();
+  const searchParams = useSearchParams();
+  const [hasGeneratedFirstVisual, setHasGeneratedFirstVisual] = useState<boolean>(false);
+  const [hasExportedVisual, setHasExportedVisual] = useState<boolean>(false);
+  const [showFirstVisualCelebration, setShowFirstVisualCelebration] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('markmosaiq_has_generated_first_visual') === 'true') {
+        setHasGeneratedFirstVisual(true);
+      }
+      if (localStorage.getItem('markmosaiq_has_exported_visual') === 'true') {
+        setHasExportedVisual(true);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Navigation & Modals
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [checkoutInitialPlan, setCheckoutInitialPlan] = useState<'flash' | 'pro' | 'agency_299'>('pro');
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [isBrandKitOpen, setIsBrandKitOpen] = useState(false);
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
   const [selectedSocialVisual, setSelectedSocialVisual] = useState<string | null>(null);
   const [studioSidebarMobileOpen, setStudioSidebarMobileOpen] = useState(false);
+  // Détection du forfait actif
+  const currentPlan = workspace?.plan || 'trial';
+  const isAgencyPlan = currentPlan === 'agency' || (currentPlan as string) === 'agency_299';
+  const isProPlan = currentPlan === 'pro';
 
   // Étape 1 : Produit
   const [productImage, setProductImage] = useState<string>('/images/image.png');
-  const [productName, setProductName] = useState<string>('Eau de Rose — Parfumerie Tunisienne');
+  const [productName, setProductName] = useState<string>('Eau de Rose — Haute Parfumerie');
   const [cutoutBase64, setCutoutBase64] = useState<string | null>(null);
   const [isAnalyzingProduct, setIsAnalyzingProduct] = useState<boolean>(false);
   const [productAnalysis, setProductAnalysis] = useState<any>(null);
   const [tailoredProductStyles, setTailoredProductStyles] = useState<any[]>(() => getAdBenchmarksForProduct('cosmetics', 'Eau de Rose'));
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
 
   // Étape 2 : Objectif
   const [objective, setObjective] = useState<AdObjective>('vente');
@@ -700,18 +866,18 @@ export default function StudioCreativePage() {
   const [activeBadge, setActiveBadge] = useState<string>('livraison');
   const [aiImageModel, setAiImageModel] = useState<'gpt-image-2.5-flare' | 'gpt-image-2.5-sunburst' | 'gpt-image-2'>('gpt-image-2.5-flare');
 
-  // Identité de Marque & Personnalisation Branding (ADORA-60, ADORA-61)
+  // Identité de Marque & Personnalisation Branding (MarkMosaiq-60, MarkMosaiq-61)
   const [brandKit, setBrandKit] = useState<BrandKit | null>(null);
   const [brandName, setBrandName] = useState<string>('Eau de Rose');
-  const [brandLogoUrl, setBrandLogoUrl] = useState<string>('/images/Adora_logo.png');
+  const [brandLogoUrl, setBrandLogoUrl] = useState<string>('/images/logo.png');
   const [primaryColor, setPrimaryColor] = useState<string>('#00E5FF');
   const [secondaryColor, setSecondaryColor] = useState<string>('#FF5722');
   const [logoPosition, setLogoPosition] = useState<'top-left' | 'top-right' | 'watermark'>('top-left');
   const [logoStyle, setLogoStyle] = useState<'original' | 'white'>('original');
   const [isExtractingColors, setIsExtractingColors] = useState<boolean>(false);
   const [isColorsFromLogo, setIsColorsFromLogo] = useState<boolean>(true);
-  const logoFileInputRef = useRef<HTMLInputElement | null>(null);
-  const [copyLanguage, setCopyLanguage] = useState<'ar' | 'fr' | 'darija' | 'mixte'>('ar');
+  const [copyLanguage, setCopyLanguage] = useState<'en' | 'fr' | 'ar' | 'autre'>('fr');
+  const [customDialectNote, setCustomDialectNote] = useState<string>('');
   const [isPropositionsOpen, setIsPropositionsOpen] = useState<boolean>(false);
 
   // Mode d'affichage Réseaux Sociaux Réalistes (Post, Stories & Facebook)
@@ -725,8 +891,11 @@ export default function StudioCreativePage() {
   const [isZipping, setIsZipping] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Édition d'une carte unitaire
+  // Édition d'une carte unitaire & retouche décor IA (gpt-image-2.5-flare)
   const [editingCard, setEditingCard] = useState<VisualCardData | null>(null);
+  const [editingCardTab, setEditingCardTab] = useState<'copy' | 'ai_prompt'>('copy');
+  const [cardEditPrompt, setCardEditPrompt] = useState<string>('');
+  const [isRegeneratingCardImage, setIsRegeneratingCardImage] = useState<boolean>(false);
 
   // Directed Generation & Art Director States (Pipeline 6 étapes & Système de décision à 3 niveaux)
   const [creativeIntents, setCreativeIntents] = useState<CreativeIntent[]>([]);
@@ -749,10 +918,95 @@ export default function StudioCreativePage() {
   const [reassuranceBadgeEnabled, setReassuranceBadgeEnabled] = useState<boolean>(true);
   const [customHookText, setCustomHookText] = useState<string>('');
 
+  // Prompt IA éditable personnalisé (vide par défaut selon la demande utilisateur)
+  const [editablePrompt, setEditablePrompt] = useState<string>('');
+  const [isPromptEdited, setIsPromptEdited] = useState<boolean>(false);
+
+  // État du menu déroulant de téléchargement & sélection personnalisée des formats (Top Right)
+  const [isDownloadDropdownOpen, setIsDownloadDropdownOpen] = useState<boolean>(false);
+  const [selectedVisualIdsForDownload, setSelectedVisualIdsForDownload] = useState<string[]>(['vis-1', 'vis-2', 'vis-3', 'vis-4']);
+  const downloadDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fermeture automatique du dropdown lors d'un clic extérieur
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (downloadDropdownRef.current && !downloadDropdownRef.current.contains(e.target as Node)) {
+        setIsDownloadDropdownOpen(false);
+      }
+    };
+    if (isDownloadDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDownloadDropdownOpen]);
+
+  // Synchronisation des IDs sélectionnés lorsque de nouveaux visuels sont chargés
+  useEffect(() => {
+    if (visuals && visuals.length > 0) {
+      setSelectedVisualIdsForDownload(visuals.map((v) => v.id));
+    }
+  }, [visuals]);
+
+  const toggleSelectVisualForDownload = (id: string) => {
+    setSelectedVisualIdsForDownload((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const selectAllVisualsForDownload = () => {
+    setSelectedVisualIdsForDownload(visuals.map((v) => v.id));
+  };
+
+  const deselectAllVisualsForDownload = () => {
+    setSelectedVisualIdsForDownload([]);
+  };
+
+  // Téléchargement autonome des textes publicitaires de vente (.txt)
+  const handleDownloadAdCopies = () => {
+    try {
+      const darijaText = productAnalysis?.darijaHook || `🔥 Weslet el ${productName} fi boutique mteena !\nQualité originale 100% w riha tched nhar kemel.\n🚚 Livri fisaa fi tounes el kol (24-48h)\n💰 Khlas fel livraison\n👉 Abathna message al page bech treservi flacon mteek !`;
+      const frenchText = productAnalysis?.instagramCaption || `✨ Sublimez votre quotidien avec ${productName}.\nUne création olfactive raffinée, intense et durable au prix de ${priceDinars}.\n✅ Produit certifié 100% original\n🚚 Livraison express sur toute la Tunisie (24 à 48h)\n💵 Paiement à la réception en toute sécurité\n👉 Commandez dès maintenant par message privé !`;
+
+      const copyFileContent = `========================================================================
+MarkMosaiq AI STUDIO — PACK PUBLICITAIRE CLÉ EN MAIN
+Produit : ${productName}
+Objectif : ${objective.toUpperCase()}
+Tarif Tunisie : ${priceDinars}
+========================================================================
+
+--- 1. LÉGENDE CONVERSION DARIJA (RÉSEAUX SOCIAUX TUNISIE) ---
+${darijaText}
+
+--- 2. LÉGENDE FACEBOOK & INSTAGRAM (FRANÇAIS PRO) ---
+${frenchText}
+
+--- 3. ACCROCHE STORY INSTAGRAM / TIKTOK ---
+🚨 RUPTURE DE STOCK IMMINENTE ! Cliquez vite pour commander votre ${productName} avant épuisement !
+
+--- 4. HASHTAGS TUNISIENS ---
+#parfumtunisie #ecommercetunisie #livraisontunisie #ventetunisie #tunisianshop #beaute_tunisie
+`;
+      const blob = new Blob([copyFileContent], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Textes_de_vente_${productName.replace(/\s+/g, '_')}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Textes de vente téléchargés !');
+    } catch {
+      showToast('Erreur lors du téléchargement des textes');
+    }
+  };
+
   // Chargement des dernières préférences marchandes mémorisées
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('adora_last_studio_preferences');
+      const saved = localStorage.getItem('MarkMosaiq_last_studio_preferences');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.intentId) setSelectedIntentId(parsed.intentId);
@@ -770,7 +1024,7 @@ export default function StudioCreativePage() {
 
   const savePreferences = (intent: CreativeIntentType, lang: string, obj: string, hook?: string) => {
     try {
-      localStorage.setItem('adora_last_studio_preferences', JSON.stringify({
+      localStorage.setItem('MarkMosaiq_last_studio_preferences', JSON.stringify({
         intentId: intent,
         copyLanguage: lang,
         objective: obj,
@@ -815,7 +1069,7 @@ export default function StudioCreativePage() {
     });
   }, [workspace?.id]);
 
-  // Option d'affichage des résultats IA dans la console du navigateur (ADORA-74 & Debug)
+  // Option d'affichage des résultats IA dans la console du navigateur (MarkMosaiq-74 & Debug)
   const [enableConsoleLogs, setEnableConsoleLogs] = useState<boolean>(true);
 
   const showToast = (msg: string) => {
@@ -823,7 +1077,7 @@ export default function StudioCreativePage() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Extraction algorithmique des couleurs du logo (ADORA-61)
+  // Extraction algorithmique des couleurs du logo (MarkMosaiq-61)
   const handleExtractColorsFromLogo = useCallback(async (logoSrcToAnalyze?: string) => {
     const src = logoSrcToAnalyze || brandLogoUrl;
     if (!src) return;
@@ -873,6 +1127,8 @@ export default function StudioCreativePage() {
           userNotes: `Produit : ${name}`,
           imageBase64: imgSrc.startsWith('data:image') ? imgSrc : undefined,
           workspaceId: workspace?.id || 'ws_nutristore',
+          copyLanguage,
+          customDialectNote,
         }),
       });
 
@@ -886,48 +1142,73 @@ export default function StudioCreativePage() {
           setTailoredProductStyles(payloadData.tailoredStyles);
         }
 
-        // Synchroniser immédiatement les cartes de preview STRICTEMENT avec les textes générés par l'IA
+        // Synchroniser immédiatement les cartes de preview STRICTEMENT avec les textes générés par l'IA dans la langue choisie
         const briefs = payloadData.strategyBriefs;
         const b1 = briefs?.[0];
         const b2 = briefs?.[1];
         const b3 = briefs?.[2];
         const b4 = briefs?.[3];
 
+        const getCardHeadline = (b: any, fallbackStr?: string) => {
+          if (copyLanguage === 'en') {
+            return b?.hookHeadlineEn || payloadData.hookHeadlineEn || payloadData.hookHeadline || fallbackStr || name;
+          }
+          if (copyLanguage === 'ar') {
+            return b?.hookHeadlineAr || payloadData.hookHeadlineAr || payloadData.hookHeadline || fallbackStr || name;
+          }
+          if (copyLanguage === 'autre') {
+            return b?.hookHeadlineAutre || payloadData.customDialectHook || b?.hookHeadlineDarija || fallbackStr || name;
+          }
+          return b?.hookHeadlineFr || payloadData.hookHeadlineFr || payloadData.hookHeadline || fallbackStr || name;
+        };
+
+        const getCardBadge = (b: any, defBadge: string) => {
+          if (copyLanguage === 'ar') return '⭐ جودة معتمدة';
+          if (copyLanguage === 'en') return '⭐ Top Choice';
+          return b?.badgeText || payloadData.promoBadge || defBadge;
+        };
+
+        const getCardCta = (b: any, defCta: string) => {
+          if (copyLanguage === 'ar') return 'اطلب الآن ➔';
+          if (copyLanguage === 'en') return 'Order Now →';
+          return b?.callToAction || defCta;
+        };
+
         if (b1 || payloadData.hookHeadline) {
           setVisuals((prev) => [
             {
               ...prev[0],
-              headline: b1?.hookHeadlineFr || payloadData.hookHeadline || name,
+              headline: getCardHeadline(b1, 'Scène Studio Signature'),
               subheadline: b1?.targetPainPoint || payloadData.instagramCaption || '',
-              badgeText: b1?.badgeText || payloadData.promoBadge || '✓ 100% Efficace',
-              ctaText: b1?.callToAction || 'Commander',
+              badgeText: getCardBadge(b1, '✓ 100% Efficace'),
+              ctaText: getCardCta(b1, 'Commander'),
               price: payloadData.pricingAngle || priceDinars,
               styleName: b1?.angleLabel || 'Scène IA',
             },
             {
               ...prev[1],
-              headline: b2?.hookHeadlineDarija || payloadData.darijaHook || name,
+              headline: getCardHeadline(b2, 'Édition Prestige'),
               subheadline: b2?.targetPainPoint || payloadData.instagramCaption || '',
-              badgeText: b2?.badgeText || '⭐ Best-Seller N°1',
-              ctaText: b2?.callToAction || 'Commander',
+              badgeText: getCardBadge(b2, '⭐ Best-Seller N°1'),
+              ctaText: getCardCta(b2, 'Commander'),
               price: payloadData.pricingAngle || priceDinars,
               styleName: b2?.angleLabel || 'Prestige Studio',
             },
             {
               ...prev[2],
-              headline: b3?.hookHeadlineDarija || payloadData.darijaHook || name,
+              headline: getCardHeadline(b3, 'Offre Spéciale'),
               subheadline: b3?.targetPainPoint || payloadData.instagramCaption || '',
-              badgeText: b3?.badgeText || '🔥 Offre Limitée',
-              ctaText: b3?.callToAction || 'Commander',
+              badgeText: getCardBadge(b3, '🔥 Offre Limitée'),
+              ctaText: getCardCta(b3, 'Commander'),
               price: payloadData.pricingAngle || priceDinars,
               styleName: b3?.angleLabel || 'Story Conversion',
             },
             {
               ...prev[3],
-              headline: b4?.hookHeadlineFr || payloadData.hookHeadline || name,
+              headline: getCardHeadline(b4, 'Qualité Pure'),
               subheadline: b4?.targetPainPoint || payloadData.instagramCaption || '',
-              badgeText: b4?.badgeText || '💎 Qualité Pure',
-              ctaText: b4?.callToAction || 'Commander',
+              badgeText: getCardBadge(b4, '💎 Qualité Pure'),
+              ctaText: getCardCta(b4, 'Commander'),
               price: payloadData.pricingAngle || priceDinars,
               styleName: b4?.angleLabel || 'Édition Spéciale',
             },
@@ -935,7 +1216,7 @@ export default function StudioCreativePage() {
         }
 
         if (enableConsoleLogs) {
-          console.group('%c🧠 [ADORA AI] Analyse Stratégique Produit & Copywriting Darija', 'background: #059669; color: #FFF; font-weight: bold; padding: 4px 8px; border-radius: 4px;');
+          console.group('%c🧠 [MarkMosaiq AI] Analyse Stratégique Produit', 'background: #059669; color: #FFF; font-weight: bold; padding: 4px 8px; border-radius: 4px;');
           console.log('📦 Résultat analyse produit :', data);
           if (typeof window !== 'undefined') {
             (window as any).__LAST_PRODUCT_ANALYSIS__ = data;
@@ -945,25 +1226,41 @@ export default function StudioCreativePage() {
       }
     } catch (err) {
       if (enableConsoleLogs) {
-        console.warn('⚠️ [ADORA AI] Analyse produit locale appliquée suite à :', err);
+        console.warn('⚠️ [MarkMosaiq AI] Analyse produit locale appliquée suite à :', err);
       }
-      // Analyse locale intelligente de secours
+      // Analyse locale intelligente de secours multilingue
+      const fallbackHeadline = copyLanguage === 'en'
+        ? `${name} - Premium Everyday Quality`
+        : copyLanguage === 'ar'
+          ? `${name} - الأناقة والجودة العالية بين يديك`
+          : copyLanguage === 'autre' && customDialectNote
+            ? `${name} - Qualité certifiée et livraison rapide`
+            : `${name} : L'élégance au quotidien`;
+
+      const fallbackCaption = copyLanguage === 'en'
+        ? `✨ Elevate your everyday lifestyle with ${name}. Fast, secured shipping & satisfaction guaranteed!`
+        : copyLanguage === 'ar'
+          ? `✨ ارتقِ بأسلوبك اليومي مع ${name}. شحن سريع وتوصيل آمن ورضا مضمون!`
+          : copyLanguage === 'autre'
+            ? `🔥 Découvrez ${name} dès maintenant ! Qualité garantie et livraison rapide.`
+            : `✨ Sublimez votre quotidien avec ${name}. Livraison soignée et satisfaction garantie !`;
+
       setProductAnalysis({
         productName: name,
-        hookHeadline: "L'élégance au quotidien",
-        darijaHook: `🔥 Weslet el ${name} fi boutique mteena ! Qualité originale w khlas fel livraison.`,
+        hookHeadline: fallbackHeadline,
+        hookHeadlineEn: `${name} - Premium Everyday Quality`,
+        hookHeadlineFr: `${name} : L'élégance au quotidien`,
+        hookHeadlineAr: `${name} - الأناقة والجودة العالية بين يديك`,
         pricingAngle: priceDinars,
-        instagramCaption: `✨ Sublimez votre style avec ${name}. Livraison 24/48h sur toute la Tunisie !`,
+        instagramCaption: fallbackCaption,
       });
     } finally {
       setIsAnalyzingProduct(false);
     }
-  }, [priceDinars, brandKit?.industry, workspace?.id]);
+  }, [priceDinars, brandKit?.industry, workspace?.id, copyLanguage, customDialectNote]);
 
   // Détection du changement de produit
-  useEffect(() => {
-    analyzeProduct(productImage, productName);
-  }, [productImage, productName, analyzeProduct]);
+
 
   // Extraction automatique initiale des couleurs depuis le logo actif
   useEffect(() => {
@@ -996,7 +1293,7 @@ export default function StudioCreativePage() {
     }
   }, []);
 
-  // Chargement de l'identité de marque du Brand Kit actif (ADORA-60, ADORA-61)
+  // Chargement de l'identité de marque du Brand Kit actif (MarkMosaiq-60, MarkMosaiq-61)
   useEffect(() => {
     fetch('/api/brand-kit')
       .then((res) => res.json())
@@ -1064,6 +1361,8 @@ export default function StudioCreativePage() {
         body: JSON.stringify({
           imageBase64: imgBase64,
           workspaceId: workspace?.id,
+          copyLanguage,
+          customDialectNote,
         }),
       });
       const anData = await anRes.json();
@@ -1098,7 +1397,7 @@ export default function StudioCreativePage() {
 
         const cleanName = file.name
           .replace(/\.[^/.]+$/, '')
-          .replace(/^adora_/i, '')
+          .replace(/^MarkMosaiq_/i, '')
           .replace(/[_\-+]+/g, ' ')
           .replace(/\(\d+\)/g, '')
           .replace(/\s+/g, ' ')
@@ -1167,7 +1466,7 @@ export default function StudioCreativePage() {
   // PARCOURS 1 (EXPRESS) : Génération immédiate en 1 clic (Paramètres mémorisés ou recommandés)
   const handleExpressGenerate = async () => {
     if (workspace && workspace.creditsRemaining <= 0) {
-      showToast('⚠️ Solde insuffisant (0 crédit restant). Rechargez votre pack dès 29 DT.');
+      showToast('⚠️ Zero credits remaining. Upgrade via Whop from $19 to stage unlimited products.');
       setIsCheckoutOpen(true);
       return;
     }
@@ -1179,7 +1478,7 @@ export default function StudioCreativePage() {
   // PARCOURS 2 (PERSONNALISÉ) : Ouvre le modal interactif guidé à 3 étapes courtes
   const handleOpenCustomizeModal = async () => {
     if (workspace && workspace.creditsRemaining <= 0) {
-      showToast('⚠️ Solde insuffisant (0 crédit restant). Rechargez votre pack dès 29 DT.');
+      showToast('⚠️ Zero credits remaining. Upgrade via Whop from $19 to stage unlimited products.');
       setIsCheckoutOpen(true);
       return;
     }
@@ -1235,7 +1534,7 @@ export default function StudioCreativePage() {
     setIsQuestionsModalOpen(false);
     setSelectedIntentId(payload.intentId);
     setCustomHookText(payload.adText);
-    if (payload.copyLanguage) setCopyLanguage(payload.copyLanguage);
+    if (payload.copyLanguage) setCopyLanguage(payload.copyLanguage === 'darija' ? 'ar' : (payload.copyLanguage as any));
     savePreferences(payload.intentId, payload.copyLanguage, payload.goal, payload.adText);
     showToast(`✨ Direction validée : ${payload.styleId} (${payload.goal})`);
     handleGenerate(payload.intentId, payload.stylePrompt);
@@ -1243,9 +1542,9 @@ export default function StudioCreativePage() {
 
   // LOGIQUE DE GÉNÉRATION DES CRÉATIONS PUBLICITAIRES (handleGenerate)
   const handleGenerate = async (overrideIntent?: CreativeIntentType, overrideStylePrompt?: string) => {
-    // Garde-fou crédits (ADORA-73) : Vérification préalable avant tout calcul
+    // Garde-fou crédits (MarkMosaiq-73) : Vérification préalable avant tout calcul
     if (workspace && workspace.creditsRemaining <= 0) {
-      showToast('⚠️ Solde insuffisant (0 crédit restant). Rechargez votre pack dès 29 DT.');
+      showToast('⚠️ Zero credits remaining. Upgrade via Whop from $19 to stage unlimited products.');
       setIsCheckoutOpen(true);
       return;
     }
@@ -1340,13 +1639,13 @@ export default function StudioCreativePage() {
         };
       }
 
-      // Génération et mise en scène publicitaire professionnelle via le pipeline Adora (ADORA-67)
+      // Génération et mise en scène publicitaire professionnelle via le pipeline MarkMosaiq (MarkMosaiq-67)
       let customAiBg = activeStyleObj.previewImg || '/images/image.png';
       let generatedFormats: Record<string, string> = {};
       try {
-        // Envoi STRICT des deux seules images nécessaires : l'image importée du produit et le logo de la marque (ADORA)
+        // Envoi STRICT des deux seules images nécessaires : l'image importée du produit et le logo de la marque (MarkMosaiq)
         const importedProduct = cutoutBase64 || (productImage && !productImage.includes('image.png') ? productImage : undefined);
-        const importedLogo = brandLogoUrl && !brandLogoUrl.includes('Adora_logo.png') ? brandLogoUrl : (brandLogoUrl || undefined);
+        const importedLogo = brandLogoUrl && !brandLogoUrl.includes('logo.png') ? brandLogoUrl : (brandLogoUrl || undefined);
 
         const briefs = productAnalysis?.data?.strategyBriefs || productAnalysis?.strategyBriefs;
         const b1 = briefs?.[0];
@@ -1366,16 +1665,18 @@ export default function StudioCreativePage() {
           customHook: customHookText || undefined,
           copyLanguage: copyLanguage,
           reassuranceBadge: reassuranceBadgeEnabled,
-          stylePrompt: overrideStylePrompt || activeStyleObj.promptModifier,
+          stylePrompt: overrideStylePrompt || editablePrompt || activeStyleObj.promptModifier,
+          userEditedPrompt: overrideStylePrompt || editablePrompt,
+          model: 'gpt-image-2.5-flare',
           brandName: brandName,
           brandLogoUrl: importedLogo,
         };
 
         if (enableConsoleLogs) {
-          console.group('%c🚀 [ADORA AI] Lancement du Master Shot Dirigé (/api/master-shot)', 'background: #00E5FF; color: #07090E; font-weight: 900; padding: 4px 10px; border-radius: 4px;');
+          console.group('%c🚀 [MarkMosaiq AI] Lancement du Master Shot Dirigé (/api/master-shot)', 'background: #00E5FF; color: #07090E; font-weight: 900; padding: 4px 10px; border-radius: 4px;');
           console.log('📤 Paramètres transmis à /api/master-shot :', payload);
         }
-        console.log("data sent",JSON.stringify(payload))
+        console.log("data sent", JSON.stringify(payload))
 
         const genRes = await fetch('/api/master-shot', {
           method: 'POST',
@@ -1384,7 +1685,7 @@ export default function StudioCreativePage() {
         });
 
         const genData = await genRes.json();
-        console.log("sending",genData)
+        console.log("sending", genData)
 
         if (enableConsoleLogs) {
           console.log('📡 Statut Réponse HTTP :', genRes.status, genRes.ok ? '✅ SUCCÈS (200 OK)' : `❌ ERREUR HTTP (${genRes.status})`);
@@ -1394,7 +1695,7 @@ export default function StudioCreativePage() {
         // Si solde de crédits insuffisant renvoyé par l'API
         if (genRes.status === 402 || genData.code === 'INSUFFICIENT_CREDITS') {
           if (enableConsoleLogs) {
-            console.warn('⚠️ [ADORA AI] SOLDE DE CRÉDITS INSUFFISANT :', genData.error);
+            console.warn('⚠️ [MarkMosaiq AI] SOLDE DE CRÉDITS INSUFFISANT :', genData.error);
             console.groupEnd();
           }
           clearInterval(progressInterval);
@@ -1407,13 +1708,13 @@ export default function StudioCreativePage() {
 
         if (!genRes.ok || !genData.success) {
           if (enableConsoleLogs) {
-            console.error('❌ [ADORA AI] ERREUR MOTEUR IA :', genData?.error || 'Échec de génération');
+            console.error('❌ [MarkMosaiq AI] ERREUR MOTEUR IA :', genData?.error || 'Échec de génération');
           }
         }
 
         // Synchronisation du solde de crédits restant
-        if (genData.creditsRemaining !== undefined && workspace) {
-          workspace.creditsRemaining = genData.creditsRemaining;
+        if (genData.creditsRemaining !== undefined) {
+          updateCredits(genData.creditsRemaining);
         }
 
         const returnedUrl = genData.masterVisualUrl || genData.url || genData.images?.[0] || genData.data?.[0]?.url;
@@ -1486,13 +1787,13 @@ export default function StudioCreativePage() {
 
         // Exposer les résultats dans l'objet global window pour inspection libre (F12)
         if (typeof window !== 'undefined') {
-          (window as any).__LAST_ADORA_AI_RESULT__ = genData;
-          (window as any).__ADORA_STUDIO_FORMATS__ = generatedFormats;
-          (window as any).__ADORA_STUDIO_BG__ = customAiBg;
+          (window as any).__LAST_MarkMosaiq_AI_RESULT__ = genData;
+          (window as any).__MarkMosaiq_STUDIO_FORMATS__ = generatedFormats;
+          (window as any).__MarkMosaiq_STUDIO_BG__ = customAiBg;
 
           // Helper sécurisé pour ouvrir l'image sans blocage Chrome (Chrome bloque window.open avec data:image)
-          (window as any).viewAdoraImage = () => {
-            const targetUrl = returnedUrl || genData.url || (window as any).__ADORA_STUDIO_BG__;
+          (window as any).viewMarkMosaiqImage = () => {
+            const targetUrl = returnedUrl || genData.url || (window as any).__MarkMosaiq_STUDIO_BG__;
             if (!targetUrl) {
               console.warn('⚠️ Aucune image générée disponible.');
               return 'Aucune image disponible';
@@ -1503,7 +1804,7 @@ export default function StudioCreativePage() {
             }
             const win = window.open('about:blank', '_blank');
             if (win) {
-              win.document.title = 'Adora AI — Aperçu Studio Haute Définition';
+              win.document.title = 'MarkMosaiq AI — Aperçu Studio Haute Définition';
               win.document.body.style.margin = '0';
               win.document.body.style.backgroundColor = '#07090E';
               win.document.body.style.display = 'flex';
@@ -1522,8 +1823,8 @@ export default function StudioCreativePage() {
           };
 
           if (enableConsoleLogs) {
-            console.log('%c👁️ POUR OUVRIR L\'IMAGE EN GRAND SANS PAGE BLANCHE : Tapez %cviewAdoraImage()%c dans la console !', 'color: #10B981; font-size: 12px; font-weight: bold;', 'color: #00E5FF; font-weight: 900; background: #131823; padding: 2px 8px; border-radius: 4px; border: 1px solid #00E5FF;', 'color: #10B981; font-size: 12px; font-weight: bold;');
-            console.log('%c💡 ASTUCE DEBUG : Tapez %c__LAST_ADORA_AI_RESULT__%c pour inspecter l\'objet JavaScript brut !', 'color: #A855F7; font-size: 11px;', 'color: #00E5FF; font-weight: bold; background: #131823; padding: 2px 6px; border-radius: 4px;', 'color: #A855F7; font-size: 11px;');
+            console.log('%c👁️ POUR OUVRIR L\'IMAGE EN GRAND SANS PAGE BLANCHE : Tapez %cviewMarkMosaiqImage()%c dans la console !', 'color: #10B981; font-size: 12px; font-weight: bold;', 'color: #00E5FF; font-weight: 900; background: #131823; padding: 2px 8px; border-radius: 4px; border: 1px solid #00E5FF;', 'color: #10B981; font-size: 12px; font-weight: bold;');
+            console.log('%c💡 ASTUCE DEBUG : Tapez %c__LAST_MarkMosaiq_AI_RESULT__%c pour inspecter l\'objet JavaScript brut !', 'color: #A855F7; font-size: 11px;', 'color: #00E5FF; font-weight: bold; background: #131823; padding: 2px 6px; border-radius: 4px;', 'color: #A855F7; font-size: 11px;');
           }
         }
 
@@ -1532,7 +1833,7 @@ export default function StudioCreativePage() {
         }
       } catch (err) {
         if (enableConsoleLogs) {
-          console.error('❌ [ADORA AI] Erreur Exceptionnelle :', err);
+          console.error('❌ [MarkMosaiq AI] Erreur Exceptionnelle :', err);
           console.groupEnd();
         }
         console.warn('Fallback staging visuel:', err);
@@ -1618,6 +1919,15 @@ export default function StudioCreativePage() {
       ]);
 
       showToast('Vos 4 visuels publicitaires stratégiques sont prêts !');
+      if (!hasGeneratedFirstVisual) {
+        setHasGeneratedFirstVisual(true);
+        setShowFirstVisualCelebration(true);
+        try {
+          localStorage.setItem('markmosaiq_has_generated_first_visual', 'true');
+        } catch {
+          // ignore
+        }
+      }
     } catch (err: any) {
       console.error('❌ [handleGenerate] Erreur durant la génération:', err);
       showToast('Génération terminée (mode local haute fidélité)');
@@ -1665,28 +1975,82 @@ export default function StudioCreativePage() {
     }
   };
 
-  // Régénération unitaire d'une carte
+  // Ouverture du Studio d'Édition unitaire pour un visuel
+  const openCardEditor = (card: VisualCardData) => {
+    setEditingCard(card);
+    setEditingCardTab('copy');
+    setCardEditPrompt(editablePrompt);
+  };
+
+  // Régénération IA unitaire d'un visuel avec gpt-image-2.5-flare (Préservation absolue du produit)
+  const handleRegenerateCardWithAI = async (cardToUpdate: VisualCardData, promptOverride?: string) => {
+    try {
+      setIsRegeneratingCardImage(true);
+      showToast(`⚡ Régénération du visuel (${cardToUpdate.formatLabel || '1:1'}) en cours...`);
+
+      const aspect = cardToUpdate.format === 'story' || cardToUpdate.format === 'tiktok'
+        ? '9:16'
+        : cardToUpdate.format === 'facebook'
+          ? '1.91:1'
+          : '1:1';
+
+      const importedProduct = cutoutBase64 || (productImage && !productImage.includes('image.png') ? productImage : undefined);
+      const importedLogo = brandLogoUrl && !brandLogoUrl.includes('logo.png') ? brandLogoUrl : (brandLogoUrl || undefined);
+
+      const finalPrompt = (promptOverride || cardEditPrompt || editablePrompt).trim();
+
+      const payload = {
+        cutoutBase64: importedProduct,
+        imageBase64: importedProduct,
+        productName: cardToUpdate.headline || productName,
+        priceTND: cardToUpdate.price || priceDinars,
+        intentId: selectedIntentId,
+        aspect,
+        workspaceId: workspace?.id || 'ws_nutristore',
+        customHook: cardToUpdate.subheadline,
+        copyLanguage,
+        reassuranceBadge: reassuranceBadgeEnabled,
+        stylePrompt: finalPrompt,
+        userEditedPrompt: finalPrompt,
+        model: 'gpt-image-2.5-flare',
+        brandName,
+        brandLogoUrl: importedLogo,
+      };
+
+      const res = await fetch('/api/master-shot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Échec de la régénération du visuel');
+      }
+
+      const newImageUrl = data.masterVisualUrl || data.url || data.images?.[0];
+      if (newImageUrl) {
+        const updatedCard: VisualCardData = {
+          ...cardToUpdate,
+          bgImage: newImageUrl,
+        };
+        setEditingCard(updatedCard);
+        setVisuals((prev) => prev.map((c) => (c.id === cardToUpdate.id ? updatedCard : c)));
+        showToast('✅ Décor régénéré avec succès !');
+      }
+    } catch (err: any) {
+      console.error('Erreur régénération carte:', err);
+      showToast(`❌ Erreur: ${err.message || 'Échec de régénération'}`);
+    } finally {
+      setIsRegeneratingCardImage(false);
+    }
+  };
+
+  // Régénération unitaire rapide d'une carte depuis la barre d'outils
   const handleRegenerateSingle = (cardId: string) => {
-    showToast('Régénération de la variante publicitaire...');
-    setVisuals((prev) =>
-      prev.map((card) => {
-        if (card.id === cardId) {
-          const alternateHeadlines = [
-            "Le choix incontournable pour rayonner",
-            "Offre exclusive : commandez maintenant",
-            "Élu parfum préféré des tunisiens",
-            "Un sillage puissant et raffiné",
-          ];
-          const randomHeadline = alternateHeadlines[Math.floor(Math.random() * alternateHeadlines.length)];
-          return {
-            ...card,
-            id: `vis-${Date.now()}`,
-            headline: randomHeadline,
-          };
-        }
-        return card;
-      })
-    );
+    const targetCard = visuals.find((c) => c.id === cardId);
+    if (!targetCard) return;
+    handleRegenerateCardWithAI(targetCard);
   };
 
   // Rendu Canvas haute définition pour téléchargement unitaire
@@ -1715,7 +2079,7 @@ export default function StudioCreativePage() {
       ctx.fillRect(0, 0, W, H);
     }
 
-    // Si le visuel est déjà une affiche publicitaire complète (image.png ou composition Adora), on préserve sa pureté
+    // Si le visuel est déjà une affiche publicitaire complète (image.png ou composition MarkMosaiq), on préserve sa pureté
     const isPreDesignedAd = card.bgImage.startsWith('data:image') || card.bgImage.includes('image.png');
     if (!isPreDesignedAd) {
       // 2. Dégradé sombre pour lisibilité du texte
@@ -1807,7 +2171,7 @@ export default function StudioCreativePage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Adora_${productName.replace(/\s+/g, '_')}_${card.format}_${card.id}.jpg`;
+      a.download = `MarkMosaiq_${productName.replace(/\s+/g, '_')}_${card.format}_${card.id}.jpg`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -1818,21 +2182,38 @@ export default function StudioCreativePage() {
     }
   };
 
-  // TÉLÉCHARGEMENT GROUPÉ EN ARCHIVE ZIP (handleDownloadAllZip)
-  const handleDownloadAllZip = async () => {
+  // TÉLÉCHARGEMENT GROUPÉ EN ARCHIVE ZIP OU SÉLECTION PERSONNALISÉE (handleDownloadAllZip)
+  const handleDownloadAllZip = async (selectedIds?: string[] | unknown) => {
+    const isIdList = Array.isArray(selectedIds) && selectedIds.every((id) => typeof id === 'string');
+    const targetCards = isIdList && (selectedIds as string[]).length > 0
+      ? visuals.filter((v) => (selectedIds as string[]).includes(v.id))
+      : visuals;
+
+    if (targetCards.length === 0) {
+      showToast('Veuillez cocher au moins un format à télécharger.');
+      return;
+    }
+
+    // Si l'utilisateur a sélectionné 1 seul visuel personnalisé, on télécharge directement le fichier JPG HD
+    if (isIdList && (selectedIds as string[]).length === 1 && targetCards.length === 1) {
+      await handleDownloadSingle(targetCards[0]);
+      setIsDownloadDropdownOpen(false);
+      return;
+    }
+
     setIsZipping(true);
-    showToast('Génération de l\'archive ZIP complète...');
+    showToast(`Génération de l'archive ZIP (${targetCards.length} visuels)...`);
     try {
       const JSZip = (await import('jszip')).default;
       const zip = new JSZip();
 
       // Dossier 1 : Visuels publicitaires rendus
       const visualsFolder = zip.folder('01_Visuels_Publicitaires_HD');
-      for (let i = 0; i < visuals.length; i++) {
-        const v = visuals[i];
+      for (let i = 0; i < targetCards.length; i++) {
+        const v = targetCards[i];
         try {
           const blob = await renderCardToCanvasBlob(v);
-          const filename = `Adora_0${i + 1}_${v.formatLabel.replace(/[\s:]/g, '_')}.jpg`;
+          const filename = `MarkMosaiq_0${i + 1}_${v.formatLabel.replace(/[\s:]/g, '_')}.jpg`;
           visualsFolder?.file(filename, blob);
         } catch (err) {
           console.warn('Erreur ajout visuel au ZIP:', err);
@@ -1858,7 +2239,7 @@ export default function StudioCreativePage() {
       const frenchText = productAnalysis?.instagramCaption || `✨ Sublimez votre quotidien avec ${productName}.\nUne création olfactive raffinée, intense et durable au prix de ${priceDinars}.\n✅ Produit certifié 100% original\n🚚 Livraison express sur toute la Tunisie (24 à 48h)\n💵 Paiement à la réception en toute sécurité\n👉 Commandez dès maintenant par message privé !`;
 
       const copyFileContent = `========================================================================
-ADORA AI STUDIO — PACK PUBLICITAIRE CLÉ EN MAIN
+MarkMosaiq AI STUDIO — PACK PUBLICITAIRE CLÉ EN MAIN
 Produit : ${productName}
 Objectif : ${objective.toUpperCase()}
 Tarif Tunisie : ${priceDinars}
@@ -1882,12 +2263,19 @@ ${frenchText}
       const url = URL.createObjectURL(zipBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Pack_Adora_${productName.replace(/\s+/g, '_')}.zip`;
+      a.download = `Pack_MarkMosaiq_${productName.replace(/\s+/g, '_')}.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      setHasExportedVisual(true);
+      try {
+        localStorage.setItem('markmosaiq_has_exported_visual', 'true');
+      } catch {
+        // ignore
+      }
       showToast('Pack ZIP téléchargé avec succès !');
+      setIsDownloadDropdownOpen(false);
     } catch (err) {
       console.error(err);
       showToast('Erreur lors de la génération du ZIP');
@@ -1930,258 +2318,123 @@ ${frenchText}
         onClick={() => setStudioSidebarMobileOpen(false)}
       />
 
-      {/* =========================================================================
-          GAUCHE : SIDEBAR PRO DE NAVIGATION (ADORA-50)
-          ========================================================================= */}
-      <aside className={`${s.sidebar} ${studioSidebarMobileOpen ? s.sidebarOpenMobile : ''}`}>
-        <div>
-          {/* Logo Adora officiel & bouton fermeture mobile */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid #F1F5F9' }}>
-            <Link href="/" className={s.brandHeader} style={{ borderBottom: 'none', padding: 0, margin: 0, flex: 1, textDecoration: 'none' }}>
-              <img
-                src="/images/Adora_logo.png"
-                alt="Adora Logo"
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '10px',
-                  objectFit: 'contain',
-                  background: '#FFFFFF',
-                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.08)',
-                }}
-              />
-              <div className={s.brandTitles}>
-                <span className={s.brandName}>Adora</span>
-                <span className={s.brandTagline}>Crée. Publie. Vends.</span>
-              </div>
-            </Link>
-
-            <button
-              type="button"
-              className={s.studioSidebarCloseBtn}
-              onClick={() => setStudioSidebarMobileOpen(false)}
-              aria-label="Fermer le menu"
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          {/* Sélecteur de Boutique Multi-Tenant (AGENTS.md) */}
-          <div style={{ padding: '12px 6px 4px 6px' }}>
-            <WorkspaceSelector />
-          </div>
-
-          {/* Menu de navigation complet (ADORA-63) */}
-          <nav className={s.navSection}>
-            {/* Section 1 : STUDIO & CRÉATION IA */}
-            <div className={s.navGroupLabel}>Studio & Création IA</div>
-
-            <div className={`${s.navItem} ${s.navItemActive}`}>
-              <Sparkles size={18} className={s.navIconActive} />
-              <span>Créer une publicité</span>
-              <span className={s.navBadge}>Actif</span>
-            </div>
-
-            <Link href="/cutout" className={s.navItem}>
-              <Scissors size={18} />
-              <span>Enlever le fond (IA)</span>
-              <span className={s.navBadgeCyan}>Détourage</span>
-            </Link>
-
-            <Link href="/brand-kit" className={s.navItem}>
-              <Palette size={18} />
-              <span>Brand Kit & Charte</span>
-            </Link>
-
-            <div
-              className={s.navItem}
-              onClick={() => setIsCatalogOpen(true)}
-            >
-              <ShoppingBag size={18} />
-              <span>Catalogue produits</span>
-            </div>
-
-            {/* Section 2 : DIFFUSION & PERFORMANCE */}
-            <div className={s.navGroupLabel}>Diffusion & Performance</div>
-
-            <Link href="/dashboard" className={s.navItem}>
-              <LayoutDashboard size={18} />
-              <span>Tableau de bord</span>
-            </Link>
-
-            <Link href="/social" className={s.navItem}>
-              <Calendar size={18} />
-              <span>Campagnes & Social</span>
-            </Link>
-
-            <Link href="/pricing" className={s.navItem}>
-              <Tag size={18} />
-              <span>Tarifs & Offres</span>
-              <span className={s.navBadgeHot}>Dès 29 DT</span>
-            </Link>
-
-            {/* Section 3 : ENTREPRISE & GESTION */}
-            <div className={s.navGroupLabel}>Entreprise & Gestion</div>
-
-            <Link href="/agency" className={s.navItem}>
-              <Building2 size={18} />
-              <span>Espace Agence B2B</span>
-              <span className={s.navBadge}>B2B</span>
-            </Link>
-
-            <Link href="/billing/history" className={s.navItem}>
-              <FileText size={18} />
-              <span>Facturation & Reçus</span>
-            </Link>
-          </nav>
-        </div>
-
-        {/* Bas de sidebar : Carte Passez à Pro + Profil Utilisateur */}
-        <div>
-          {/* Carte Passez à Pro — Pack Lancement Pro */}
-          <div className={s.proCard}>
-            <div className={s.proHeader}>
-              <Crown size={16} />
-              <span>Pack Lancement Pro</span>
-              <span style={{ fontSize: '0.64rem', background: '#FF5722', color: '#FFF', padding: '2px 7px', borderRadius: '8px', marginLeft: 'auto', fontWeight: 800 }}>
-                59 DT
-              </span>
-            </div>
-            <p className={s.proDesc}>
-              20 visuels 4K sans filigrane, légendes Facebook Ads & archive ZIP complète.
-            </p>
-            <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-              <button
-                className={s.proBtn}
-                style={{ flex: 1 }}
-                onClick={() => setIsCheckoutOpen(true)}
-              >
-                Commander (59 DT)
-              </button>
-              <Link
-                href="/pricing"
-                className={s.proBtn}
-                style={{
-                  background: '#FFFFFF',
-                  color: '#7C3AED',
-                  border: '1px solid #E9D5FF',
-                  textDecoration: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '8px 10px',
-                }}
-                title="Consulter tous les tarifs & abonnements"
-              >
-                Tous les tarifs
-              </Link>
-            </div>
-          </div>
-
-          {/* Profil utilisateur Thamer Kthiri */}
-          <div
-            className={s.userProfile}
-            onClick={() => setIsBrandKitOpen(true)}
-            title="Gérer votre entreprise & identité de marque"
-          >
-            <div className={s.userInfo}>
-              <div className={s.userAvatar}>TK</div>
-              <div className={s.userMeta}>
-                <span className={s.userName}>{user?.name || 'Thamer Kthiri'}</span>
-                <span className={s.userCompany}>{workspace?.name || 'Mon entreprise'}</span>
-              </div>
-            </div>
-            <ChevronDown size={16} color="#64748B" />
-          </div>
-        </div>
-      </aside>
+      {/* Shared Studio Sidebar */}
+      <StudioSidebar
+        activeNav="studio"
+        mobileOpen={studioSidebarMobileOpen}
+        onCloseMobile={() => setStudioSidebarMobileOpen(false)}
+        onOpenBrandKit={() => setIsBrandKitOpen(true)}
+        onOpenCatalog={() => setIsCatalogOpen(true)}
+        onOpenCheckout={(planId) => {
+          if (planId === 'agency_299' || planId === 'flash' || planId === 'pro') {
+            setCheckoutInitialPlan(planId);
+          }
+          setIsCheckoutOpen(true);
+        }}
+      />
 
       {/* =========================================================================
           ZONE PRINCIPALE (SPLIT WIZARD GAUCHE + CRÉATIONS GÉNÉRÉES DROITE)
           ========================================================================= */}
       <main className={s.mainLayout}>
-        {/* =========================================================================
-            NAVBAR SUPÉRIEURE PRO (ADORA-65)
-            ========================================================================= */}
-        <header className={s.studioTopNavbar}>
-          {/* Fil d'Ariane & Navigation Retour */}
-          <div className={s.navBreadcrumbWrap}>
-            <button
-              type="button"
-              className={s.studioHamburgerBtn}
-              onClick={() => setStudioSidebarMobileOpen(!studioSidebarMobileOpen)}
-              title="Menu de navigation"
-            >
-              <Menu size={18} />
-            </button>
-
-            <Link href="/dashboard" className={s.breadcrumbBackBtn} title="Retour au tableau de bord" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <img
-                src="/images/Adora_logo.png"
-                alt="Adora Logo"
-                style={{ width: '22px', height: '22px', borderRadius: '6px', objectFit: 'contain', background: '#FFFFFF' }}
-              />
-              <ChevronLeft size={16} />
-              <span>Accueil</span>
-            </Link>
-            <span className={s.breadcrumbSeparator}>/</span>
-            <div className={s.breadcrumbCurrent}>
-              <span>Studio Créatif IA</span>
-              <span className={s.navLiveEngineBadge}>
-                <Sparkles size={11} /> 4K Staging v2
-              </span>
-            </div>
-          </div>
-
-          {/* Raccourcis d'actions & Multi-Tenant */}
-          <div className={s.navRightActions}>
-            <button
-              type="button"
-              className={s.navQuickActionBtn}
-              onClick={() => setIsBrandKitOpen(true)}
-              title="Configurer votre identité de marque et logo"
-            >
-              <Palette size={14} color="#7C3AED" />
-              <span>Brand Kit</span>
-            </button>
-
-            <div
-              className={s.navCreditsBadge}
-              onClick={() => setIsCheckoutOpen(true)}
-              title="Recharger vos crédits de génération"
-            >
-              <Zap size={13} color="#4338CA" />
-              <span>{workspace?.creditsRemaining || 14} crédits</span>
-            </div>
-
-            <button
-              type="button"
-              className={s.navProCtaBtn}
-              onClick={() => setIsCheckoutOpen(true)}
-              title="Débloquer les exports 4K illimités"
-            >
-              <Crown size={14} />
-              <span>Passer à Pro</span>
-            </button>
-          </div>
-        </header>
+        {/* Shared Studio Top Navbar */}
+        <StudioNavbar
+          pageTitle={t.studio.navbar.title}
+          pageBadge={
+            <span className={s.navLiveEngineBadge}>
+              <Sparkles size={11} /> {t.studio.navbar.liveEngine}
+            </span>
+          }
+          onToggleMobileSidebar={() => setStudioSidebarMobileOpen(!studioSidebarMobileOpen)}
+          onOpenBrandKit={() => setIsBrandKitOpen(true)}
+          onOpenCheckout={(planId) => {
+            if (planId === 'agency_299' || planId === 'flash' || planId === 'pro') {
+              setCheckoutInitialPlan(planId);
+            }
+            setIsCheckoutOpen(true);
+          }}
+        />
 
         <div className={s.contentSplit}>
 
           {/* =====================================================================
-              COLONNE DU CENTRE : WIZARD 4 ÉTAPES (ADORA-51 à 54)
+              COLONNE DU CENTRE : WIZARD 4 ÉTAPES (MarkMosaiq-51 à 54)
               ===================================================================== */}
           <section className={s.wizardCol}>
             {/* Titre & Sous-titre */}
             <div className={s.pageTitleSection}>
               <h1 className={s.pageTitle}>
-                <span>Créez vos publicités en quelques secondes</span>
+                <span>{t.studio.page.headerTitle}</span>
                 <Sparkles size={22} color="#7C3AED" />
               </h1>
               <p className={s.pageSubtitle}>
-                Ajoutez votre produit, votre objectif et laissez l'IA créer automatiquement vos 4 affiches dans tous les formats.
+                {t.studio.page.headerSubtitle}
               </p>
             </div>
+
+            {/* Welcome Trial Banner (2026 SaaS Action-First Pattern) */}
+            {searchParams?.get('trial') === 'active' && !hasGeneratedFirstVisual && (
+              <div
+                style={{
+                  marginBottom: '20px',
+                  padding: '16px 20px',
+                  background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(236, 72, 153, 0.08) 100%)',
+                  border: '1px solid rgba(99, 102, 241, 0.25)',
+                  borderRadius: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#FFFFFF',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Sparkles size={22} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
+                      🎉 Free Trial Active — 3 4K Commercial Credits Unlocked!
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
+                      Drop your first product image below. Our AI Art Director will render studio backdrops with realistic physics in 30 seconds.
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('studio-product-dropzone');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    background: '#4F46E5',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    border: 'none',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                  }}
+                >
+                  Stage Now ➔
+                </button>
+              </div>
+            )}
 
             {/* Input fichier caché pour l'upload */}
             <input
@@ -2197,15 +2450,16 @@ ${frenchText}
               <div className={s.stepHeader} style={{ marginBottom: '14px' }}>
                 <div className={s.stepNumber}>1</div>
                 <div className={s.stepTitleWrap}>
-                  <h3 className={s.stepTitle}>Photo & Détails du produit</h3>
+                  <h3 className={s.stepTitle}>{t.studio.page.step1Title}</h3>
                   <p className={s.stepDescription}>
-                    Importez votre produit et indiquez son prix de vente en Tunisie.
+                    {t.studio.page.step1Subtitle}
                   </p>
                 </div>
               </div>
 
               {/* Zone Drag & Drop ou aperçu produit */}
               <div
+                id="studio-product-dropzone"
                 className={s.dropzone}
                 onClick={() => fileInputRef.current?.click()}
                 onDragOver={(e) => e.preventDefault()}
@@ -2219,7 +2473,7 @@ ${frenchText}
                       setProductImage(base64);
                       const cleanName = file.name
                         .replace(/\.[^/.]+$/, '')
-                        .replace(/^adora_/i, '')
+                        .replace(/^MarkMosaiq_/i, '')
                         .replace(/[_\-+]+/g, ' ')
                         .replace(/\(\d+\)/g, '')
                         .replace(/\s+/g, ' ')
@@ -2244,7 +2498,6 @@ ${frenchText}
                       } catch {
                         // ignore
                       }
-                      analyzeProductWithAI(base64, cleanName);
                       showToast(`Photo importée : ${cleanName}`);
                     };
                     reader.readAsDataURL(file);
@@ -2286,10 +2539,10 @@ ${frenchText}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {productName || 'Produit importé'}
+                        {productName || (locale === 'en' ? 'Imported product' : 'Produit importé')}
                       </div>
                       <div style={{ fontSize: '0.72rem', color: '#10B981', fontWeight: 700, marginTop: '2px' }}>
-                        ✓ {cutoutBase64 ? 'Détouré avec succès' : 'Photo prête'} · Cliquez pour changer
+                        ✓ {cutoutBase64 ? t.studio.page.cutoutSuccess : (locale === 'en' ? 'Photo ready' : 'Photo prête')} · {t.studio.page.changePhoto}
                       </div>
                     </div>
                     <button
@@ -2310,15 +2563,15 @@ ${frenchText}
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      Catalogue
+                      {t.studio.sidebar.navCatalog}
                     </button>
                   </div>
                 ) : (
                   <>
                     <UploadCloud size={28} className={s.uploadCloudIcon} />
                     <div style={{ textAlign: 'left' }}>
-                      <span className={s.dropzonePrompt} style={{ fontSize: '0.84rem' }}>Cliquez pour importer la photo du produit</span>
-                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#94A3B8' }}>PNG, JPG ou WebP</span>
+                      <span className={s.dropzonePrompt} style={{ fontSize: '0.84rem' }}>{t.studio.page.uploadDropzone}</span>
+                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#94A3B8' }}>{t.studio.page.uploadFormats}</span>
                     </div>
                   </>
                 )}
@@ -2328,13 +2581,13 @@ ${frenchText}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div style={{ gridColumn: 'span 2' }}>
                   <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                    Nom du produit
+                    {t.studio.page.productNameLabel}
                   </label>
                   <input
                     type="text"
                     value={productName}
                     onChange={(e) => setProductName(e.target.value)}
-                    placeholder="Ex: Huile de Figue de Barbarie Pure"
+                    placeholder={t.studio.page.productNamePlaceholder}
                     style={{
                       width: '100%',
                       padding: '8px 12px',
@@ -2347,79 +2600,15 @@ ${frenchText}
                   />
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                    Prix affiché (TND)
-                  </label>
-                  <input
-                    type="text"
-                    value={priceDinars}
-                    onChange={(e) => setPriceDinars(e.target.value)}
-                    placeholder="Ex: 59 DT"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '8px',
-                      fontSize: '0.82rem',
-                      fontWeight: 700,
-                      outline: 'none',
-                      color: '#0F172A',
-                    }}
-                  />
-                </div>
 
-                <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                    Badge commercial
-                  </label>
-                  <select
-                    value={activeBadge}
-                    onChange={(e) => setActiveBadge(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 10px',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '8px',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      outline: 'none',
-                      backgroundColor: '#FFF',
-                    }}
-                  >
-                    {LOCAL_BADGES.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
 
-                {/* Badge Réassurance cumulable (Recommandation 4) */}
-                <div style={{
-                  gridColumn: 'span 2',
-                  marginTop: '4px',
-                  padding: '8px 10px',
-                  background: '#F8FAFC',
-                  borderRadius: '8px',
-                  border: '1px solid #E2E8F0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.76rem', fontWeight: 700, color: '#0F172A' }}>
-                    <input
-                      type="checkbox"
-                      checked={reassuranceBadgeEnabled}
-                      onChange={(e) => setReassuranceBadgeEnabled(e.target.checked)}
-                      style={{ accentColor: '#00E5FF', width: '15px', height: '15px', cursor: 'pointer' }}
-                    />
-                    <span>🚚 Réassurance : Paiement à la livraison 24h-48h</span>
-                  </label>
-                  <span style={{ fontSize: '0.68rem', fontWeight: 800, color: reassuranceBadgeEnabled ? '#059669' : '#94A3B8' }}>
-                    {reassuranceBadgeEnabled ? '✓ Actif' : 'Désactivé'}
-                  </span>
-                </div>
+
+
+                {/* Sélecteur de Langue des Textes & Accroches */}
+
+
+                {/* Badge Réassurance cumulable */}
+
               </div>
             </div>
 
@@ -2432,18 +2621,101 @@ ${frenchText}
               onChange={handleLogoUpload}
             />
 
-            {/* BOUTON D'ACTION PRINCIPALE : OUVRE LE POPUP DE DIRECTION ARTISTIQUE & AMBIANCE */}
+            {/* STATUT OU RÉSULTAT DE L'ANALYSE STRATÉGIQUE DU PRODUIT */}
+           
+
+           
+
+            {/* ÉTAPE 2 : STRATÉGIE MARKETING & PROMPT DÉCOR IA (gpt-image-2.5-flare) */}
+            <div className={s.stepCard} style={{ padding: '18px 20px', marginBottom: '16px', border: '1px solid #E2E8F0', borderRadius: '14px', background: '#FFFFFF', width: '100%', boxSizing: 'border-box' }}>
+              <div className={s.stepHeader} style={{ marginBottom: '12px' }}>
+                <div className={s.stepNumber} style={{ background: '#EDE9FE', color: '#7C3AED' }}>2</div>
+                <div className={s.stepTitleWrap}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                    <h3 className={s.stepTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>{t.studio.page.step2Title}</span>
+                    </h3>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 800, background: '#EDE9FE', border: '1px solid #C4B5FD', color: '#7C3AED', padding: '2px 8px', borderRadius: '12px' }}>
+                      ⚡ {locale === 'en' ? '4K Ultra-HD Studio Render' : 'Rendu Studio 4K Ultra-HD'}
+                    </span>
+                  </div>
+                  <p className={s.stepDescription}>
+                    {t.studio.page.step2Subtitle}
+                  </p>
+                </div>
+              </div>
+
+              {/* Textarea du prompt éditable (blank par défaut, responsive pleine largeur, fond clair non-noir) */}
+              <div style={{ position: 'relative', width: '100%', boxSizing: 'border-box' }}>
+                <textarea
+                  value={editablePrompt}
+                  onChange={(e) => {
+                    setEditablePrompt(e.target.value);
+                    setIsPromptEdited(true);
+                  }}
+                  rows={6}
+                  placeholder={locale === 'en' ? "Write your backdrop prompt here (leave empty to use default style)..." : "Écrivez votre prompt de décor ici (laisser vide pour utiliser le style par défaut)..."}
+                  style={{
+                    width: '100%',
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
+                    padding: '12px 14px',
+                    borderRadius: '10px',
+                    background: '#F8FAFC',
+                    border: '1.5px solid #CBD5E1',
+                    color: '#0F172A',
+                    fontSize: '0.86rem',
+                    lineHeight: 1.55,
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
+                    outline: 'none',
+                    boxShadow: 'none',
+                  }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                  <span style={{ fontSize: '0.70rem', color: '#64748B' }}>
+                    {editablePrompt.trim().length > 0
+                      ? `${editablePrompt.trim().length} ${locale === 'en' ? 'characters' : 'caractères'}`
+                      : (locale === 'en' ? 'Leave empty to automatically use active artistic style' : 'Laisser vide pour utiliser automatiquement le style artistique actif')}
+                  </span>
+
+                  {editablePrompt.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsPromptEdited(false);
+                        setEditablePrompt('');
+                        showToast(locale === 'en' ? 'Prompt cleared' : 'Prompt effacé');
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#64748B',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      {locale === 'en' ? 'Clear prompt' : 'Effacer le prompt'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* BOUTON D'ACTION PRINCIPALE : LANCE LA GÉNÉRATION AVEC LE PROMPT ÉDITÉ */}
             <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button
                 type="button"
                 className={s.generateActionBtn}
                 onClick={() => {
                   if (workspace && workspace.creditsRemaining <= 0) {
-                    showToast('⚠️ Solde insuffisant (0 crédit restant). Rechargez votre pack dès 29 DT.');
+                    showToast('⚠️ Zero credits remaining. Upgrade via Whop from $19 to stage unlimited products.');
                     setIsCheckoutOpen(true);
                     return;
                   }
-                  setIsQuestionsModalOpen(true);
+                  handleGenerate(selectedIntentId, editablePrompt);
                 }}
                 disabled={isGenerating}
                 style={{
@@ -2462,42 +2734,19 @@ ${frenchText}
                 {isGenerating ? (
                   <>
                     <RefreshCw size={20} className="animate-spin" />
-                    <span>Création du Master Shot ({generationProgress}%)...</span>
+                    <span>{t.studio.page.generatingBtn} ({generationProgress}%)...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles size={20} />
-                    <span>🎨 Choisir le Décor & Générer</span>
+                    <span>🚀 {t.studio.page.generateBtn}</span>
                     <ArrowRight size={20} />
                   </>
                 )}
               </button>
 
-              {/* Bouton secondaire génération express 1 clic direct */}
-              <button
-                type="button"
-                onClick={handleExpressGenerate}
-                disabled={isGenerating}
-                style={{
-                  width: '100%',
-                  padding: '11px 18px',
-                  borderRadius: '10px',
-                  fontSize: '0.84rem',
-                  fontWeight: 800,
-                  background: '#F8FAFC',
-                  border: '1px solid #CBD5E1',
-                  color: '#334155',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <Sparkles size={14} color="#7C3AED" />
-                <span>⚡ Générer en 1 clic (Ambiance active)</span>
-              </button>
+              {/* Bouton secondaire questionnaire guidé */}
+             
 
               <div style={{
                 textAlign: 'center',
@@ -2506,9 +2755,19 @@ ${frenchText}
                 lineHeight: 1.4,
                 marginTop: '2px',
               }}>
-                ✓ <strong>1 Seul Cliché Maître :</strong> -70% de consommation API • 0 altération du produit réel
-                <br />
-                ✓ <strong>Déclinaisons Automatiques :</strong> Feed 1:1, Story 9:16 (Safe Zones) et Facebook Ads
+                {locale === 'en' ? (
+                  <>
+                    ✓ <strong>1 Master Shot:</strong> -70% API consumption • 0 alteration to authentic product
+                    <br />
+                    ✓ <strong>Automatic Variants:</strong> Feed 1:1, Story 9:16 (Safe Zones) and Facebook Ads
+                  </>
+                ) : (
+                  <>
+                    ✓ <strong>1 Seul Cliché Maître :</strong> -70% de consommation API • 0 altération du produit réel
+                    <br />
+                    ✓ <strong>Déclinaisons Automatiques :</strong> Feed 1:1, Story 9:16 (Safe Zones) et Facebook Ads
+                  </>
+                )}
               </div>
             </div>
 
@@ -2516,7 +2775,7 @@ ${frenchText}
           </section>
 
           {/* =====================================================================
-              COLONNE DE DROITE : VOS CRÉATIONS GÉNÉRÉES 2x2 (ADORA-55 & ADORA-56)
+              COLONNE DE DROITE : VOS CRÉATIONS GÉNÉRÉES 2x2 (MarkMosaiq-55 & MarkMosaiq-56)
               ===================================================================== */}
           <section className={s.resultsCol}>
             {/* Header supérieur de la section de résultats */}
@@ -2525,12 +2784,12 @@ ${frenchText}
                 <div className={s.resultsTitleRow}>
                   <h2 className={s.resultsTitle}>
                     <Sparkles size={18} color="#7C3AED" />
-                    <span>Vos créations générées</span>
+                    <span>{t.studio.page.resultsTitle}</span>
                   </h2>
-                  <span className={s.visualsCountBadge}>4 visuels</span>
+                  <span className={s.visualsCountBadge}>{visuals.length} {locale === 'en' ? 'visuals' : 'visuels'}</span>
                 </div>
                 <p className={s.resultsSubtitle}>
-                  Voici vos visuels publicitaires créés avec l'IA au format réel pour Instagram Post, Stories et Facebook Ads.
+                  {t.studio.page.resultsSubtitle}
                 </p>
 
                 {/* Badge Format Réseaux Sociaux Réel */}
@@ -2548,32 +2807,250 @@ ${frenchText}
                     border: '1px solid #FCE7F3',
                   }}>
                     <span>📱</span>
-                    <span>Format Réseaux Sociaux Réels (Instagram Post, Stories & Facebook)</span>
+                    <span>{locale === 'en' ? 'True Social Media Formats (Instagram Post, Stories & Facebook)' : 'Format Réseaux Sociaux Réels (Instagram Post, Stories & Facebook)'}</span>
                   </span>
                 </div>
               </div>
 
-              {/* Bouton de notifications & Avatar utilisateur */}
-              <div className={s.headerTopActions}>
+              {/* BOUTON DE TÉLÉCHARGEMENT ATTRACTIF EN HAUT À DROITE AVEC MENU DÉROULANT */}
+              <div className={s.downloadDropdownWrapper} ref={downloadDropdownRef}>
                 <button
                   type="button"
-                  className={s.iconCircleBtn}
-                  title="Notifications de génération"
-                  onClick={() => showToast('Toutes vos notifications sont à jour')}
+                  className={s.attractiveDownloadBtn}
+                  onClick={() => setIsDownloadDropdownOpen((prev) => !prev)}
+                  disabled={isZipping}
+                  aria-expanded={isDownloadDropdownOpen}
+                  title={locale === 'en' ? "Download your HD creations" : "Télécharger vos créations HD"}
                 >
-                  <Bell size={16} />
+                  <div className={s.downloadBtnContent}>
+                    {isZipping ? (
+                      <RefreshCw size={14} className="animate-spin" />
+                    ) : (
+                      <Download size={14} />
+                    )}
+                    <span className={s.downloadBtnLabel}>
+                      {isZipping ? (locale === 'en' ? 'Exporting...' : 'Exportation...') : (locale === 'en' ? 'Download' : 'Télécharger')}
+                    </span>
+                    <span className={s.downloadBtnBadge}>
+                      {visuals.length} {locale === 'en' ? 'HD Formats' : 'Formats HD'}
+                    </span>
+                    <ChevronDown
+                      size={13}
+                      style={{
+                        transform: isDownloadDropdownOpen ? 'rotate(180deg)' : 'none',
+                        transition: 'transform 0.2s ease',
+                      }}
+                    />
+                  </div>
                 </button>
-                <div
-                  className={s.headerAvatar}
-                  onClick={() => setIsBrandKitOpen(true)}
-                  title="Mon profil & Brand Kit"
-                >
-                  TK
-                </div>
+
+                {/* MENU DÉROULANT / POPUP SÉLECTION & TOUT TÉLÉCHARGER */}
+                {isDownloadDropdownOpen && (
+                  <div className={s.downloadDropdownMenu}>
+                    <div className={s.dropdownHeader}>
+                      <div>
+                        <div className={s.dropdownTitle}>
+                          <Download size={15} color="#0F172A" />
+                          <span>{locale === 'en' ? 'Studio 4K Export' : 'Exportation Studio 4K'}</span>
+                        </div>
+                        <div className={s.dropdownSubtitle}>
+                          {locale === 'en' ? 'Download full pack or select formats' : "Téléchargez l'ensemble ou choisissez vos formats"}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsDownloadDropdownOpen(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#64748B',
+                          cursor: 'pointer',
+                          padding: '4px',
+                          display: 'flex',
+                        }}
+                        title={locale === 'en' ? 'Close' : 'Fermer'}
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+
+                    {/* Option 1: TOUT TÉLÉCHARGER (ALL) EN 1 CLIC */}
+                    <button
+                      type="button"
+                      className={s.dropdownHeroBtn}
+                      onClick={() => handleDownloadAllZip()}
+                      disabled={isZipping}
+                      title={locale === 'en' ? "Download all visuals + copy + badges in 1 complete ZIP" : "Télécharger tous les visuels + textes + badges en 1 ZIP complet"}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div
+                          style={{
+                            width: '34px',
+                            height: '34px',
+                            borderRadius: '8px',
+                            background: '#FFFFFF',
+                            border: '1px solid #CBD5E1',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#0F172A',
+                            flexShrink: 0,
+                            boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+                          }}
+                        >
+                          <Download size={16} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0F172A' }}>
+                            {t.studio.page.downloadZip}
+                          </div>
+                          <div style={{ fontSize: '0.68rem', color: '#64748B' }}>
+                            {locale === 'en' ? `Full pack: ${visuals.length} HD Formats + Badges + Copy` : `Pack complet : ${visuals.length} Formats HD + Badges + Textes`}
+                          </div>
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          background: '#0F172A',
+                          color: '#FFFFFF',
+                          fontSize: '0.66rem',
+                          fontWeight: 700,
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {locale === 'en' ? '1 Click ➔' : '1 Clic ➔'}
+                      </span>
+                    </button>
+
+                    <div className={s.dropdownDivider}>
+                      <span>{locale === 'en' ? 'Or pick specific formats' : 'Ou choisir vos formats'}</span>
+                    </div>
+
+                    {/* Toolbar de sélection */}
+                    <div className={s.dropdownSelectionToolbar}>
+                      <span>
+                        {locale === 'en' ? 'Selected:' : 'Sélectionnés :'} <strong>{selectedVisualIdsForDownload.length}</strong> / {visuals.length}
+                      </span>
+                      <div className={s.dropdownToolbarLinks}>
+                        <button
+                          type="button"
+                          className={s.dropdownTextBtn}
+                          onClick={selectAllVisualsForDownload}
+                        >
+                          {locale === 'en' ? 'Select all' : 'Tout cocher'}
+                        </button>
+                        <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+                        <button
+                          type="button"
+                          className={s.dropdownTextBtn}
+                          onClick={deselectAllVisualsForDownload}
+                        >
+                          {locale === 'en' ? 'Deselect all' : 'Tout décocher'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Liste des formats avec checkboxes & téléchargement unitaire direct */}
+                    <div className={s.dropdownFormatsList}>
+                      {visuals.map((v) => {
+                        const isChecked = selectedVisualIdsForDownload.includes(v.id);
+                        const formatIcon = v.format === 'story' || v.format === 'tiktok' ? '📱' : v.format === 'facebook' ? '🖼️' : '📸';
+                        const resolutionText = v.format === 'story' || v.format === 'tiktok' ? '1080 × 1920px (9:16)' : v.format === 'facebook' ? '1200 × 628px (1.91:1)' : '1080 × 1080px (1:1)';
+
+                        return (
+                          <div
+                            key={v.id}
+                            className={`${s.dropdownFormatItem} ${isChecked ? s.selected : ''}`}
+                            onClick={() => toggleSelectVisualForDownload(v.id)}
+                          >
+                            <div className={s.dropdownFormatItemLeft}>
+                              <input
+                                type="checkbox"
+                                className={s.dropdownItemCheckbox}
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  toggleSelectVisualForDownload(v.id);
+                                }}
+                              />
+                              <span style={{ fontSize: '1rem' }}>{formatIcon}</span>
+                              <div className={s.dropdownFormatItemInfo}>
+                                <div className={s.dropdownFormatName}>
+                                  {v.formatLabel}
+                                </div>
+                                <div className={s.dropdownFormatSub}>
+                                  {resolutionText}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Bouton téléchargement individuel direct 1-clic */}
+                            <button
+                              type="button"
+                              className={s.dropdownItemSingleBtn}
+                              title={`${locale === 'en' ? 'Download' : 'Télécharger'} ${v.formatLabel} ${locale === 'en' ? 'in HD' : 'seul en HD'}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadSingle(v);
+                              }}
+                            >
+                              <Download size={12} />
+                              <span>JPG</span>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Bouton d'action pour la sélection */}
+                    <button
+                      type="button"
+                      className={s.dropdownActionBtn}
+                      onClick={() => handleDownloadAllZip(selectedVisualIdsForDownload)}
+                      disabled={isZipping || selectedVisualIdsForDownload.length === 0}
+                    >
+                      <Download size={14} />
+                      <span>
+                        {locale === 'en'
+                          ? `Download selection (${selectedVisualIdsForDownload.length} format${selectedVisualIdsForDownload.length > 1 ? 's' : ''})`
+                          : `Télécharger la sélection (${selectedVisualIdsForDownload.length} format${selectedVisualIdsForDownload.length > 1 ? 's' : ''})`}
+                      </span>
+                    </button>
+
+                    {/* Liens bonus texte et badges */}
+                    <div className={s.dropdownFooterExtra}>
+                      <button
+                        type="button"
+                        onClick={handleDownloadAdCopies}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#64748B',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '0.72rem',
+                          padding: '2px',
+                        }}
+                        title={locale === 'en' ? "Download ad copy file in text format" : "Télécharger le fichier de légendes Facebook/Instagram/Darija au format texte"}
+                      >
+                        <FileText size={12} color="#0F172A" />
+                        <span>{locale === 'en' ? 'Ad Copy (.txt)' : 'Textes de vente (.txt)'}</span>
+                      </button>
+
+                      <span style={{ fontSize: '0.68rem', color: '#64748B' }}>
+                        Studio 4K Ultra-HD
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* GRILLE 2x2 DES CRÉATIONS GÉNÉRÉES (ADORA-55) */}
+            {/* GRILLE 2x2 DES CRÉATIONS GÉNÉRÉES (MarkMosaiq-55) */}
             <div className={s.resultsGrid}>
               {visuals.map((card) => (
                 <div key={card.id} className={s.adVisualCard} style={{ overflow: 'hidden', position: 'relative' }}>
@@ -2607,272 +3084,272 @@ ${frenchText}
 
                   {/* APERÇU FORMAT RÉSEAUX SOCIAUX (INSTAGRAM STORY, POST & FACEBOOK ADS) */}
                   <div>
-                      {/* CAS A : FORMAT INSTAGRAM STORY (OU TIKTOK 9:16) */}
-                      {card.format === 'story' || card.format === 'tiktok' ? (
-                        <div style={{ background: '#0F172A', color: '#FFF' }}>
-                          {/* Barres de progression Story */}
-                          <div style={{ display: 'flex', gap: '3px', padding: '8px 10px 4px' }}>
-                            <div style={{ flex: 1, height: '2px', background: '#FFFFFF', borderRadius: '2px' }} />
-                            <div style={{ flex: 1, height: '2px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }} />
-                            <div style={{ flex: 1, height: '2px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }} />
-                          </div>
+                    {/* CAS A : FORMAT INSTAGRAM STORY (OU TIKTOK 9:16) */}
+                    {card.format === 'story' || card.format === 'tiktok' ? (
+                      <div style={{ background: '#0F172A', color: '#FFF' }}>
+                        {/* Barres de progression Story */}
+                        <div style={{ display: 'flex', gap: '3px', padding: '8px 10px 4px' }}>
+                          <div style={{ flex: 1, height: '2px', background: '#FFFFFF', borderRadius: '2px' }} />
+                          <div style={{ flex: 1, height: '2px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }} />
+                          <div style={{ flex: 1, height: '2px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }} />
+                        </div>
 
-                          {/* Header Instagram Story */}
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(45deg, #F58529, #D92E7F, #833AB4)', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.6rem', color: '#7C3AED' }}>
-                                  {(brandName || 'AD').slice(0, 2).toUpperCase()}
-                                </div>
-                              </div>
-                              <div style={{ fontSize: '0.74rem', fontWeight: 800 }}>
-                                {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.tn'}
+                        {/* Header Instagram Story */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(45deg, #F58529, #D92E7F, #833AB4)', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.6rem', color: '#7C3AED' }}>
+                                {(brandName || 'AD').slice(0, 2).toUpperCase()}
                               </div>
                             </div>
-                            <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#A855F7', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '4px' }}>
-                              Story 9:16
-                            </span>
+                            <div style={{ fontSize: '0.74rem', fontWeight: 800 }}>
+                              {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.tn'}
+                            </div>
                           </div>
+                          <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#A855F7', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '4px' }}>
+                            Story 9:16
+                          </span>
+                        </div>
 
-                          {/* Image Story avec Stickers */}
-                          <div style={{ position: 'relative', width: '100%', aspectRatio: '9 / 16', maxHeight: '420px', overflow: 'hidden', background: '#0F172A' }}>
-                            <img
-                              src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
-                              alt={card.headline}
-                              style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
-                              onError={(e) => {
-                                const el = e.currentTarget;
-                                if (!el.src.includes('image.png')) el.src = '/images/image.png';
-                              }}
-                            />
+                        {/* Image Story avec Stickers */}
+                        <div style={{ position: 'relative', width: '100%', aspectRatio: '9 / 16', maxHeight: '420px', overflow: 'hidden', background: '#0F172A' }}>
+                          <img
+                            src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
+                            alt={card.headline}
+                            style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
+                            onError={(e) => {
+                              const el = e.currentTarget;
+                              if (!el.src.includes('image.png')) el.src = '/images/image.png';
+                            }}
+                          />
 
-                            {/* Badge IA Story */}
-                            {card.badgeText && (
-                              <div style={{
-                                position: 'absolute',
-                                top: '12px',
-                                left: '12px',
-                                background: '#E11D48',
-                                color: '#FFF',
-                                padding: '4px 10px',
-                                borderRadius: '6px',
-                                fontSize: '0.64rem',
-                                fontWeight: 900,
-                                boxShadow: '0 2px 8px rgba(225, 29, 72, 0.4)',
-                              }}>
-                                {card.badgeText}
-                              </div>
-                            )}
-
-                            {/* Accroche IA Story */}
+                          {/* Badge IA Story */}
+                          {card.badgeText && (
                             <div style={{
                               position: 'absolute',
-                              bottom: '12px',
+                              top: '12px',
                               left: '12px',
-                              right: '12px',
-                              background: 'rgba(0, 0, 0, 0.75)',
-                              backdropFilter: 'blur(8px)',
-                              border: '1px solid rgba(255, 255, 255, 0.2)',
-                              borderRadius: '8px',
-                              padding: '8px 12px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              gap: '8px',
+                              background: '#E11D48',
+                              color: '#FFF',
+                              padding: '4px 10px',
+                              borderRadius: '6px',
+                              fontSize: '0.64rem',
+                              fontWeight: 900,
+                              boxShadow: '0 2px 8px rgba(225, 29, 72, 0.4)',
                             }}>
-                              <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#FFF' }}>
-                                {card.headline}
-                              </div>
-                              {card.price && (
-                                <span style={{ fontSize: '0.68rem', color: '#34D399', fontWeight: 900, whiteSpace: 'nowrap' }}>
-                                  {card.price}
-                                </span>
-                              )}
+                              {card.badgeText}
                             </div>
-                          </div>
+                          )}
 
-                          {/* Bouton d'action Story Swipe-up */}
-                          <div style={{ padding: '8px 10px', background: '#0F172A' }}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedSocialVisual(card.bgImage);
-                                setIsSocialModalOpen(true);
-                              }}
-                              style={{
-                                width: '100%',
-                                padding: '8px',
-                                borderRadius: '9999px',
-                                background: '#FFFFFF',
-                                color: '#0F172A',
-                                fontWeight: 800,
-                                fontSize: '0.74rem',
-                                border: 'none',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '6px',
-                              }}
-                            >
-                              <span>{card.ctaText || 'Commander'}</span>
-                              <ArrowRight size={12} />
-                            </button>
-                          </div>
-                        </div>
-                      ) : card.format === 'facebook' ? (
-                        /* CAS B : FORMAT FACEBOOK ADS FEED */
-                        <div style={{ background: '#FFFFFF' }}>
-                          {/* Header Facebook */}
-                          <div style={{ padding: '10px 12px 8px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1877F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 900, fontSize: '0.65rem' }}>
-                                  {(brandName || 'AD').slice(0, 2).toUpperCase()}
-                                </div>
-                                <div>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0F172A' }}>{brandName}</span>
-                                    <span style={{ color: '#1877F2', fontSize: '0.7rem' }}>✓</span>
-                                  </div>
-                                </div>
-                              </div>
-                              <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#1877F2', background: '#EFF6FF', padding: '2px 6px', borderRadius: '4px', border: '1px solid #DBEAFE' }}>
-                                Facebook Ads
-                              </span>
-                            </div>
-                            <div style={{ fontSize: '0.74rem', color: '#1E293B', lineHeight: '1.4', fontWeight: 600 }}>
+                          {/* Accroche IA Story */}
+                          <div style={{
+                            position: 'absolute',
+                            bottom: '12px',
+                            left: '12px',
+                            right: '12px',
+                            background: 'rgba(0, 0, 0, 0.75)',
+                            backdropFilter: 'blur(8px)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '8px',
+                          }}>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#FFF' }}>
                               {card.headline}
                             </div>
-                          </div>
-
-                          {/* Image Facebook */}
-                          <div style={{ position: 'relative', width: '100%', background: '#F8FAFC', overflow: 'hidden', aspectRatio: '1.91 / 1' }}>
-                            <img
-                              src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
-                              alt={card.headline}
-                              style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
-                              onError={(e) => {
-                                const el = e.currentTarget;
-                                if (!el.src.includes('image.png')) el.src = '/images/image.png';
-                              }}
-                            />
-                          </div>
-
-                          {/* Lien et CTA Facebook Ads */}
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC' }}>
-                            <div style={{ flex: 1, marginRight: '8px' }}>
-                              <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0F172A' }}>{card.subheadline}</div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedSocialVisual(card.bgImage);
-                                setIsSocialModalOpen(true);
-                              }}
-                              style={{
-                                background: '#1877F2',
-                                color: '#FFFFFF',
-                                fontWeight: 800,
-                                fontSize: '0.7rem',
-                                padding: '6px 12px',
-                                borderRadius: '6px',
-                                border: 'none',
-                                cursor: 'pointer',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              {card.ctaText || 'Commander'}
-                            </button>
+                            {card.price && (
+                              <span style={{ fontSize: '0.68rem', color: '#34D399', fontWeight: 900, whiteSpace: 'nowrap' }}>
+                                {card.price}
+                              </span>
+                            )}
                           </div>
                         </div>
-                      ) : (
-                        /* CAS C : FORMAT INSTAGRAM POST FEED (PAR DÉFAUT) */
-                        <div style={{ background: '#FFFFFF' }}>
-                          {/* Header Instagram Post */}
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderBottom: '1px solid #F1F5F9' }}>
+
+                        {/* Bouton d'action Story Swipe-up */}
+                        <div style={{ padding: '8px 10px', background: '#0F172A' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedSocialVisual(card.bgImage);
+                              setIsSocialModalOpen(true);
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '8px',
+                              borderRadius: '9999px',
+                              background: '#FFFFFF',
+                              color: '#0F172A',
+                              fontWeight: 800,
+                              fontSize: '0.74rem',
+                              border: 'none',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                            }}
+                          >
+                            <span>{card.ctaText || 'Commander'}</span>
+                            <ArrowRight size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : card.format === 'facebook' ? (
+                      /* CAS B : FORMAT FACEBOOK ADS FEED */
+                      <div style={{ background: '#FFFFFF' }}>
+                        {/* Header Facebook */}
+                        <div style={{ padding: '10px 12px 8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <div style={{
-                                width: '30px',
-                                height: '30px',
-                                borderRadius: '50%',
-                                background: 'linear-gradient(45deg, #F58529, #D92E7F, #833AB4)',
-                                padding: '2px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}>
-                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.62rem', color: '#7C3AED' }}>
-                                  {(brandName || 'AD').slice(0, 2).toUpperCase()}
+                              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1877F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 900, fontSize: '0.65rem' }}>
+                                {(brandName || 'AD').slice(0, 2).toUpperCase()}
+                              </div>
+                              <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0F172A' }}>{brandName}</span>
+                                  <span style={{ color: '#1877F2', fontSize: '0.7rem' }}>✓</span>
                                 </div>
                               </div>
-                              <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0F172A' }}>
-                                {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.tn'}
-                              </span>
                             </div>
-                            <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#E1306C', background: '#FDF2F8', padding: '2px 6px', borderRadius: '4px', border: '1px solid #FCE7F3' }}>
-                              Instagram Post
+                            <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#1877F2', background: '#EFF6FF', padding: '2px 6px', borderRadius: '4px', border: '1px solid #DBEAFE' }}>
+                              Facebook Ads
                             </span>
                           </div>
-
-                          {/* Image Instagram Post */}
-                          <div style={{ position: 'relative', width: '100%', background: '#F8FAFC', overflow: 'hidden', aspectRatio: '1 / 1' }}>
-                            <img
-                              src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
-                              alt={card.headline}
-                              style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
-                              onError={(e) => {
-                                const el = e.currentTarget;
-                                if (!el.src.includes('image.png')) el.src = '/images/image.png';
-                              }}
-                            />
-                          </div>
-
-                          {/* Légende du Post avec Accroche IA */}
-                          <div style={{ padding: '10px 12px' }}>
-                            <div style={{ fontSize: '0.74rem', color: '#1E293B', lineHeight: '1.4', marginBottom: '8px' }}>
-                              <span style={{ fontWeight: 800, marginRight: '6px' }}>
-                                {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.tn'}
-                              </span>
-                              <span>{card.headline}</span>
-                              {card.subheadline && (
-                                <div style={{ color: '#64748B', fontSize: '0.7rem', marginTop: '3px' }}>
-                                  {card.subheadline}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Bouton CTA d'Achat IA */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedSocialVisual(card.bgImage);
-                                setIsSocialModalOpen(true);
-                              }}
-                              style={{
-                                width: '100%',
-                                padding: '8px',
-                                borderRadius: '8px',
-                                background: 'linear-gradient(135deg, #7C3AED 0%, #6366F1 100%)',
-                                color: '#FFFFFF',
-                                fontWeight: 800,
-                                fontSize: '0.72rem',
-                                border: 'none',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '6px',
-                                boxShadow: '0 2px 8px rgba(124, 58, 237, 0.25)',
-                              }}
-                            >
-                              <ShoppingBag size={13} />
-                              <span>{card.ctaText || 'Commander'}</span>
-                            </button>
+                          <div style={{ fontSize: '0.74rem', color: '#1E293B', lineHeight: '1.4', fontWeight: 600 }}>
+                            {card.headline}
                           </div>
                         </div>
-                      )}
-                    </div>
+
+                        {/* Image Facebook */}
+                        <div style={{ position: 'relative', width: '100%', background: '#F8FAFC', overflow: 'hidden', aspectRatio: '1.91 / 1' }}>
+                          <img
+                            src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
+                            alt={card.headline}
+                            style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
+                            onError={(e) => {
+                              const el = e.currentTarget;
+                              if (!el.src.includes('image.png')) el.src = '/images/image.png';
+                            }}
+                          />
+                        </div>
+
+                        {/* Lien et CTA Facebook Ads */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC' }}>
+                          <div style={{ flex: 1, marginRight: '8px' }}>
+                            <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0F172A' }}>{card.subheadline}</div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedSocialVisual(card.bgImage);
+                              setIsSocialModalOpen(true);
+                            }}
+                            style={{
+                              background: '#1877F2',
+                              color: '#FFFFFF',
+                              fontWeight: 800,
+                              fontSize: '0.7rem',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              border: 'none',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {card.ctaText || 'Commander'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* CAS C : FORMAT INSTAGRAM POST FEED (PAR DÉFAUT) */
+                      <div style={{ background: '#FFFFFF' }}>
+                        {/* Header Instagram Post */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderBottom: '1px solid #F1F5F9' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{
+                              width: '30px',
+                              height: '30px',
+                              borderRadius: '50%',
+                              background: 'linear-gradient(45deg, #F58529, #D92E7F, #833AB4)',
+                              padding: '2px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}>
+                              <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.62rem', color: '#7C3AED' }}>
+                                {(brandName || 'AD').slice(0, 2).toUpperCase()}
+                              </div>
+                            </div>
+                            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0F172A' }}>
+                              {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.tn'}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#E1306C', background: '#FDF2F8', padding: '2px 6px', borderRadius: '4px', border: '1px solid #FCE7F3' }}>
+                            Instagram Post
+                          </span>
+                        </div>
+
+                        {/* Image Instagram Post */}
+                        <div style={{ position: 'relative', width: '100%', background: '#F8FAFC', overflow: 'hidden', aspectRatio: '1 / 1' }}>
+                          <img
+                            src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
+                            alt={card.headline}
+                            style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
+                            onError={(e) => {
+                              const el = e.currentTarget;
+                              if (!el.src.includes('image.png')) el.src = '/images/image.png';
+                            }}
+                          />
+                        </div>
+
+                        {/* Légende du Post avec Accroche IA */}
+                        <div style={{ padding: '10px 12px' }}>
+                          <div style={{ fontSize: '0.74rem', color: '#1E293B', lineHeight: '1.4', marginBottom: '8px' }}>
+                            <span style={{ fontWeight: 800, marginRight: '6px' }}>
+                              {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.tn'}
+                            </span>
+                            <span>{card.headline}</span>
+                            {card.subheadline && (
+                              <div style={{ color: '#64748B', fontSize: '0.7rem', marginTop: '3px' }}>
+                                {card.subheadline}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Bouton CTA d'Achat IA */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedSocialVisual(card.bgImage);
+                              setIsSocialModalOpen(true);
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '8px',
+                              borderRadius: '8px',
+                              background: 'linear-gradient(135deg, #7C3AED 0%, #6366F1 100%)',
+                              color: '#FFFFFF',
+                              fontWeight: 800,
+                              fontSize: '0.72rem',
+                              border: 'none',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              boxShadow: '0 2px 8px rgba(124, 58, 237, 0.25)',
+                            }}
+                          >
+                            <ShoppingBag size={13} />
+                            <span>{card.ctaText || 'Commander'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
 
                   {/* Barre d'action unitaire sous chaque carte */}
@@ -2882,8 +3359,8 @@ ${frenchText}
                       <button
                         type="button"
                         className={s.toolActionBtn}
-                        title="Modifier le texte ou le visuel"
-                        onClick={() => setEditingCard(card)}
+                        title={locale === 'en' ? "Edit text or AI backdrop" : "Modifier le texte ou le décor IA"}
+                        onClick={() => openCardEditor(card)}
                       >
                         <Edit3 size={15} />
                       </button>
@@ -2892,7 +3369,7 @@ ${frenchText}
                       <button
                         type="button"
                         className={s.toolActionBtn}
-                        title="Régénérer cette variante"
+                        title={locale === 'en' ? "Regenerate this visual with AI Studio" : "Régénérer ce visuel avec le Studio IA"}
                         onClick={() => handleRegenerateSingle(card.id)}
                       >
                         <RefreshCw size={15} />
@@ -2902,7 +3379,7 @@ ${frenchText}
                       <button
                         type="button"
                         className={s.toolActionBtn}
-                        title="Télécharger ce visuel en HD"
+                        title={t.studio.page.downloadSingle}
                         onClick={() => handleDownloadSingle(card)}
                       >
                         <Download size={15} />
@@ -2910,50 +3387,83 @@ ${frenchText}
                     </div>
 
                     {/* Menu contextuel (Publier sur réseaux sociaux) feature en future */}
-                   
+
                   </div>
                 </div>
               ))}
             </div>
 
-          
 
-            {/* BANNIÈRE DE STATUT & TÉLÉCHARGEMENT GROUPÉ (ADORA-56) */}
+
+            {/* BANNIÈRE DE STATUT & TÉLÉCHARGEMENT GROUPÉ (MarkMosaiq-56) */}
             <div className={s.statusBanner}>
               <div className={s.statusLeft}>
                 <div className={s.statusCheckIcon}>
                   <CheckCircle2 size={18} />
                 </div>
                 <div className={s.statusTextWrap}>
-                  <h4 className={s.statusTitle}>Vos créations sont prêtes !</h4>
+                  <h4 className={s.statusTitle}>
+                    {locale === 'en' ? 'Your visuals are ready!' : 'Vos créations sont prêtes !'}
+                  </h4>
                   <p className={s.statusDesc}>
-                    Vous pouvez maintenant les modifier, en générer d'autres ou les télécharger pour les publier sur vos réseaux.
+                    {locale === 'en'
+                      ? 'You can now customize them, generate additional variants, or download to publish on your social channels.'
+                      : "Vous pouvez maintenant les modifier, en générer d'autres ou les télécharger pour les publier sur vos réseaux."}
                   </p>
                 </div>
               </div>
 
               {/* Actions de partage & téléchargement (WhatsApp & ZIP) */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-               
+
 
                 {/* Bouton Tout télécharger (ZIP) */}
                 <button
                   type="button"
                   className={s.downloadAllBtn}
-                  onClick={handleDownloadAllZip}
+                  onClick={() => handleDownloadAllZip()}
                   disabled={isZipping}
+                  title={locale === 'en' ? "Download complete ZIP archive" : "Télécharger l'archive ZIP complète des créations"}
                 >
                   {isZipping ? (
                     <>
-                      <RefreshCw size={14} className="animate-spin" />
-                      <span>Création du ZIP...</span>
+                      <RefreshCw size={15} className="animate-spin" />
+                      <span>{locale === 'en' ? 'Creating ZIP...' : 'Création du ZIP...'}</span>
                     </>
                   ) : (
                     <>
-                      <Download size={14} />
-                      <span>Tout télécharger</span>
+                      <Download size={15} />
+                      <span>{t.studio.page.downloadZip}</span>
                     </>
                   )}
+                </button>
+
+                {/* Bouton Personnaliser / Choisir les formats */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDownloadDropdownOpen(true);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    color: '#0F172A',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)',
+                  }}
+                  title="Choisir individuellement quels formats télécharger"
+                >
+                  <Sliders size={13} />
+                  <span>Choisir les formats</span>
                 </button>
               </div>
             </div>
@@ -2962,147 +3472,554 @@ ${frenchText}
       </main>
 
       {/* =========================================================================
-          MODAL D'ÉDITION UNITAIRE D'UN VISUEL
+          MODAL D'ÉDITION UNITAIRE D'UN VISUEL (MarkMosaiq Dark Luxury Studio)
           ========================================================================= */}
       {editingCard && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.6)',
-            backdropFilter: 'blur(8px)',
+            background: 'rgba(7, 9, 14, 0.88)',
+            backdropFilter: 'blur(16px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 10000,
-            padding: '20px',
+            padding: '16px',
           }}
         >
           <div
             style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              padding: '24px',
+              background: '#0B0E14',
+              borderRadius: '18px',
+              border: '1.5px solid rgba(0, 229, 255, 0.35)',
+              boxShadow: '0 25px 70px rgba(0, 0, 0, 0.85), 0 0 40px rgba(0, 229, 255, 0.10)',
               width: '100%',
-              maxWidth: '460px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+              maxWidth: '860px',
+              maxHeight: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              color: '#F8FAFC',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>
-                Modifier le visuel ({editingCard.formatLabel})
-              </h3>
+            {/* Header du Modal */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '18px 24px',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                background: '#0E131E',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>Studio d&apos;Édition — {editingCard.formatLabel}</span>
+                  </h3>
+                  <span
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 900,
+                      background: 'rgba(0, 229, 255, 0.14)',
+                      border: '1px solid #00E5FF',
+                      color: '#00E5FF',
+                      padding: '2px 8px',
+                      borderRadius: '12px',
+                    }}
+                  >
+                    ⚡ Rendu Studio 4K Ultra-HD
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '3px' }}>
+                  Ambiance : {editingCard.styleName} · Retouchez les textes commerciaux ou régénérez le décor IA
+                </div>
+              </div>
               <button
+                type="button"
                 onClick={() => setEditingCard(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '8px',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#94A3B8',
+                }}
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                  Titre d'accroche (Headline)
-                </label>
-                <input
-                  type="text"
-                  value={editingCard.headline}
-                  onChange={(e) => setEditingCard({ ...editingCard, headline: e.target.value })}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '0.85rem' }}
-                />
-              </div>
+            {/* Onglets de contrôle */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '8px',
+                padding: '10px 24px',
+                background: '#0B0E14',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setEditingCardTab('copy')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  background: editingCardTab === 'copy' ? '#131823' : 'transparent',
+                  color: editingCardTab === 'copy' ? '#00E5FF' : '#94A3B8',
+                  boxShadow: editingCardTab === 'copy' ? 'inset 0 0 0 1px #00E5FF' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <FileText size={14} />
+                <span>✍️ Textes & Offre Commerciale</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingCardTab('ai_prompt')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  background: editingCardTab === 'ai_prompt' ? '#131823' : 'transparent',
+                  color: editingCardTab === 'ai_prompt' ? '#00E5FF' : '#94A3B8',
+                  boxShadow: editingCardTab === 'ai_prompt' ? 'inset 0 0 0 1px #00E5FF' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Wand2 size={14} />
+                <span>🎨 Retouche Décor Studio IA</span>
+              </button>
+            </div>
 
-              <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                  Sous-titre (Copywriting)
-                </label>
-                <textarea
-                  rows={2}
-                  value={editingCard.subheadline}
-                  onChange={(e) => setEditingCard({ ...editingCard, subheadline: e.target.value })}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '0.85rem', resize: 'none' }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                    Prix affiché (Dinars DT)
-                  </label>
-                  <input
-                    type="text"
-                    value={editingCard.price || ''}
-                    onChange={(e) => setEditingCard({ ...editingCard, price: e.target.value })}
-                    placeholder="89 DT"
-                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '0.85rem' }}
+            {/* Corps du modal en 2 colonnes (Aperçu à gauche / Formulaire à droite) */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'minmax(260px, 320px) 1fr',
+                gap: '20px',
+                padding: '20px 24px',
+                overflowY: 'auto',
+                flex: 1,
+              }}
+            >
+              {/* Colonne Gauche : Aperçu visuel en direct */}
+              <div
+                style={{
+                  background: '#07090E',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignSelf: 'start',
+                }}
+              >
+                <div style={{ position: 'relative', width: '100%', aspectRatio: editingCard.format === 'story' ? '9/16' : '1/1', background: '#000' }}>
+                  <img
+                    src={editingCard.bgImage || '/images/image.png'}
+                    alt={editingCard.headline}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
+
+                  {/* Badge commercial superposé */}
+                  {editingCard.badgeText && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        background: 'rgba(11, 14, 23, 0.85)',
+                        border: '1px solid #00E5FF',
+                        color: '#00E5FF',
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        fontSize: '0.66rem',
+                        fontWeight: 900,
+                        backdropFilter: 'blur(6px)',
+                      }}
+                    >
+                      {editingCard.badgeText}
+                    </div>
+                  )}
+
+                  {/* Cartouche bas de prévisualisation */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '12px',
+                      left: '12px',
+                      right: '12px',
+                      background: 'rgba(11, 14, 23, 0.88)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '10px',
+                      padding: '10px 12px',
+                    }}
+                  >
+                    <div style={{ fontSize: '0.80rem', fontWeight: 900, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {editingCard.headline}
+                    </div>
+                    {editingCard.subheadline && (
+                      <div style={{ fontSize: '0.68rem', color: '#94A3B8', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {editingCard.subheadline}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#00E5FF' }}>
+                        {editingCard.price || '89 DT'}
+                      </span>
+                      <span style={{ fontSize: '0.64rem', background: '#7C3AED', color: '#FFF', padding: '3px 8px', borderRadius: '4px', fontWeight: 800 }}>
+                        {editingCard.ctaText || 'Commander'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Indicateur de chargement si régénération en cours */}
+                  {isRegeneratingCardImage && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(7, 9, 14, 0.85)',
+                        backdropFilter: 'blur(8px)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        padding: '16px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <RefreshCw size={26} className="animate-spin" color="#00E5FF" />
+                      <div style={{ fontSize: '0.80rem', fontWeight: 800, color: '#00E5FF' }}>
+                        Régénération Studio IA en cours...
+                      </div>
+                      <div style={{ fontSize: '0.68rem', color: '#94A3B8' }}>
+                        Composition physique et ombres en cours de calcul
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                <div>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                    Badge commercial
-                  </label>
-                  <input
-                    type="text"
-                    value={editingCard.badgeText || ''}
-                    onChange={(e) => setEditingCard({ ...editingCard, badgeText: e.target.value })}
-                    placeholder="🚚 Livraison 24-48h"
-                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '0.85rem' }}
-                  />
-                </div>
               </div>
 
+              {/* Colonne Droite : Formulaire d'édition actif */}
               <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                  Arguments clés (séparés par une virgule)
-                </label>
-                <input
-                  type="text"
-                  value={editingCard.bulletPoints ? editingCard.bulletPoints.join(', ') : ''}
-                  onChange={(e) =>
-                    setEditingCard({
-                      ...editingCard,
-                      bulletPoints: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
-                    })
-                  }
-                  placeholder="Élégant, 100% Original, Livraison 24h"
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '0.85rem' }}
-                />
-              </div>
+                {editingCardTab === 'copy' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div>
+                      <label style={{ fontSize: '0.74rem', fontWeight: 800, color: '#94A3B8', display: 'block', marginBottom: '6px' }}>
+                        Titre d&apos;accroche (Headline)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingCard.headline}
+                        onChange={(e) => setEditingCard({ ...editingCard, headline: e.target.value })}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          borderRadius: '8px',
+                          fontSize: '0.84rem',
+                          background: '#131823',
+                          color: '#FFFFFF',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
 
-              <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                  Bouton d'action (CTA)
-                </label>
-                <input
-                  type="text"
-                  value={editingCard.ctaText}
-                  onChange={(e) => setEditingCard({ ...editingCard, ctaText: e.target.value })}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '0.85rem' }}
-                />
-              </div>
+                    <div>
+                      <label style={{ fontSize: '0.74rem', fontWeight: 800, color: '#94A3B8', display: 'block', marginBottom: '6px' }}>
+                        Sous-titre / Copywriting Darija ou Français
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={editingCard.subheadline}
+                        onChange={(e) => setEditingCard({ ...editingCard, subheadline: e.target.value })}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          borderRadius: '8px',
+                          fontSize: '0.84rem',
+                          background: '#131823',
+                          color: '#FFFFFF',
+                          resize: 'none',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                <button
-                  type="button"
-                  onClick={() => setEditingCard(null)}
-                  style={{ padding: '8px 16px', background: '#F1F5F9', border: 'none', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
-                >
-                  Annuler
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setVisuals((prev) => prev.map((c) => (c.id === editingCard.id ? editingCard : c)));
-                    setEditingCard(null);
-                    showToast('Modifications enregistrées !');
-                  }}
-                  style={{ padding: '8px 20px', background: '#7C3AED', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 800, cursor: 'pointer' }}
-                >
-                  Enregistrer
-                </button>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ fontSize: '0.74rem', fontWeight: 800, color: '#94A3B8', display: 'block', marginBottom: '6px' }}>
+                          Prix affiché (Dinars DT)
+                        </label>
+                        <input
+                          type="text"
+                          value={editingCard.price || ''}
+                          onChange={(e) => setEditingCard({ ...editingCard, price: e.target.value })}
+                          placeholder="89 DT"
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                            borderRadius: '8px',
+                            fontSize: '0.84rem',
+                            background: '#131823',
+                            color: '#FFFFFF',
+                            outline: 'none',
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.74rem', fontWeight: 800, color: '#94A3B8', display: 'block', marginBottom: '6px' }}>
+                          Badge commercial
+                        </label>
+                        <input
+                          type="text"
+                          value={editingCard.badgeText || ''}
+                          onChange={(e) => setEditingCard({ ...editingCard, badgeText: e.target.value })}
+                          placeholder="🚚 Livraison 24-48h"
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                            borderRadius: '8px',
+                            fontSize: '0.84rem',
+                            background: '#131823',
+                            color: '#FFFFFF',
+                            outline: 'none',
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '0.74rem', fontWeight: 800, color: '#94A3B8', display: 'block', marginBottom: '6px' }}>
+                        Arguments clés (séparés par une virgule)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingCard.bulletPoints ? editingCard.bulletPoints.join(', ') : ''}
+                        onChange={(e) =>
+                          setEditingCard({
+                            ...editingCard,
+                            bulletPoints: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
+                          })
+                        }
+                        placeholder="Élégant, 100% Original, Livraison 24h"
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          borderRadius: '8px',
+                          fontSize: '0.84rem',
+                          background: '#131823',
+                          color: '#FFFFFF',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '0.74rem', fontWeight: 800, color: '#94A3B8', display: 'block', marginBottom: '6px' }}>
+                        Bouton d&apos;action (CTA)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingCard.ctaText}
+                        onChange={(e) => setEditingCard({ ...editingCard, ctaText: e.target.value })}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          borderRadius: '8px',
+                          fontSize: '0.84rem',
+                          background: '#131823',
+                          color: '#FFFFFF',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {editingCardTab === 'ai_prompt' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ fontSize: '0.74rem', color: '#94A3B8', lineHeight: '1.5' }}>
+                      Modifiez le décor d&apos;accueil vacant de ce visuel. Le moteur <strong style={{ color: '#00E5FF' }}>Studio IA 4K</strong> va recréer l&apos;ambiance tout en conservant votre produit physique 100% intact.
+                    </div>
+
+                    {/* Raccourcis d'ambiance pour cette variante */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {[
+                        { label: '✨ + Lumière Dorée', append: 'soft golden hour sunlight with warm amber rim reflections' },
+                        { label: '🏛️ + Marbre Sombre', append: 'dark polished imperial marble counter with deep reflection' },
+                        { label: '⚡ + Néons & Contraste', append: 'high-contrast athletic club lighting with electric cyan backlight accents' },
+                        { label: '🌊 + Sidi Bou Saïd', append: 'sunlit Sidi Bou Said white terrace with soft bougainvillea accents' },
+                        { label: '⭐ + Minimaliste Pur', append: 'ultra clean minimalist catalog podium with soft shadow gradient' },
+                      ].map((chip, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setCardEditPrompt((prev) => `${prev.trim()}, ${chip.append}`);
+                            showToast(`Ambiance ajoutée : ${chip.label}`);
+                          }}
+                          style={{
+                            background: '#131823',
+                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                            color: '#E2E8F0',
+                            borderRadius: '6px',
+                            padding: '4px 8px',
+                            fontSize: '0.70rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {chip.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Textarea du prompt éditable pour cette carte */}
+                    <div>
+                      <label style={{ fontSize: '0.74rem', fontWeight: 800, color: '#00E5FF', display: 'block', marginBottom: '6px' }}>
+                        Prompt Décor IA pour ce visuel ({editingCard.formatLabel})
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={cardEditPrompt}
+                        onChange={(e) => setCardEditPrompt(e.target.value)}
+                        placeholder="Tapez le prompt décrivant le décor d'accueil souhaité..."
+                        style={{
+                          width: '100%',
+                          maxWidth: '100%',
+                          boxSizing: 'border-box',
+                          padding: '12px',
+                          border: '1.5px solid rgba(0, 229, 255, 0.40)',
+                          borderRadius: '8px',
+                          fontSize: '0.80rem',
+                          fontFamily: 'monospace, sans-serif',
+                          lineHeight: '1.45',
+                          background: '#07090E',
+                          color: '#FFFFFF',
+                          outline: 'none',
+                          resize: 'vertical',
+                        }}
+                      />
+                    </div>
+
+                    {/* Bouton de régénération IA pour cette carte */}
+                    <button
+                      type="button"
+                      disabled={isRegeneratingCardImage}
+                      onClick={() => handleRegenerateCardWithAI(editingCard, cardEditPrompt)}
+                      style={{
+                        padding: '12px 18px',
+                        background: 'linear-gradient(135deg, #00E5FF 0%, #7C3AED 100%)',
+                        color: '#07090E',
+                        fontWeight: 900,
+                        fontSize: '0.84rem',
+                        border: 'none',
+                        borderRadius: '10px',
+                        cursor: isRegeneratingCardImage ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: '0 4px 18px rgba(0, 229, 255, 0.30)',
+                      }}
+                    >
+                      {isRegeneratingCardImage ? (
+                        <>
+                          <RefreshCw size={16} className="animate-spin" />
+                          <span>Génération Studio IA en cours...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={16} />
+                          <span>⚡ Régénérer le décor Studio IA</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
+            </div>
+
+            {/* Footer du modal */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '16px 24px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                background: '#0E131E',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setEditingCard(null)}
+                style={{
+                  padding: '9px 18px',
+                  background: '#131823',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '8px',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  color: '#94A3B8',
+                  cursor: 'pointer',
+                }}
+              >
+                Fermer
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setVisuals((prev) => prev.map((c) => (c.id === editingCard.id ? editingCard : c)));
+                  setEditingCard(null);
+                  showToast('✅ Modifications du visuel enregistrées !');
+                }}
+                style={{
+                  padding: '9px 22px',
+                  background: 'linear-gradient(135deg, #7C3AED, #6366F1)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.82rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(124, 58, 237, 0.35)',
+                }}
+              >
+                Enregistrer les modifications
+              </button>
             </div>
           </div>
         </div>
@@ -3113,7 +4030,7 @@ ${frenchText}
         <CheckoutModal
           isOpen={isCheckoutOpen}
           onClose={() => setIsCheckoutOpen(false)}
-          initialPlanId="pro"
+          initialPlanId={checkoutInitialPlan}
           initialStep="offers"
         />
       )}
@@ -3160,6 +4077,142 @@ ${frenchText}
           isGenerating={isGenerating}
           customStyles={tailoredProductStyles}
         />
+      )}
+
+      {/* Floating Onboarding Checklist (2026 SaaS UI Pattern) */}
+      <OnboardingChecklist
+        hasGeneratedFirstVisual={hasGeneratedFirstVisual}
+        hasExportedVisual={hasExportedVisual}
+        onOpenCheckout={() => setIsCheckoutOpen(true)}
+        onScrollToStaging={() => {
+          const el = document.getElementById('studio-product-dropzone');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }}
+      />
+
+      {/* Micro-Celebration Modal upon 1st Visual Staged */}
+      {showFirstVisualCelebration && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10001,
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '480px',
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '32px',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+              textAlign: 'center',
+              position: 'relative',
+              border: '1px solid #E2E8F0',
+            }}
+          >
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #6366F1, #EC4899)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#FFFFFF',
+                margin: '0 auto 16px',
+                boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
+              }}
+            >
+              <Sparkles size={32} />
+            </div>
+
+            <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', marginBottom: '8px' }}>
+              🎉 Incredible! Your First 4K Ad Visual is Ready
+            </h3>
+            <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, marginBottom: '24px' }}>
+              You've experienced the power of MarkMosaiq AI Staging. Download your free pack now, or unlock high creative velocity with 30 monthly 4K credits on Pro.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowFirstVisualCelebration(false);
+                  handleDownloadAllZip();
+                }}
+                style={{
+                  padding: '14px 20px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+                  color: '#FFFFFF',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                <Download size={16} />
+                <span>Download Free 4K Pack (.ZIP)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowFirstVisualCelebration(false);
+                  setIsCheckoutOpen(true);
+                }}
+                style={{
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  color: '#0F172A',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                <Crown size={15} color="#F59E0B" />
+                <span>Explore Pro Plan ($49 / mo via Whop)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowFirstVisualCelebration(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94A3B8',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  padding: '6px',
+                  marginTop: '4px',
+                }}
+              >
+                Continue Editing Visuals
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

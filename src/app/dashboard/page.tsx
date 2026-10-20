@@ -92,7 +92,7 @@ export default function DashboardPage() {
   return (
     <AppShell activeNav="dashboard" pageTitle="Accueil Boutique">
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-        
+
         {/* 1. BANNIÈRE DE BIENVENUE SIMPLE & SOLDE CLAIR */}
         <div
           style={{
@@ -147,7 +147,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <button
-              onClick={() => setSelectedPackForCheckout({ id: 'flash', name: 'Pack Flash (10 Visuels)', price: 29, count: 10 })}
+              onClick={() => setSelectedPackForCheckout({ id: 'flash', name: 'Starter Package (20 Crédits)', price: 19, count: 20 })}
               style={{
                 background: '#EA580C',
                 color: '#FFFFFF',
@@ -507,16 +507,16 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <Zap size={18} color="#EA580C" />
               <h3 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, color: '#0F172A' }}>
-                Recharger vos photos en Dinars (TND)
+                Recharger vos photos Studio 4K
               </h3>
             </div>
             <p style={{ fontSize: '0.8rem', color: '#64748B', margin: '0 0 16px', lineHeight: 1.4 }}>
-              Sans abonnement obligatoire. Paiement sécurisé par Flouci, Carte Bancaire ou e-Dinar.
+              Sans engagement. Paiement sécurisé international par Carte Bancaire via Whop MoR.
             </p>
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
-                onClick={() => setSelectedPackForCheckout({ id: 'flash', name: 'Pack Flash (10 Visuels)', price: 29, count: 10 })}
+                onClick={() => setSelectedPackForCheckout({ id: 'flash', name: 'Starter (20 Crédits)', price: 19, count: 20 })}
                 style={{
                   flex: 1,
                   background: '#FFF7ED',
@@ -530,12 +530,12 @@ export default function DashboardPage() {
                   textAlign: 'center',
                 }}
               >
-                <div>Pack 10 Photos</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 900, marginTop: '2px' }}>29 DT</div>
+                <div>Pack 20 Photos</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 900, marginTop: '2px' }}>$19</div>
               </button>
 
               <button
-                onClick={() => setSelectedPackForCheckout({ id: 'pro', name: 'Pack Pro (25 Visuels)', price: 59, count: 25 })}
+                onClick={() => setSelectedPackForCheckout({ id: 'pro', name: 'Pack Pro (50 Crédits)', price: 49, count: 50 })}
                 style={{
                   flex: 1,
                   background: '#4F46E5',
@@ -550,8 +550,8 @@ export default function DashboardPage() {
                   boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
                 }}
               >
-                <div>Pack 25 Photos</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 900, marginTop: '2px' }}>59 DT</div>
+                <div>Pack 50 Photos</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 900, marginTop: '2px' }}>$49</div>
               </button>
             </div>
           </div>
@@ -582,7 +582,7 @@ export default function DashboardPage() {
 
             <div style={{ marginTop: '16px' }}>
               <a
-                href="https://wa.me/21650000000?text=Bonjour%20Adora,%20j'ai%20besoin%20d'aide%20pour%20mes%20photos%20de%20produits"
+                href="https://wa.me/21650000000?text=Bonjour%20MarkMosaiq,%20j'ai%20besoin%20d'aide%20pour%20mes%20photos%20de%20produits"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -618,7 +618,7 @@ export default function DashboardPage() {
           }}
           packId={selectedPackForCheckout.id}
           packName={selectedPackForCheckout.name}
-          priceTND={selectedPackForCheckout.price}
+          priceUSD={selectedPackForCheckout.price}
           visualsCount={selectedPackForCheckout.count}
         />
       )}

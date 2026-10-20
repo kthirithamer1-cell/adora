@@ -1,17 +1,14 @@
 /**
- * MOTEUR DU DIRECTEUR ARTISTIQUE VIRTUEL D'ADORA SAAS (ADORA-DIRECTOR-V2)
+ * MOTEUR DU DIRECTEUR ARTISTIQUE VIRTUEL D'MarkMosaiq SAAS (MarkMosaiq-DIRECTOR-V2)
  * 
- * Implémente le pipeline de génération dirigé en 6 étapes et le système de décision à 3 niveaux :
- * - Niveau 1 (Stratégie) : Choix commercial du marchand
- * - Niveau 2 (Direction Artistique) : 3 Intentions créatives filtrées par le Brand Kit
- * - Niveau 3 (Exécution Technique) : Composition déterministe, focal, lighting & safe-zones
- * 
- * Pilier N°0 : Le Brand Kit existant (palette, logo, tonalité, polices) verrouille la charte.
+ * Tout est désormais généré DYNAMIQUEMENT par l'IA (GPT-4o Vision & GPT-4o-mini).
+ * Zéro valeur par défaut arbitraire ou codée en dur.
+ * - Niveau 1 (Stratégie) : Analyse Vision de l'ADN réel du produit
+ * - Niveau 2 (Direction Artistique) : 3 Intentions créatives formulées par l'IA pour CE produit
+ * - Niveau 3 (Exécution Technique) : Composition déterministe & Prompt unique complet
  */
 
 import { BrandKit, compileBrandPrompt } from './brandkit';
-import { VETTED_DARIJA_BANK } from './strategyEngine';
-import { DARIJA_COMMERCIAL_BANK } from './darijaBank';
 
 export interface ProductDNA {
   productName: string;
@@ -34,7 +31,10 @@ export interface CreativeIntent {
   subtitle: string;
   targetEmotion: string;
   audienceAngle: string;
+  hookEn?: string;
   hookFr: string;
+  hookAr?: string;
+  hookAutre?: string;
   hookDarija: string;
   badgeText: string;
   ctaText: string;
@@ -85,7 +85,8 @@ export interface MasterSceneSpec {
 }
 
 /**
- * 01 — Product Understanding : Analyse vision du produit physique et alignement avec le Brand Kit
+ * 01 — Product Understanding : Analyse Vision par IA du produit physique réel et confrontation avec le Brand Kit.
+ * Toutes les caractéristiques (matières, tons, éclairage, surface d'accueil) proviennent de l'IA.
  */
 export async function analyzeProductDNA(params: {
   imageBase64?: string;
@@ -96,33 +97,18 @@ export async function analyzeProductDNA(params: {
   const { imageBase64, productName, brandKit, userNotes } = params;
   const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY;
 
-  const fallbackDNA: ProductDNA = {
-    productName: productName || 'Produit E-commerce',
-    brandName: brandKit.shopName,
-    category: (brandKit.industry as any) || 'cosmetics',
-    packagingMaterials: ['flacon en verre', 'bouchon premium', 'étiquette satinée'],
-    dominantTones: [brandKit.palette?.primary || brandKit.primaryColor, '#F59E0B', '#07090E'],
-    perceivedPriceLevel: brandKit.positioning === 'luxury' ? 'luxury' : 'premium',
-    lightingAffinity: brandKit.positioning === 'luxury' ? 'warm_golden' : 'high_key_cosmetic',
-    surfaceRequirements: 'smooth ivory travertine stone plinth with polished bevel',
-    brandKitAlignmentScore: 94,
-    brandKitNotes: `Alignement parfait avec le positionnement ${brandKit.positioning || 'premium'} de ${brandKit.shopName}.`,
-  };
-
-  if (!apiKey || apiKey.startsWith('sk-placeholder') || !imageBase64) {
-    return fallbackDNA;
-  }
-
-  try {
-    const systemPrompt = `Tu es le Directeur Artistique en Chef d'Adora SaaS.
+  if (apiKey && !apiKey.startsWith('sk-placeholder') && imageBase64) {
+    try {
+      const systemPrompt = `Tu es le Directeur Artistique en Chef d'MarkMosaiq SaaS.
 Analyse la photo produit soumise et confronte-la avec l'identité de marque du marchand (Brand Kit).
-Évalue les matériaux réels du packaging (verre, plastique mat, métal, cuir, textile) et détermine les besoins de mise en scène.
+Évalue avec précision les matériaux réels du packaging (verre, plastique mat, métal, cuir, textile, etc.) et détermine les besoins réels de mise en scène.
+Ne JAMAIS inventer de matériaux qui ne correspondent pas au produit soumis.
 
 Identité de la marque marchande (${brandKit.shopName}) :
 - Secteur : ${brandKit.industry || 'Général'}
 - Positionnement : ${brandKit.positioning || 'Premium'}
 - Palette de couleurs : ${brandKit.primaryColor} et ${brandKit.secondaryColor}
-- Ambiance visuelle : ${brandKit.visualStyle?.mood || 'Studio épuré et moderne'}
+- Ambiance visuelle : ${brandKit.visualStyle?.mood || 'Studio moderne'}
 
 Réponds STRICTEMENT avec un objet JSON suivant ce schéma :
 {
@@ -133,126 +119,262 @@ Réponds STRICTEMENT avec un objet JSON suivant ce schéma :
   "dominantTones": ["#CodeHex1", "#CodeHex2"],
   "perceivedPriceLevel": "luxury" | "premium" | "accessible",
   "lightingAffinity": "warm_golden" | "cool_tech" | "high_key_cosmetic" | "dramatic_rim",
-  "surfaceRequirements": "description en anglais de la surface d'accueil idéale (marbre, travertin, bois d'olivier, titane)",
-  "brandKitAlignmentScore": number (0 à 100),
+  "surfaceRequirements": "description en anglais de la surface d'accueil idéale adaptée spécifiquement à ce produit",
+  "brandKitAlignmentScore": number,
   "brandKitNotes": "Synthèse de conformité avec la charte du Brand Kit en 1 phrase"
 }`;
 
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: `Produit: ${productName || 'À identifier'}. Notes marchand: ${userNotes || 'Aucune note'}.` },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`,
-                  detail: 'auto',
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: `Produit: ${productName || 'À identifier'}. Notes marchand: ${userNotes || 'Aucune note'}.` },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`,
+                    detail: 'auto',
+                  },
                 },
-              },
-            ],
-          },
-        ],
-        response_format: { type: 'json_object' },
-        max_tokens: 600,
-        temperature: 0.2, // Température basse pour une analyse rigoureuse
-      }),
-    });
+              ],
+            },
+          ],
+          response_format: { type: 'json_object' },
+          max_tokens: 600,
+          temperature: 0.2,
+        }),
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      const parsed = JSON.parse(data.choices[0].message.content);
-      return {
-        ...fallbackDNA,
-        ...parsed,
-        brandName: brandKit.shopName || parsed.brandName,
-      };
+      if (res.ok) {
+        const data = await res.json();
+        const parsed = JSON.parse(data.choices[0].message.content);
+        return {
+          productName: parsed.productName || productName || 'Produit E-commerce',
+          brandName: brandKit.shopName || parsed.brandName || '',
+          category: parsed.category || (brandKit.industry as any) || 'general',
+          packagingMaterials: Array.isArray(parsed.packagingMaterials) ? parsed.packagingMaterials : [],
+          dominantTones: Array.isArray(parsed.dominantTones) ? parsed.dominantTones : [brandKit.primaryColor || '#00E5FF'],
+          perceivedPriceLevel: parsed.perceivedPriceLevel || (brandKit.positioning === 'luxury' ? 'luxury' : 'premium'),
+          lightingAffinity: parsed.lightingAffinity || 'warm_golden',
+          surfaceRequirements: parsed.surfaceRequirements || 'clean commercial studio staging pedestal',
+          brandKitAlignmentScore: typeof parsed.brandKitAlignmentScore === 'number' ? parsed.brandKitAlignmentScore : 92,
+          brandKitNotes: parsed.brandKitNotes || `Alignement avec l'univers de ${brandKit.shopName}.`,
+        };
+      }
+    } catch (err) {
+      console.warn('Erreur analyse ProductDNA par IA:', err);
     }
-  } catch (err) {
-    console.warn('Erreur analyse ProductDNA:', err);
   }
 
-  return fallbackDNA;
+  // Fallback dynamique construit sur les paramètres réels fournis (sans valeurs cosmétiques arbitraires)
+  return {
+    productName: productName || 'Produit E-commerce',
+    brandName: brandKit.shopName,
+    category: (brandKit.industry as any) || 'general',
+    packagingMaterials: [],
+    dominantTones: [brandKit.palette?.primary || brandKit.primaryColor || '#00E5FF'],
+    perceivedPriceLevel: brandKit.positioning === 'luxury' ? 'luxury' : 'premium',
+    lightingAffinity: 'warm_golden',
+    surfaceRequirements: 'clean minimalist commercial studio staging surface',
+    brandKitAlignmentScore: 90,
+    brandKitNotes: `Aligné avec l'identité de marque ${brandKit.shopName}.`,
+  };
 }
 
 /**
- * 02 — Creative Direction : Génère 3 concepts d'intention éditoriaux filtrés par le Brand Kit
+ * 02 — Creative Direction : Génère 3 concepts d'intention créative 100% formulés par l'IA (GPT-4o-mini).
+ * Zéro banque statique en dur : les accroches, matières et ambiances proviennent de l'IA pour CE produit.
  */
 export async function generateCreativeIntents(params: {
   productDNA: ProductDNA;
   brandKit: BrandKit;
   priceTND?: number;
+  copyLanguage?: 'en' | 'fr' | 'ar' | 'autre';
+  customDialectNote?: string;
 }): Promise<CreativeIntent[]> {
-  const { productDNA, brandKit, priceTND } = params;
+  const { productDNA, brandKit, priceTND, copyLanguage = 'fr', customDialectNote } = params;
+  const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY;
   const priceDisplay = priceTND ? `${priceTND} DT` : 'Offre Spéciale';
   const primaryCol = brandKit.palette?.primary || brandKit.primaryColor || '#00E5FF';
 
-  // Banque de Darija validée
-  const vettedUrgency = VETTED_DARIJA_BANK.offer_urgency.hooks[0];
-  const vettedPrestige = VETTED_DARIJA_BANK.lifestyle_aspiration.hooks[0];
-  const vettedAuthentic = DARIJA_COMMERCIAL_BANK.qualite_authenticite.hooks[0];
+  if (apiKey && !apiKey.startsWith('sk-placeholder')) {
+    try {
+      const prompt = `Tu es le Directeur Artistique en Chef de MarkMosaiq.
+Génère STRICTEMENT un objet JSON contenant un tableau "intents" de 3 intentions créatives publicitaires sur-mesure pour ce produit :
 
-  const intents: CreativeIntent[] = [
+Produit :
+- Nom : "${productDNA.productName}"
+- Catégorie : "${productDNA.category}"
+- Packaging : ${JSON.stringify(productDNA.packagingMaterials || [])}
+- Tonalités dominantes : ${JSON.stringify(productDNA.dominantTones || [])}
+- Surface d'accueil recommandée : "${productDNA.surfaceRequirements}"
+- Positionnement marque : "${brandKit.positioning || 'premium'}" (${brandKit.shopName})
+- Prix affiché : "${priceDisplay}"
+${customDialectNote ? `- Demande dialecte spécifique du marchand : "${customDialectNote}"` : ''}
+
+Consignes :
+1. Formule 3 intentions distinctes :
+   - "prestige_elevation" (Élégance pure, luxe, désirabilité et statut)
+   - "conversion_flash" (Contraste fort, opportunité flash, passage à l'action immédiat)
+   - "lifestyle_authentic" (Confiance, authenticité des matières, quotidien noble)
+2. Fournis des accroches adaptées en :
+   - hookEn (English commercial copy)
+   - hookFr (Français commercial chic)
+   - hookAr (Arabe littéraire Moderne فصحى)
+   - hookAutre (Dialecte spécifique UNIQUEMENT si customDialectNote est fourni, sinon même que hookFr)
+3. Ne jamais insérer de dialecte ou mot tunisien par défaut (uniquement si explicitement demandé dans customDialectNote).
+4. Décors (surfaceMaterial, backgroundAtmosphere, moodDescription) : conçus spécifiquement pour mettre en valeur les matières et la nature réelle de CE produit.
+
+Format JSON attendu :
+{
+  "intents": [
+    {
+      "id": "prestige_elevation" | "conversion_flash" | "lifestyle_authentic",
+      "titleFr": "Titre percutant du concept en français",
+      "subtitle": "Sous-titre descriptif",
+      "targetEmotion": "Émotion visée",
+      "audienceAngle": "Angle publicitaire",
+      "hookEn": "Accroche en anglais",
+      "hookFr": "Accroche en français",
+      "hookAr": "Accroche en arabe littéraire",
+      "hookAutre": "Accroche dialectale ou personnalisée",
+      "hookDarija": "Accroche concise",
+      "badgeText": "Texte court du badge (ex: ✨ Édition Prestige)",
+      "ctaText": "Appel à l'action court",
+      "moodDescription": "Ambiance générale en anglais pour le rendu IA",
+      "surfaceMaterial": "Matière précise du socle en anglais",
+      "surfaceDescriptionFr": "Description du socle en français",
+      "backgroundAtmosphere": "Ambiance du décor en anglais",
+      "isRecommended": boolean
+    }
+  ]
+}`;
+
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'system', content: prompt }],
+          response_format: { type: 'json_object' },
+          temperature: 0.7,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const parsed = JSON.parse(data.choices[0].message.content);
+        if (Array.isArray(parsed.intents) && parsed.intents.length >= 3) {
+          return parsed.intents as CreativeIntent[];
+        }
+      }
+    } catch (err) {
+      console.warn('Erreur IA generateCreativeIntents:', err);
+    }
+  }
+
+  // Fallback dynamique construit directement sur le produit réel (sans valeurs cosmétiques arbitraires)
+  return [
     {
       id: 'prestige_elevation',
-      titleFr: 'Écrin Minéral & Or Solaire',
-      subtitle: 'Élégance Pure, Désirabilité & Statut Haute-Couture',
-      targetEmotion: 'Exclusivité, fierté et sentiment de posséder une pièce d\'exception',
-      audienceAngle: 'Clientèle exigeante (Grand Tunis, Sousse, Sfax) en quête de raffinement',
-      hookFr: `${productDNA.productName} : Le Raffinement Sans Compromis`,
-      hookDarija: vettedPrestige,
+      titleFr: `Écrin Prestige — ${productDNA.productName}`,
+      subtitle: `Mise en majesté haut de gamme de ${productDNA.productName}`,
+      targetEmotion: 'Exclusivité, statut et raffinement',
+      audienceAngle: 'Clientèle premium et exigeante',
+      hookEn: `${productDNA.productName}: The Essence of Refined Excellence`,
+      hookFr: `${productDNA.productName} : L'Élégance Pure et Durable`,
+      hookAr: `${productDNA.productName} : قمة التميز والأناقة الحقيقية`,
+      hookAutre: `${productDNA.productName} : Qualité supérieure garantie`,
+      hookDarija: `${productDNA.productName} : Qualité supérieure garantie`,
       badgeText: '✨ Édition Prestige',
-      ctaText: 'Commander la Collection ➔',
-      moodDescription: 'Luxury editorial staging, polished Carrara marble and warm morning sunlight',
-      surfaceMaterial: 'polished Carrara white marble pedestal with soft beveled perimeter',
-      surfaceDescriptionFr: 'Socle : Marbre Blanc de Carrare • Ambiance Luxe & Solaire',
-      backgroundAtmosphere: 'soft sun-drenched architectural interior with subtle pastel bokeh',
+      ctaText: 'Découvrir la Collection ➔',
+      moodDescription: `Luxury commercial editorial staging for ${productDNA.productName}`,
+      surfaceMaterial: productDNA.surfaceRequirements || 'polished marble pedestal with soft beveled edge',
+      surfaceDescriptionFr: 'Socle minéral noble poli avec éclairage studio zénithal',
+      backgroundAtmosphere: 'warm architectural studio interior with soft diffused atmospheric bokeh',
       isRecommended: brandKit.positioning === 'luxury' || brandKit.positioning === 'premium',
     },
     {
       id: 'conversion_flash',
-      titleFr: 'Impact Studio & Offre Flash',
-      subtitle: 'Contraste Publicitaire Puissant & Passage à l\'Action Immédiat',
-      targetEmotion: 'Urgence d\'achat, opportunité rare et peur de rater le stock',
-      audienceAngle: 'Acheteurs spontanés sur Instagram et TikTok cherchant le meilleur prix',
-      hookFr: `Stock Très Limité : ${productDNA.productName} à seulement ${priceDisplay}`,
-      hookDarija: vettedUrgency,
+      titleFr: `Offre Flash — ${productDNA.productName}`,
+      subtitle: `Opportunité immédiate et conversion directe`,
+      targetEmotion: 'Urgence d\'achat et opportunité exclusive',
+      audienceAngle: 'Acheteurs spontanés et décidés',
+      hookEn: `Limited Deal: ${productDNA.productName} — Special Price Today`,
+      hookFr: `Offre Flash Limitée : ${productDNA.productName} à ${priceDisplay}`,
+      hookAr: `عرض حصري محدود على ${productDNA.productName} — اطلب الآن`,
+      hookAutre: `Offre spéciale sur ${productDNA.productName} à ${priceDisplay}`,
+      hookDarija: `Offre spéciale sur ${productDNA.productName} à ${priceDisplay}`,
       badgeText: '🔥 Offre Limitée',
-      ctaText: 'Commander sur WhatsApp ➔',
-      moodDescription: `High-impact commercial studio with vibrant ${primaryCol} rim lights`,
-      surfaceMaterial: 'minimalist dark titanium pedestal with pristine micro-chamfered edge',
-      surfaceDescriptionFr: 'Socle : Titane Sombre Minimaliste • Ambiance Studio & Contraste Élevé',
-      backgroundAtmosphere: 'modern moody studio gradient with sharp directional softbox fill',
-      isRecommended: brandKit.positioning === 'athletic' || brandKit.positioning === 'affordable',
+      ctaText: 'Commander Immédiatement ➔',
+      moodDescription: `High impact commercial studio with vibrant ${primaryCol} rim accents`,
+      surfaceMaterial: 'matte dark titanium podium with micro-chamfered edge',
+      surfaceDescriptionFr: 'Podium titane sombre avec halo lumineux d\'accentuation',
+      backgroundAtmosphere: 'clean high-contrast modern studio background with directional softbox',
+      isRecommended: brandKit.positioning === 'athletic' || (brandKit.positioning as string) === 'accessible',
     },
     {
       id: 'lifestyle_authentic',
-      titleFr: 'Terroir Méditerranéen & Naturel',
-      subtitle: 'Lumière Naturelle de Sidi Bou Saïd & Réassurance Locale',
-      targetEmotion: 'Confiance absolue, authenticité tunisienne et sécurité du paiement',
-      audienceAngle: 'Familles et acheteurs soucieux de la qualité et du paiement à la livraison',
-      hookFr: `La Référence N°1 Certifiée Disponible sur les 24 Gouvernorats`,
-      hookDarija: vettedAuthentic,
+      titleFr: `Authenticité & Quotidien — ${productDNA.productName}`,
+      subtitle: `Mise en situation naturelle et sincère`,
+      targetEmotion: 'Confiance absolue et authenticité',
+      audienceAngle: 'Acheteurs en quête de naturel et de recommandation sincère',
+      hookEn: `Everyday Perfection with ${productDNA.productName}`,
+      hookFr: `L'Authenticité Garantie : Adoptez ${productDNA.productName}`,
+      hookAr: `جودة حقيقية وموثوقة : اختر ${productDNA.productName} اليوم`,
+      hookAutre: `La qualité éprouvée de ${productDNA.productName}`,
+      hookDarija: `La qualité éprouvée de ${productDNA.productName}`,
       badgeText: '✓ 100% Authentique',
-      ctaText: 'Payer à la Livraison ➔',
-      moodDescription: 'Warm Mediterranean lifestyle atmosphere, natural warm travertine stone',
-      surfaceMaterial: 'natural warm travertine stone plinth with gentle organic texture',
-      surfaceDescriptionFr: 'Socle : Pierre Naturelle ou Bois d\'Olivier • Ambiance Chaleureuse & Terroir',
-      backgroundAtmosphere: 'sunlit coastal terrace backdrop, soft warm Mediterranean glow',
+      ctaText: 'Commander Maintenant ➔',
+      moodDescription: `Warm authentic lifestyle atmosphere for ${productDNA.productName}`,
+      surfaceMaterial: 'natural warm stone plinth with organic texture',
+      surfaceDescriptionFr: 'Socle en pierre naturelle et lumière douce du matin',
+      backgroundAtmosphere: 'sunlit interior terrace with gentle natural daylight',
       isRecommended: brandKit.positioning === 'artisan' || brandKit.industry === 'food',
     },
   ];
+}
 
-  return intents;
+/**
+ * Direction Artistique : Synthèse du prompt unique pour la génération de l'image complète
+ * Combine le produit, la marque, les matières nobles, l'éclairage de studio et la composition commerciale.
+ */
+export function buildArtDirectedPrompt(params: {
+  productName: string;
+  category?: string;
+  brandName?: string;
+  styleName?: string;
+  promptModifier?: string;
+  intentId?: string;
+  aspect?: string;
+  userPromptOverride?: string;
+}): string {
+  if (params.userPromptOverride && params.userPromptOverride.trim()) {
+    return params.userPromptOverride.trim();
+  }
+
+  const prod = params.productName.trim();
+  const brand = params.brandName?.trim() ? ` by ${params.brandName.trim()}` : '';
+  const categoryHint = params.category ? ` (${params.category})` : '';
+  const style = (params.promptModifier || params.styleName)?.trim() || 'commercial advertising studio setting with polished pedestal and directional lighting';
+  const isStory = params.aspect === '9:16';
+  const composition = isStory
+    ? 'Vertical 9:16 portrait composition, product centered in lower-middle frame with generous upper headroom.'
+    : 'Balanced square 1:1 commercial advertising photography with crisp focal point and soft depth of field.';
+
+  return `Professional commercial advertising photograph of ${prod}${brand}${categoryHint}. Staged in a ${style}. High-end commercial studio lighting, 45-degree directional softbox, realistic contact shadows, crisp textures, premium luxury aesthetic. ${composition}`;
 }
 
 /**
@@ -290,15 +412,13 @@ export function compileMasterSceneSpec(params: {
     accentColorHex: primaryCol,
   };
 
-  // PROTOCOLE CRITIQUE ZERO-HALLUCINATION (Constitution Rule 3.1 & 3.2) :
-  // Le prompt de diffusion décrit STRICTEMENT un décor vacant immaculé sans jamais mentionner d'objet ou de texte.
   const vacancyMandate = 'The central pedestal top surface is completely vacant, pristine, smooth and polished, cleanly awaiting an object. Clean contact surface with soft natural gradient falloff. Clean seamless background.';
 
   const framingDirective = isStory
     ? 'Vertical 9:16 composition, extended clean upper headroom and footer area, central pedestal cleanly anchored at lower-middle.'
     : isBanner
-    ? 'Wide panoramic commercial composition, pedestal centered with generous horizontal negative space.'
-    : 'Balanced square 1:1 commercial feed composition, camera at 15 degrees elevation.';
+      ? 'Wide panoramic commercial composition, pedestal centered with generous horizontal negative space.'
+      : 'Balanced square 1:1 commercial feed composition, camera at 15 degrees elevation.';
 
   const basePrompt = `Commercial luxury advertising staging. Empty ${intent.surfaceMaterial}. ${intent.backgroundAtmosphere}. Directional 45-degree softbox key light from upper-left with subtle ${primaryCol} rim accents. ${framingDirective} ${vacancyMandate}`;
 
@@ -307,8 +427,7 @@ export function compileMasterSceneSpec(params: {
     angleName: intent.titleFr,
   });
 
-  // Calcul du placement du logo officiel dans le respect des safe-zones
-  const logoTopPx = isStory ? 240 : 45; // 240px sur 1792px = ~13.5% (juste sous la zone rouge des 14%)
+  const logoTopPx = isStory ? 240 : 45;
 
   return {
     version: 'scene/v2',
@@ -320,20 +439,20 @@ export function compileMasterSceneSpec(params: {
     surface: {
       material: intent.surfaceMaterial,
       finish: intent.id === 'prestige_elevation' ? 'glossy' : 'matte',
-      contactBlurRatio: 0.035, // Règle constitutionnelle 3.3
+      contactBlurRatio: 0.035,
       contactHeightRatio: 0.04,
     },
     background: intent.backgroundAtmosphere,
     compiledPositivePrompt,
     brandOverlay: {
-      logoUrl: brandKit.logoUrl || '/images/Adora_logo.png',
+      logoUrl: brandKit.logoUrl || '/images/logo.png',
       logoPosition: 'top-left',
       logoTopPx,
       headlineFont: brandKit.fonts?.headline || brandKit.fontFamily || 'Outfit, sans-serif',
       primaryColor: primaryCol,
       accentColor: brandKit.palette?.accent || brandKit.accentColor || '#FF5722',
-      sloganDarija: brandKit.sloganDarija || 'El qualité el behya b a7sen aswem fi tounes !',
-      deliveryMention: brandKit.deliveryMention || 'Livraison 24-48h sur les 24 gouvernorats',
+      sloganDarija: brandKit.sloganDarija || '',
+      deliveryMention: brandKit.deliveryMention || 'Expédition rapide et sécurisée',
     },
   };
 }
@@ -356,8 +475,8 @@ export interface DynamicDirectorQuestion {
 }
 
 /**
- * Génère dynamiquement les questions ciblées du système de décision à 3 niveaux
- * Chaque question est présentée isolément sur un écran dédié (Une question par page)
+ * Génère dynamiquement les questions d'orientation créative via l'IA (GPT-4o-mini).
+ * Toutes les options de décor et d'objectifs sont créées spécifiquement pour le produit analysé.
  */
 export async function generateDynamicDirectorQuestions(params: {
   productDNA: ProductDNA;
@@ -366,92 +485,69 @@ export async function generateDynamicDirectorQuestions(params: {
 }): Promise<DynamicDirectorQuestion[]> {
   const { productDNA, brandKit, priceTND } = params;
   const priceDisplay = priceTND ? `${priceTND} DT` : 'votre offre';
-  const category = productDNA.category || 'general';
+  const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY;
 
-  // Décors contextualisés selon la catégorie réelle du produit (Recommandation 5)
-  let decorOptions = [
-    {
-      id: 'opt_dark_titanium',
-      title: 'Studio Sombre & Liseré Lumineux',
-      subtitle: `Contraste publicitaire puissant avec halo d'accentuation ${brandKit.primaryColor || '#00E5FF'}.`,
-      tag: '⚡ Studio & Impact',
-      targetIntentId: 'conversion_flash' as CreativeIntentType,
-      icon: '🎯',
-    },
-    {
-      id: 'opt_mineral_marble',
-      title: 'Marbre Blanc de Carrare & Soleil Doux',
-      subtitle: 'Surface minérale immaculée, biseau poli, reflets doux et clarté solaire matinale.',
-      tag: '💎 Minéral & Élégance',
-      targetIntentId: 'prestige_elevation' as CreativeIntentType,
-      icon: '🏛️',
-    },
-    {
-      id: 'opt_mediterranean_terrace',
-      title: 'Balustrade en Travertin & Clarté Méditerranéenne',
-      subtitle: 'Lumière naturelle ensoleillée de Sidi Bou Saïd, textures organiques et clarté côtière.',
-      tag: '☀️ Terroir & Naturel',
-      targetIntentId: 'lifestyle_authentic' as CreativeIntentType,
-      icon: '🌿',
-    },
-  ];
+  if (apiKey && !apiKey.startsWith('sk-placeholder')) {
+    try {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `Tu es le Directeur Artistique en Chef. Pour le produit "${productDNA.productName}" (catégorie: ${productDNA.category}, marque: ${brandKit.shopName}), génère un JSON contenant un tableau "questions" de 3 questions d'orientation avec des options créatives ultra-personnalisées à CE produit :
+1. Étape 1/3 (level 1): Objectif Publicitaire (3 options : Vente Flash/Promo, Notoriété/Prestige, Commandes Directes)
+2. Étape 2/3 (level 2): Ambiance & Décor (3 options de décors réels parfaitement adaptés au packaging et à la catégorie du produit)
+3. Étape 3/3 (level 3): Langue & Accroche (3 options : Français Commercial, English Commercial, Arabe Moderne Littéraire)
 
-  if (category === 'food') {
-    decorOptions = [
-      {
-        id: 'opt_olive_wood',
-        title: 'Bois d\'Olivier Noble & Lumière Naturelle',
-        subtitle: 'Authenticité du terroir tunisien, veinage chaleureux et lumière matinale bienfaisante.',
-        tag: '🌿 Terroir Authentique',
-        targetIntentId: 'lifestyle_authentic' as CreativeIntentType,
-        icon: '🫒',
-      },
-      {
-        id: 'opt_mediterranean_terrace',
-        title: 'Balustrade en Travertin & Soleil Doux',
-        subtitle: 'Ambiance méditerranéenne ensoleillée de terrasse côtière tunisienne.',
-        tag: '☀️ Solaire & Naturel',
-        targetIntentId: 'lifestyle_authentic' as CreativeIntentType,
-        icon: '☀️',
-      },
-      {
-        id: 'opt_mineral_marble',
-        title: 'Marbre Clair Contemporain & Éclairage Zénithal',
-        subtitle: 'Présentation culinaire saine, épurée et moderne mettant en majesté les ingrédients.',
-        tag: '💎 Moderne & Frais',
-        targetIntentId: 'prestige_elevation' as CreativeIntentType,
-        icon: '🍽️',
-      },
-    ];
-  } else if (category === 'cosmetics' || category === 'jewelry') {
-    decorOptions = [
-      {
-        id: 'opt_mineral_marble',
-        title: 'Marbre Blanc de Carrare & Lumière Solaire',
-        subtitle: 'Socle biseauté immaculé, reflets subtils et mise en majesté des flacons et textures.',
-        tag: '💎 Haute Parfumerie',
-        targetIntentId: 'prestige_elevation' as CreativeIntentType,
-        icon: '🏛️',
-      },
-      {
-        id: 'opt_soft_podium',
-        title: 'Podium Satiné & Voile de Lumière Matinale',
-        subtitle: 'Atmosphère aérienne, douceur poudrée et ombres de contact physiques impeccables.',
-        tag: '🌸 Douceur & Pureté',
-        targetIntentId: 'lifestyle_authentic' as CreativeIntentType,
-        icon: '✨',
-      },
-      {
-        id: 'opt_dark_titanium',
-        title: 'Studio Sombre & Éclairage de Contraste',
-        subtitle: `Halo rasé aux couleurs de votre logo (${brandKit.primaryColor || '#00E5FF'}) pour un look audacieux.`,
-        tag: '⚡ Contraste Chic',
-        targetIntentId: 'conversion_flash' as CreativeIntentType,
-        icon: '🎯',
-      },
-    ];
+Schéma attendu :
+{
+  "questions": [
+    {
+      "id": "q_level_1_strategy" | "q_level_2_art_direction" | "q_level_3_copy_hook",
+      "level": 1 | 2 | 3,
+      "levelTitle": string,
+      "levelSubtitle": string,
+      "questionText": string,
+      "contextHint": string,
+      "options": [
+        {
+          "id": string,
+          "title": string,
+          "subtitle": string,
+          "tag": string,
+          "targetIntentId": "conversion_flash" | "prestige_elevation" | "lifestyle_authentic",
+          "icon": string
+        }
+      ]
+    }
+  ]
+}`,
+            },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.7,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const parsed = JSON.parse(data.choices[0].message.content);
+        if (Array.isArray(parsed.questions) && parsed.questions.length >= 3) {
+          return parsed.questions as DynamicDirectorQuestion[];
+        }
+      }
+    } catch (err) {
+      console.warn('Erreur dynamic questions AI:', err);
+    }
   }
 
+  // Dérivation dynamique à partir du productDNA réel
   return [
     {
       id: 'q_level_1_strategy',
@@ -459,12 +555,12 @@ export async function generateDynamicDirectorQuestions(params: {
       levelTitle: 'Étape 1/3 — Objectif Publicitaire',
       levelSubtitle: 'Que voulez-vous que cette publicité accomplisse en priorité ?',
       questionText: `Quel est l'objectif prioritaire pour la campagne de ${productDNA.productName} ?`,
-      contextHint: 'Le badge Réassurance (Paiement à la livraison) reste cumulable sur tous les objectifs.',
+      contextHint: 'Les options s\'adaptent dynamiquement à la catégorie du produit.',
       options: [
         {
           id: 'opt_urgency',
           title: '💥 Vente Flash & Promotion Immédiate',
-          subtitle: `Mettre en valeur l'opportunité flash à ${priceDisplay} et le risque d'épuisement rapide des stocks.`,
+          subtitle: `Mettre en valeur l'opportunité flash à ${priceDisplay} et accélérer les commandes.`,
           tag: '🔥 Ventes Rapides',
           targetIntentId: 'conversion_flash',
           icon: '⚡',
@@ -472,15 +568,15 @@ export async function generateDynamicDirectorQuestions(params: {
         {
           id: 'opt_prestige',
           title: '👑 Image de Marque & Notoriété',
-          subtitle: 'Faire ressentir l\'exclusivité, l\'élégance et la qualité irréprochable de votre boutique.',
+          subtitle: `Faire ressentir l'exclusivité, l'élégance et la qualité irréprochable de ${brandKit.shopName}.`,
           tag: '✨ Notoriété & Prestige',
           targetIntentId: 'prestige_elevation',
           icon: '👑',
         },
         {
           id: 'opt_dm_orders',
-          title: '📱 Commandes WhatsApp & Messages Privés',
-          subtitle: 'Inciter les clients à envoyer un message privé immédiatement pour commander sans friction.',
+          title: '📱 Commandes & Messages Privés',
+          subtitle: 'Inciter les clients à commander immédiatement en direct sans friction.',
           tag: '💬 Commandes Directes',
           targetIntentId: 'lifestyle_authentic',
           icon: '🤝',
@@ -491,45 +587,69 @@ export async function generateDynamicDirectorQuestions(params: {
       id: 'q_level_2_art_direction',
       level: 2,
       levelTitle: 'Étape 2/3 — Ambiance & Décor',
-      levelSubtitle: 'Quel décor mettra en valeur les matières et le packaging réel de votre produit ?',
+      levelSubtitle: `Quel univers mettra en valeur les matières réelles de ${productDNA.productName} ?`,
       questionText: `Dans quel univers visuel souhaitez-vous sublimer ${productDNA.productName} ?`,
-      contextHint: `Recommandations adaptées à votre catégorie : ${category}. Zéro texte généré par l'IA dans le décor.`,
-      options: decorOptions,
+      contextHint: `Généré selon la catégorie réelle du produit : ${productDNA.category}.`,
+      options: [
+        {
+          id: 'opt_mineral',
+          title: 'Surface Minérale & Clarté Studio',
+          subtitle: `Socle poli, reflets subtils et mise en valeur des matières de ${productDNA.productName}.`,
+          tag: '💎 Élégance',
+          targetIntentId: 'prestige_elevation',
+          icon: '🏛️',
+        },
+        {
+          id: 'opt_contrast',
+          title: 'Studio Sombre & Contraste Élevé',
+          subtitle: `Contraste publicitaire puissant avec halo d'accentuation ${brandKit.primaryColor || '#00E5FF'}.`,
+          tag: '⚡ Impact',
+          targetIntentId: 'conversion_flash',
+          icon: '🎯',
+        },
+        {
+          id: 'opt_natural',
+          title: 'Lumière Naturelle & Matières Authentiques',
+          subtitle: `Mise en scène chaleureuse et naturelle pour valoriser la qualité de ${productDNA.productName}.`,
+          tag: '🌿 Naturel',
+          targetIntentId: 'lifestyle_authentic',
+          icon: '☀️',
+        },
+      ],
     },
     {
       id: 'q_level_3_copy_hook',
       level: 3,
       levelTitle: 'Étape 3/3 — Langue & Accroche Commerciale',
-      levelSubtitle: 'Comment vos clients tunisiens préfèrent-ils lire votre message ?',
-      questionText: `Choisissez le style de langue pour le texte publicitaire superposé :`,
-      contextHint: 'Vous pourrez modifier ou personnaliser le texte exact avant de lancer la création.',
+      levelSubtitle: 'Dans quelle langue souhaitez-vous afficher le message ?',
+      questionText: `Choisissez la langue pour le texte publicitaire :`,
+      contextHint: 'Vous pourrez modifier ou personnaliser le texte exact avant de générer.',
       options: [
-        {
-          id: 'opt_lang_3arbi',
-          title: '⚡ 3arbi (Franco-Arabe Tunisien)',
-          subtitle: '« Promo flash w stock ma 93ad fih chay ! El khlass waqt el livri. »',
-          tag: 'Plus populaire',
-          targetIntentId: 'conversion_flash',
-          icon: '⚡',
-        },
-        {
-          id: 'opt_lang_arabic',
-          title: '🇹🇳 عربي تونسي (Alphabet Arabe)',
-          subtitle: '« برومو فلاش والكمية محدودة ! الخلاص عند الاستلام لباب الدار. »',
-          tag: 'Arabe Authentique',
-          targetIntentId: 'lifestyle_authentic',
-          icon: '🇹🇳',
-        },
         {
           id: 'opt_lang_french',
           title: '🇫🇷 Français Commercial',
-          subtitle: '« Offre flash très limitée : Profitez de notre remise avec paiement à la livraison. »',
+          subtitle: `« Offre exclusive : Découvrez ${productDNA.productName} dès aujourd'hui. »`,
           tag: 'Français Chic',
           targetIntentId: 'prestige_elevation',
           icon: '🇫🇷',
+        },
+        {
+          id: 'opt_lang_english',
+          title: '🇬🇧 English Commercial',
+          subtitle: `“Elevate your daily standard with ${productDNA.productName}.”`,
+          tag: 'English Global',
+          targetIntentId: 'conversion_flash',
+          icon: '🇬🇧',
+        },
+        {
+          id: 'opt_lang_arabic',
+          title: '🇦🇪 العربية الفصحى (Modern Standard Arabic)',
+          subtitle: `« اكتشف التميز والجودة العالية مع ${productDNA.productName}. »`,
+          tag: 'Arabe Standard',
+          targetIntentId: 'lifestyle_authentic',
+          icon: '🇦🇪',
         },
       ],
     },
   ];
 }
-

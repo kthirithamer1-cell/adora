@@ -1,5 +1,5 @@
 /**
- * MOTEUR DE RECETTES DE SCÈNES PAR CATÉGORIE MÉTIER (ADORA-46)
+ * MOTEUR DE RECETTES DE SCÈNES PAR CATÉGORIE MÉTIER (MarkMosaiq-46)
  * 
  * Remplace les templates figés par des recettes génératives expertes adaptées
  * aux 6 secteurs phares de l'e-commerce en Tunisie :

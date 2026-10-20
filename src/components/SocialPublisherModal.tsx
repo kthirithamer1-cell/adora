@@ -30,7 +30,7 @@ export default function SocialPublisherModal({
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
   const [platform, setPlatform] = useState<'instagram' | 'facebook' | 'both'>('instagram');
-  const [caption, setCaption] = useState(defaultCaption || defaultCaptionDarija || defaultCaptionFr);
+  const [caption, setCaption] = useState(defaultCaption || defaultCaptionFr || defaultCaptionDarija);
   const [mode, setMode] = useState<'now' | 'schedule'>('now');
   const [scheduleDateTime, setScheduleDateTime] = useState('');
   const [isPublishing, setIsPublishing] = useState(false);
@@ -39,7 +39,11 @@ export default function SocialPublisherModal({
   useEffect(() => {
     if (isOpen) {
       loadSocialData();
-      if (defaultCaptionDarija) {
+      if (defaultCaption) {
+        setCaption(defaultCaption);
+      } else if (defaultCaptionFr) {
+        setCaption(defaultCaptionFr);
+      } else if (defaultCaptionDarija) {
         setCaption(defaultCaptionDarija);
       }
       // Heure idéale en Tunisie : aujourd'hui à 19:30

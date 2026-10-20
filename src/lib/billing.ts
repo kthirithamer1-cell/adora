@@ -1,4 +1,4 @@
-import { findWorkspaceById } from './auth';
+import { findWorkspaceById, savePersistedStore } from './auth';
 import { getApiUsageLogs, getApiUsageMetrics, ApiUsageLogEntry } from './apiUsageLogger';
 
 export interface BillingTransaction {
@@ -8,7 +8,7 @@ export interface BillingTransaction {
   packId: string;
   packName: string;
   creditsAdded: number;
-  gateway: 'paddle' | 'flouci' | 'konnect' | 'b2b_invoice';
+  gateway: 'whop' | 'flouci' | 'konnect' | 'b2b_invoice';
   status: 'completed' | 'pending';
   invoiceNumber: string;
   createdAt: string;
@@ -43,7 +43,7 @@ const initialTransactions: Record<string, BillingTransaction[]> = {
       amountTND: 59,
       packId: 'pro',
       packName: 'Pack Lancement Pro ⚡',
-      creditsAdded: 20, // 20 crédits (80 déclinaisons multi-formats)
+      creditsAdded: 50, // 50 crédits
       gateway: 'konnect',
       status: 'completed',
       invoiceNumber: 'FAC-2026-0042',
@@ -55,7 +55,7 @@ const initialTransactions: Record<string, BillingTransaction[]> = {
       amountTND: 29,
       packId: 'flash',
       packName: 'Pack Flash Découverte',
-      creditsAdded: 10, // 10 crédits (40 déclinaisons multi-formats)
+      creditsAdded: 20, // 20 crédits
       gateway: 'flouci',
       status: 'completed',
       invoiceNumber: 'FAC-2026-0089',
@@ -69,7 +69,7 @@ const initialTransactions: Record<string, BillingTransaction[]> = {
       amountTND: 299,
       packId: 'agency_299',
       packName: 'Abonnement Agence B2B High-Ticket',
-      creditsAdded: 100, // 100 crédits mensuels (400 déclinaisons multi-formats)
+      creditsAdded: 120, // 120 crédits mensuels
       gateway: 'b2b_invoice',
       status: 'completed',
       invoiceNumber: 'FAC-2026-0112',
@@ -163,6 +163,7 @@ export function deductCredit(
   }
 
   ws.creditsRemaining -= amount;
+  savePersistedStore();
 
   if (!memoryLogs[workspaceId]) {
     memoryLogs[workspaceId] = [];
@@ -186,11 +187,12 @@ export function addCredits(
   packName: string,
   amountTND: number,
   creditsCount: number,
-  gateway: 'paddle' | 'flouci' | 'konnect' | 'b2b_invoice'
+  gateway: 'whop' | 'flouci' | 'konnect' | 'b2b_invoice'
 ): BillingTransaction {
   const ws = findWorkspaceById(workspaceId);
   if (ws) {
     ws.creditsRemaining += creditsCount;
+    savePersistedStore();
   }
 
   if (!memoryTransactions[workspaceId]) {

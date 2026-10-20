@@ -8,9 +8,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# 🧠 Antigravity Agent Engineering Constitution — Adora SaaS
+# 🧠 Antigravity Agent Engineering Constitution — MarkMosaiq SaaS
 
-This repository contains **Adora**, the premier AI Content & Product Staging Studio for E-commerce in Tunisia.
+This repository contains **MarkMosaiq**, the premier AI Content & Product Staging Studio for E-commerce in Tunisia.
 All agents operating in this workspace **MUST** adhere strictly to the following architectural, cognitive, and domain rules.
 
 ---
@@ -30,7 +30,7 @@ Before touching any code, proposing any diff, or closing any ticket, the agent m
 
 ### Step 2: Architectural Scoping
 - Respect the existing design tokens, CSS modules, and Next.js App Router patterns.
-- Follow the business domain: **E-commerce in Tunisia** (24 Gouvernorats, Dinars TND, authentic Darija, local delivery & payments).
+- Follow the business domain: **E-commerce in Tunisia** (24 Gouvernorats, Dinars USD, authentic Darija, local delivery & payments).
 - **Design Coherence Mandate**: Every newly created page or view MUST strictly mirror and preserve the existing luxury dark athletic aesthetic, typography, component structure, and layout tokens.
 
 ### Step 3: Surgical Implementation
@@ -66,13 +66,13 @@ Before touching any code, proposing any diff, or closing any ticket, the agent m
    - If adding a new dependency is strictly necessary, confirm with the user first.
 
 ### 2.1 🎯 Règle Impérative de Cohérence Visuelle (Design System Continuity Mandate)
-Toute nouvelle page créée dans l'application (ex: `/checkout`, `/pricing`, `/dashboard`, nouveaux modals) **DOIT IMPÉRATIVEMENT** être à 100% cohérente et harmonisée avec le design existant d'Adora :
+Toute nouvelle page créée dans l'application (ex: `/checkout`, `/pricing`, `/studio`, nouveaux modals) **DOIT IMPÉRATIVEMENT** être à 100% cohérente et harmonisée avec le design existant d'MarkMosaiq :
 1. **Palette & Tokens Identiques** :
    - Fond d'écran sombre luxueux : `#07090E` (page background), `#0B0E14` (card & panel background).
    - Surfaces vitreuses : classe `glass-card`, bordures fines semi-transparentes (`rgba(255, 255, 255, 0.08)` à `0.12`), backdrop blur `16px` à `20px`.
    - Couleurs d'action : Néon Cyan `#00E5FF` (technologie/actions principales), Orange/Rouge `#FF5722` (urgences/ventes/promos), Violet `#A855F7` (B2B/agences), Vert `#10B981` (succès/validations).
 2. **Harmonie de Mise en Page (Layout & Navigation)** :
-   - Toute page applicative doit comporter la **Navbar Standard** avec le logo Adora officiel, le breadcrumb, le lien d'accueil, et le composant multi-tenant `<WorkspaceSelector />`.
+   - Toute page applicative doit comporter la **Navbar Standard** avec le logo MarkMosaiq officiel, le breadcrumb, le lien d'accueil, et le composant multi-tenant `<WorkspaceSelector />`.
    - Les conteneurs doivent respecter les espacements existants (`maxWidth: 1080px / 1200px`, paddings `24px` à `40px`).
 3. **Typographie & Composants de Formulaire** :
    - Polices officielles : `Outfit, sans-serif` et `Plus Jakarta Sans, sans-serif`.
@@ -117,7 +117,7 @@ Toute nouvelle page créée dans l'application (ex: `/checkout`, `/pricing`, `/d
    - Tunisia has strictly **24 Gouvernorats** (Tunis, Ariana, Ben Arous, Manouba, Nabeul, Zaghouan, Bizerte, Béja, Jendouba, Le Kef, Siliana, Sousse, Monastir, Mahdia, Sfax, Kairouan, Kasserine, Sidi Bouzid, Gabès, Médenine, Tataouine, Gafsa, Tozeur, Kébili).
    - **NEVER** use 58 (which refers to Algerian wilayas).
 2. **Currency & Pricing**:
-   - Always display prices in **DT** or **TND** (e.g. `49 DT`, `59 DT`, `189 DT`).
+   - Always display prices in **DT** or **USD** (e.g. `49 DT`, `59 DT`, `189 DT`).
    - Never use EUR (€) or USD ($) in merchant-facing copy.
 3. **Authentic Darija & Conversion Copywriting**:
    - Use natural Tunisian commercial hooks that generate DM orders:

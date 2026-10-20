@@ -17,6 +17,7 @@ export interface AgencyConfig {
   customDomain?: string;
   planTier: 'agency_299' | 'agency_590';
   monthlyPriceTND: number;
+  monthlyPriceUSD?: number;
   totalMonthlyCredits: number;
   clientBrands: ClientBrand[];
   agencyFooterText: string;
@@ -26,20 +27,21 @@ const initialAgencies: Record<string, AgencyConfig> = {
   ws_hypergrowth: {
     workspaceId: 'ws_hypergrowth',
     agencyName: 'HyperGrowth Agence Digitale',
-    agencyLogoUrl: '/images/Adora_logo.png',
+    agencyLogoUrl: '/images/logo.png',
     whiteLabelActive: true,
     customDomain: 'studio.hypergrowth.tn',
     planTier: 'agency_299',
     monthlyPriceTND: 299,
-    totalMonthlyCredits: 200,
+    monthlyPriceUSD: 99,
+    totalMonthlyCredits: 120,
     agencyFooterText: 'Pack de Contenu Haute Définition préparé par HyperGrowth Agency Tunis.',
     clientBrands: [
       {
         id: 'brand_nutristore',
         name: 'NutriStore Tunisie',
         niche: 'Compléments Alimentaires',
-        logoUrl: '/images/Adora_logo.png',
-        creditsAllocated: 60,
+        logoUrl: '/images/logo.png',
+        creditsAllocated: 40,
         creditsUsed: 18,
         status: 'active',
         createdAt: '2026-01-10T10:00:00Z',
@@ -49,8 +51,8 @@ const initialAgencies: Record<string, AgencyConfig> = {
         name: 'Vestiaire Tunis',
         niche: 'Mode & Prêt-à-porter',
         logoUrl: '/images/hero_lifestyle.jpg',
-        creditsAllocated: 80,
-        creditsUsed: 45,
+        creditsAllocated: 50,
+        creditsUsed: 25,
         status: 'active',
         createdAt: '2026-01-20T14:00:00Z',
       },
@@ -58,8 +60,8 @@ const initialAgencies: Record<string, AgencyConfig> = {
         id: 'brand_carthage_deco',
         name: 'Carthage Décoration',
         niche: 'Maison & Décoration',
-        logoUrl: '/images/Adora_logo.png',
-        creditsAllocated: 40,
+        logoUrl: '/images/logo.png',
+        creditsAllocated: 20,
         creditsUsed: 12,
         status: 'active',
         createdAt: '2026-02-05T09:00:00Z',
@@ -79,11 +81,12 @@ export function getAgencyConfig(workspaceId: string): AgencyConfig {
   const newConfig: AgencyConfig = {
     workspaceId,
     agencyName: 'Mon Agence Marketing',
-    agencyLogoUrl: '/images/Adora_logo.png',
+    agencyLogoUrl: '/images/logo.png',
     whiteLabelActive: true,
     planTier: 'agency_299',
     monthlyPriceTND: 299,
-    totalMonthlyCredits: 200,
+    monthlyPriceUSD: 99,
+    totalMonthlyCredits: 120,
     agencyFooterText: 'Contenu produit en marque blanche par notre studio créatif.',
     clientBrands: [],
   };

@@ -139,14 +139,14 @@ export default function AgencyPortalModal({ isOpen, onClose }: AgencyPortalModal
                 Offre High-Ticket B2B
               </span>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#15803D', background: '#DCFCE7', padding: '3px 8px', borderRadius: '4px' }}>
-                299 DT / Mois
+                $99 / Mois
               </span>
             </div>
             <h3 style={{ fontSize: '1.4rem', fontWeight: 900, margin: '6px 0 2px', color: '#0F172A' }}>
               Portail Agence & Marque Blanche 🏆
             </h3>
             <div style={{ fontSize: '0.85rem', color: '#64748B' }}>
-              Gérez vos marques clientes, supprimez tout branding Adora et exportez en marque blanche
+              Gérez vos marques clientes, supprimez tout branding MarkMosaiq et exportez en marque blanche
             </div>
           </div>
           <button
@@ -231,7 +231,7 @@ export default function AgencyPortalModal({ isOpen, onClose }: AgencyPortalModal
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '22px' }}>
               <div style={{ background: '#FAF5FF', border: '1px solid #E9D5FF', borderRadius: '12px', padding: '16px' }}>
                 <div style={{ fontSize: '0.75rem', color: '#7E22CE', textTransform: 'uppercase', fontWeight: 700 }}>Forfait Mensuel</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#6B21A8', marginTop: '4px' }}>299 DT / m</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#6B21A8', marginTop: '4px' }}>$99 / m</div>
                 <div style={{ fontSize: '0.72rem', color: '#15803D', marginTop: '2px' }}>Renouvellement automatique</div>
               </div>
               <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '16px' }}>
@@ -244,17 +244,17 @@ export default function AgencyPortalModal({ isOpen, onClose }: AgencyPortalModal
                 <div style={{ fontSize: '1.4rem', fontWeight: 900, color: config.whiteLabelActive ? '#15803D' : '#D97706', marginTop: '4px' }}>
                   {config.whiteLabelActive ? 'ACTIVÉ ✓' : 'STANDBY'}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '2px' }}>Zero branding Adora</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '2px' }}>Zero branding MarkMosaiq</div>
               </div>
             </div>
 
             {/* Avantages Agence */}
             <div style={{ background: '#FAF5FF', border: '1px solid #E9D5FF', borderRadius: '12px', padding: '18px', marginBottom: '20px' }}>
               <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#7E22CE', marginBottom: '10px' }}>
-                🎯 Ce qui est inclus dans votre Pack Agence 299 DT :
+                🎯 Ce qui est inclus dans votre Pack Agence $99 :
               </h4>
               <ul style={{ fontSize: '0.85rem', color: '#334155', lineHeight: '1.8', paddingLeft: '20px', margin: 0 }}>
-                <li><strong>Marque Blanche Totale :</strong> Vos clients finaux ne voient jamais le nom "Adora". Les archives ZIP portent le nom de votre agence.</li>
+                <li><strong>Marque Blanche Totale :</strong> Vos clients finaux ne voient jamais le nom "MarkMosaiq". Les archives ZIP portent le nom de votre agence.</li>
                 <li><strong>Multi-Comptes Clients :</strong> Basculez d’un client à l’autre (mode, cosmétique, compléments) sans déconnexion.</li>
                 <li><strong>Exports Formats Multiples :</strong> Feed 1080x1080, Stories 9:16 sans safe-zone conflictuelle, Facebook Ads et bannières.</li>
                 <li><strong>Facturation B2B Proforma & Virement :</strong> Factures conformes avec TVA 19% et matricule fiscal déductible.</li>
@@ -351,7 +351,7 @@ export default function AgencyPortalModal({ isOpen, onClose }: AgencyPortalModal
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', borderRadius: '10px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0F172A' }}>Activer la Marque Blanche (White-Label)</div>
-                  <div style={{ fontSize: '0.78rem', color: '#64748B' }}>Supprime toute mention d'Adora sur les exports ZIP, badges et documents livrables</div>
+                  <div style={{ fontSize: '0.78rem', color: '#64748B' }}>Supprime toute mention d'MarkMosaiq sur les exports ZIP, badges et documents livrables</div>
                 </div>
                 <input
                   type="checkbox"

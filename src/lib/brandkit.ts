@@ -51,7 +51,7 @@ export interface BrandKit {
   watermarkEnabled: boolean;
   watermarkPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
-  // AI Engine v2 Specifications (ADORA-41)
+  // AI Engine v2 Specifications (MarkMosaiq-41)
   industry?: 'cosmetics' | 'fashion' | 'nutrition' | 'jewelry' | 'tech' | 'food' | 'home' | 'general';
   positioning?: 'luxury' | 'premium' | 'affordable' | 'playful' | 'athletic' | 'artisan';
   palette?: BrandKitPalette;
@@ -83,7 +83,7 @@ const initialBrandKits: Record<string, BrandKit> = {
   ws_nutristore: {
     workspaceId: 'ws_nutristore',
     shopName: 'NutriStore Tunisie',
-    logoUrl: '/images/Adora_logo.png',
+    logoUrl: '/images/logo.png',
     primaryColor: '#00E5FF',
     secondaryColor: '#FF5722',
     accentColor: '#10B981',
@@ -125,7 +125,7 @@ const initialBrandKits: Record<string, BrandKit> = {
   ws_vestiaire: {
     workspaceId: 'ws_vestiaire',
     shopName: 'Vestiaire Tunis',
-    logoUrl: '/images/Adora_logo.png',
+    logoUrl: '/images/logo.png',
     primaryColor: '#E11D48',
     secondaryColor: '#F59E0B',
     accentColor: '#4F46E5',
@@ -233,12 +233,15 @@ export function getBrandKitByWorkspace(workspaceId: string): BrandKit {
   if (memoryBrandKits[workspaceId]) {
     return memoryBrandKits[workspaceId];
   }
+  if (workspaceId === 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22' && memoryBrandKits['ws_nutristore']) {
+    return memoryBrandKits['ws_nutristore'];
+  }
 
   // Brand Kit par défaut pour les nouveaux espaces
   return {
     workspaceId,
     shopName: 'Ma Boutique E-commerce',
-    logoUrl: '/images/Adora_logo.png',
+    logoUrl: '/images/logo.png',
     primaryColor: '#00E5FF',
     secondaryColor: '#FF5722',
     accentColor: '#10B981',
@@ -270,7 +273,9 @@ export function updateBrandKitByWorkspace(
 export const saveBrandKit = updateBrandKitByWorkspace;
 
 export function getCatalogByWorkspace(workspaceId: string): CatalogProduct[] {
-  return memoryCatalog.filter((p) => p.workspaceId === workspaceId);
+  return memoryCatalog.filter(
+    (p) => p.workspaceId === workspaceId || (workspaceId === 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22' && p.workspaceId === 'ws_nutristore')
+  );
 }
 
 export function addProductToCatalog(
@@ -296,7 +301,7 @@ export function deleteProductFromCatalog(workspaceId: string, productId: string)
 }
 
 /**
- * Compilateur de Prompts avec Brand Kit (ADORA-41)
+ * Compilateur de Prompts avec Brand Kit (MarkMosaiq-41)
  * Compile les attributs visuels d'une marque (mood, éclairage, palette, positionnement)
  * dans le prompt de diffusion, tout en respectant scrupuleusement la règle 100% positive
  * (centre vacant, surface polie propre sans aucun objet pré-généré).

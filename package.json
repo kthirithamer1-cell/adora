@@ -1,23 +1,33 @@
 {
-  "name": "adora-saas",
+  "name": "MarkMosaiq-saas",
   "version": "1.0.0",
   "private": true,
-  "description": "Adora - AI Content & Image Generation Studio for E-commerce in Tunisia",
+  "description": "MarkMosaiq - AI Content & Image Generation Studio for E-commerce in Tunisia",
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start -p 3001"
+    "start": "next start -p 3001",
+    "test:generation": "node test-generation-workflow.mjs"
   },
   "dependencies": {
-    "@paddle/paddle-js": "^1.6.5",
+    "@huggingface/transformers": "^4.3.1",
+    "@imgly/background-removal-node": "^1.4.5",
+    "@whop/checkout": "^0.7.0",
+    "@whop/sdk": "^2.6.0",
+    "dotenv": "^18.0.8",
     "jszip": "^3.10.2",
     "lucide-react": "^1.50.0",
     "next": "16.3.8",
+    "nodemailer": "^10.1.2",
+    "openai": "^7.39.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "typescript": "^5"

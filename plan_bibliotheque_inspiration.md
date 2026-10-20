@@ -1,4 +1,4 @@
-# 🧠 Plan — Bibliothèque d'Inspiration « Visuels qui performent » pour Adora
+# 🧠 Plan — Bibliothèque d'Inspiration « Visuels qui performent » pour MarkMosaiq
 
 ## 1. L'idée en une phrase
 
@@ -46,7 +46,7 @@ flowchart LR
 
 ---
 
-## 3. Scorer la performance (score Adora sur 100)
+## 3. Scorer la performance (score MarkMosaiq sur 100)
 
 Comme chaque plateforme expose des métriques différentes, on normalise :
 
@@ -133,7 +133,7 @@ Points techniques importants :
 | Visuel régénéré | Clic sur « Régénérer » | −1 (le résultat n'a pas plu) |
 | Performance réelle | **Instagram Graph API** sur le compte du commerçant (avec son autorisation) | Le score de l'ADN est recalculé avec les vrais likes et la portée |
 
-Au bout de quelques mois, Adora dispose de données **propres à la Tunisie** que les concurrents n'ont pas.
+Au bout de quelques mois, MarkMosaiq dispose de données **propres à la Tunisie** que les concurrents n'ont pas.
 
 ---
 

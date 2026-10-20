@@ -4,7 +4,12 @@ import {
   findUserByEmail,
   findUserById,
   getMemoryUsers,
+  getMemoryWorkspaces,
   getWorkspacesForUser,
+  registerUserAndWorkspace,
+  savePersistedStore,
+  syncUserAndWorkspaceToSupabase,
+  UserRole,
 } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
@@ -14,19 +19,43 @@ export async function POST(req: NextRequest) {
 
     let targetUser = userId ? findUserById(userId) : null;
     if (!targetUser && email) {
-      targetUser = findUserByEmail(email);
+      const cleanEmail = email.trim().toLowerCase();
+      targetUser = findUserByEmail(cleanEmail);
+      if (!targetUser) {
+        // Crée automatiquement le profil et workspace pour cet email si nouvel utilisateur
+        const reg = registerUserAndWorkspace({
+          email: cleanEmail,
+          name: cleanEmail.split('@')[0],
+          shopName: `${cleanEmail.split('@')[0]}'s Store`,
+          plan: 'flash',
+        });
+        targetUser = reg.user;
+        await syncUserAndWorkspaceToSupabase(reg.user, reg.workspace);
+      }
     }
 
     if (!targetUser) {
-      // Si l'utilisateur n'existe pas, prendre le premier par défaut
       targetUser = getMemoryUsers()[0];
     }
 
     const userWorkspaces = getWorkspacesForUser(targetUser.id);
-    const primaryWorkspaceId = userWorkspaces[0]?.id || 'ws_nutristore';
+    const activeWorkspace = userWorkspaces[0] || getMemoryWorkspaces()[0];
+    if (activeWorkspace && activeWorkspace.creditsRemaining === 0 && (activeWorkspace.plan === 'flash' || (activeWorkspace as any).plan === 'trial')) {
+      activeWorkspace.creditsRemaining = 8;
+      savePersistedStore();
+    }
+
+    // Assurer la présence dans Supabase
+    if (targetUser && activeWorkspace) {
+      await syncUserAndWorkspaceToSupabase(targetUser, activeWorkspace);
+    }
+    const member = activeWorkspace?.members?.find((m) => m.userId === targetUser?.id);
+    const role: UserRole = member?.role || 'owner';
+    const primaryWorkspaceId = activeWorkspace?.id || 'ws_nutristore';
 
     const sessionPayload = JSON.stringify({
       userId: targetUser.id,
+      email: targetUser.email,
       workspaceId: primaryWorkspaceId,
     });
 
@@ -34,6 +63,9 @@ export async function POST(req: NextRequest) {
       success: true,
       data: {
         user: targetUser,
+        workspace: activeWorkspace,
+        workspaces: userWorkspaces,
+        role,
         activeWorkspaceId: primaryWorkspaceId,
       },
     });
@@ -42,6 +74,7 @@ export async function POST(req: NextRequest) {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24 * 30, // 30 jours
     });
 

@@ -72,13 +72,13 @@ export default function BillingUsageModal({ isOpen, onClose }: BillingUsageModal
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#EA580C', background: '#FFF7ED', padding: '3px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>
-              Solde & Facturation Tunisienne
+              Solde & Facturation Studio
             </span>
             <h3 style={{ fontSize: '1.4rem', fontWeight: 900, margin: '6px 0 2px', color: '#0F172A' }}>
               Consommation & Forfaits — {workspace?.name}
             </h3>
             <div style={{ fontSize: '0.85rem', color: '#64748B' }}>
-              Gérez votre solde d'images, recharges rapides et factures en Dinars (TND)
+              Gérez votre solde d'images, recharges de crédits et forfaits Studio 4K sécurisés
             </div>
           </div>
           <button
@@ -120,57 +120,57 @@ export default function BillingUsageModal({ isOpen, onClose }: BillingUsageModal
               </div>
             </div>
 
-            {/* Recharges Rapides en Dinars */}
+            {/* Recharges Rapides en USD */}
             <div style={{ marginBottom: '26px' }}>
               <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#334155', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                ⚡ Recharger vos Crédits en Dinars Tunisiens (TND)
+                ⚡ Forfaits & Recharges Studio 4K
               </h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                {/* Pack Flash 29 DT */}
+                {/* Pack Starter $19 */}
                 <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0F172A' }}>Recharge Flash</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B', margin: '4px 0' }}>10 Visuels 4K</div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#4F46E5', margin: '6px 0' }}>29 DT</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0F172A' }}>Starter Package</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B', margin: '4px 0' }}>20 Crédits Studio 4K</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#4F46E5', margin: '6px 0' }}>$19</div>
                   </div>
                   <button
-                    onClick={() => setSelectedPackForCheckout({ id: 'flash', name: 'Recharge Flash (10 Visuels)', price: 29, count: 10 })}
+                    onClick={() => setSelectedPackForCheckout({ id: 'flash', name: 'Starter Package (20 Crédits)', price: 19, count: 20 })}
                     style={{ width: '100%', background: 'linear-gradient(135deg, #4F46E5, #3B82F6)', color: '#FFFFFF', border: 'none', borderRadius: '8px', padding: '8px', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', marginTop: '10px', boxShadow: '0 4px 10px rgba(79, 70, 229, 0.2)' }}
                   >
-                    Payer 29 DT
+                    Activer $19
                   </button>
                 </div>
 
-                {/* Pack Pro 59 DT */}
+                {/* Pack Pro $49 */}
                 <div style={{ background: '#FFF7ED', border: '1.5px solid #EA580C', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
                   <div style={{ position: 'absolute', top: '-10px', right: '12px', background: '#EA580C', color: '#FFF', fontSize: '0.65rem', fontWeight: 900, padding: '2px 8px', borderRadius: '4px' }}>
                     POPULAIRE ⚡
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0F172A' }}>Recharge Pro</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B', margin: '4px 0' }}>25 Visuels + Ads</div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#EA580C', margin: '6px 0' }}>59 DT</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0F172A' }}>Pro Launch Pack</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B', margin: '4px 0' }}>50 Crédits Studio 4K</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#EA580C', margin: '6px 0' }}>$49</div>
                   </div>
                   <button
-                    onClick={() => setSelectedPackForCheckout({ id: 'pro', name: 'Recharge Pro (25 Visuels)', price: 59, count: 25 })}
+                    onClick={() => setSelectedPackForCheckout({ id: 'pro', name: 'Pro Launch Pack (50 Crédits)', price: 49, count: 50 })}
                     style={{ width: '100%', background: 'linear-gradient(135deg, #EA580C, #C2410C)', color: '#FFF', border: 'none', borderRadius: '8px', padding: '8px', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', marginTop: '10px', boxShadow: '0 4px 10px rgba(234, 88, 12, 0.2)' }}
                   >
-                    Payer 59 DT
+                    Activer $49
                   </button>
                 </div>
 
-                {/* Pack Agence 299 DT */}
+                {/* Pack Agence $99 */}
                 <div style={{ background: '#FAF5FF', border: '1px solid #E9D5FF', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0F172A' }}>Pack Agence B2B</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748B', margin: '4px 0' }}>200 Visuels + White-label</div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#7E22CE', margin: '6px 0' }}>299 DT</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0F172A' }}>Advanced Agency</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B', margin: '4px 0' }}>120 Crédits + White-label</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#7E22CE', margin: '6px 0' }}>$99</div>
                   </div>
                   <button
-                    onClick={() => setSelectedPackForCheckout({ id: 'agency_299', name: 'Pack Agence B2B (200 Visuels)', price: 299, count: 200 })}
+                    onClick={() => setSelectedPackForCheckout({ id: 'agency_299', name: 'Advanced Agency (120 Crédits)', price: 99, count: 120 })}
                     style={{ width: '100%', background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)', color: '#FFF', border: 'none', borderRadius: '8px', padding: '8px', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', marginTop: '10px', boxShadow: '0 4px 10px rgba(139, 92, 246, 0.2)' }}
                   >
-                    Facturer 299 DT
+                    Activer $99
                   </button>
                 </div>
               </div>
@@ -225,7 +225,7 @@ export default function BillingUsageModal({ isOpen, onClose }: BillingUsageModal
           </button>
         </div>
 
-        {/* Modal de paiement tunisien */}
+        {/* Modal de paiement sécurisé Whop */}
         {selectedPackForCheckout && (
           <CheckoutModal
             isOpen={true}
@@ -236,7 +236,7 @@ export default function BillingUsageModal({ isOpen, onClose }: BillingUsageModal
             }}
             packId={selectedPackForCheckout.id}
             packName={selectedPackForCheckout.name}
-            priceTND={selectedPackForCheckout.price}
+            priceUSD={selectedPackForCheckout.price}
             visualsCount={selectedPackForCheckout.count}
           />
         )}

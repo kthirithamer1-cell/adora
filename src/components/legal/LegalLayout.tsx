@@ -84,8 +84,8 @@ export default function LegalLayout({
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
               <img
-                src="/images/Adora_logo.png"
-                alt="Adora Logo"
+                src="/images/logo.png"
+                alt="MarkMosaiq Logo"
                 style={{
                   width: '36px',
                   height: '36px',
@@ -96,7 +96,7 @@ export default function LegalLayout({
                 }}
               />
               <span style={{ fontSize: '1.25rem', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-                ADORA
+                MarkMosaiq
               </span>
             </Link>
             <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>/</span>
@@ -158,7 +158,7 @@ export default function LegalLayout({
             }}
           >
             <ShieldCheck size={15} />
-            <span>Conformité E-commerce & Paddle Merchant of Record</span>
+            <span>Conformité E-commerce & Whop Merchant of Record</span>
           </div>
 
           <h1
@@ -341,7 +341,7 @@ export default function LegalLayout({
                 <span>Paiements Sécurisés</span>
               </div>
               <p style={{ fontSize: '0.8rem', color: '#94A3B8', lineHeight: 1.5, margin: 0 }}>
-                Transactions internationales traitées par <strong>Paddle Payments Ltd</strong>, Merchant of Record officiel, garantissant conformité fiscale et protection de l’acheteur.
+                Transactions internationales traitées par <strong>Whop Inc.</strong>, Merchant of Record officiel, garantissant conformité fiscale et protection de l’acheteur.
               </p>
             </div>
 
@@ -362,7 +362,7 @@ export default function LegalLayout({
                 Notre équipe de support et conformité vous répond sous 24h ouvrées.
               </p>
               <a
-                href="mailto:support@adora.ai"
+                href="mailto:support@MarkMosaiq.ai"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -373,7 +373,7 @@ export default function LegalLayout({
                   textDecoration: 'none',
                 }}
               >
-                support@adora.ai ➔
+                support@MarkMosaiq.ai ➔
               </a>
             </div>
           </div>
@@ -427,8 +427,8 @@ export default function LegalLayout({
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <img
-                src="/images/Adora_logo.png"
-                alt="Adora Logo"
+                src="/images/logo.png"
+                alt="MarkMosaiq Logo"
                 style={{
                   width: '28px',
                   height: '28px',
@@ -438,7 +438,7 @@ export default function LegalLayout({
                 }}
               />
               <span style={{ fontWeight: 900, fontSize: '1.05rem', color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-                ADORA
+                MarkMosaiq
               </span>
               <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>•</span>
               <span style={{ color: '#94A3B8' }}>Studio d'IA E-commerce & Mises en scène publicitaires</span>
@@ -473,7 +473,7 @@ export default function LegalLayout({
             }}
           >
             <p style={{ margin: 0 }}>
-              © 2026 ADORA AI. Tous droits réservés. Paiements internationaux hébergés et certifiés par Paddle (Merchant of Record).
+              © 2026 MarkMosaiq AI. Tous droits réservés. Paiements internationaux hébergés et certifiés par Whop (Merchant of Record).
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>Développé pour l'E-commerce en Tunisie 🇹🇳 & à l'International</span>

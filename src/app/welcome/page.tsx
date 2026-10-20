@@ -44,8 +44,8 @@ export default function WelcomePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
               <img
-                src="/images/Adora_logo.png"
-                alt="Adora Logo"
+                src="/images/logo.png"
+                alt="MarkMosaiq Logo"
                 style={{
                   width: '36px',
                   height: '36px',
@@ -56,7 +56,7 @@ export default function WelcomePage() {
                 }}
               />
               <span style={{ fontSize: '1.25rem', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-                ADORA
+                MarkMosaiq
               </span>
             </Link>
             <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>/</span>
@@ -142,11 +142,11 @@ export default function WelcomePage() {
           </span>
 
           <h1 style={{ fontSize: '2.1rem', fontWeight: 900, margin: '16px 0 10px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-            Bienvenue dans Adora Studio !
+            Bienvenue dans MarkMosaiq Studio !
           </h1>
 
           <p style={{ fontSize: '0.94rem', color: '#94A3B8', margin: '0 0 30px', lineHeight: 1.55 }}>
-            Votre abonnement a été activé avec succès via <strong>Paddle Checkout</strong>. Vos crédits de mise en scène produit sont prêts à être utilisés.
+            Votre abonnement a été activé avec succès via <strong>Whop Checkout</strong>. Vos crédits de mise en scène produit sont prêts à être utilisés.
           </p>
 
           {/* RASSURANCE & AVANTAGES */}
@@ -208,7 +208,7 @@ export default function WelcomePage() {
             </Link>
 
             <Link
-              href="/dashboard"
+              href="/studio"
               style={{
                 background: 'transparent',
                 color: '#94A3B8',

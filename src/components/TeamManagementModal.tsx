@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useWorkspace } from '@/lib/WorkspaceContext';
-import { UserRole } from '@/lib/auth';
+import type { UserRole } from '@/lib/auth';
 
 interface TeamManagementModalProps {
   isOpen: boolean;

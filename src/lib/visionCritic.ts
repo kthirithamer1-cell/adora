@@ -1,5 +1,5 @@
 /**
- * MODULE VISION CRITIC — SCORING MULTI-VARIANTES & CONTRÔLE QUALITÉ IA (ADORA-45)
+ * MODULE VISION CRITIC — SCORING MULTI-VARIANTES & CONTRÔLE QUALITÉ IA (MarkMosaiq-45)
  * 
  * Évalue chaque rendu généré sur 5 critères stricts notés de 1 à 10 (Score total sur 100) :
  * 1. Product Fidelity (Fidélité au produit réel)
@@ -55,7 +55,7 @@ export async function evaluateImageVariant(
     const brandKit = options.brandKit;
     const aspect = options.aspect || '1:1';
 
-    const systemPrompt = `Tu es le Directeur Artistique en Chef et Vision Critic d'ADORA SaaS.
+    const systemPrompt = `Tu es le Directeur Artistique en Chef et Vision Critic d'MarkMosaiq SaaS.
 Ton rôle est de contrôler et noter impitoyablement un visuel publicitaire e-commerce généré pour une marque en Tunisie.
 
 Évalue l'image sur ces 5 critères (note de 1 à 10 pour chacun) :

@@ -1,20 +1,23 @@
 'use server';
 
-import { supabase } from '@/lib/supabase';
+import { supabase, resolveWorkspaceUuid } from '@/lib/supabase';
 import { getCurrentSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
 export async function createInvoiceAction(params: {
   packId: string;
   amountTND: number;
-  paymentGateway: 'paddle' | 'flouci' | 'konnect' | 'credit_card' | 'b2b_invoice';
+  paymentGateway: 'whop' | 'flouci' | 'konnect' | 'credit_card' | 'b2b_invoice';
   customerName: string;
   customerPhone?: string;
   matriculeFiscal?: string;
 }) {
   try {
     const session = await getCurrentSession();
-    const wsId = session.workspace.id;
+    if (!session) {
+      return { success: false, error: 'Session expirée. Veuillez vous reconnecter.' };
+    }
+    const wsId = resolveWorkspaceUuid(session.workspace.id);
 
     const invoiceNumber = `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -56,7 +59,10 @@ export async function confirmPaymentAction(params: {
 }) {
   try {
     const session = await getCurrentSession();
-    const wsId = session.workspace.id;
+    if (!session) {
+      return { success: false, error: 'Session expirée. Veuillez vous reconnecter.' };
+    }
+    const wsId = resolveWorkspaceUuid(session.workspace.id);
 
     let newBalance = session.workspace.creditsRemaining + params.creditsToAdd;
 
@@ -100,7 +106,6 @@ export async function confirmPaymentAction(params: {
       session.workspace.creditsRemaining = newBalance;
     }
 
-    revalidatePath('/dashboard');
     revalidatePath('/studio');
 
     return {

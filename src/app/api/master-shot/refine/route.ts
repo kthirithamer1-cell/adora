@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
       background: 'studio',
       compiledPositivePrompt: '',
       brandOverlay: {
-        logoUrl: brandKit.logoUrl || '/images/Adora_logo.png',
+        logoUrl: brandKit.logoUrl || '/images/logo.png',
         logoPosition: 'top-left',
         logoTopPx: 45,
         headlineFont: 'Outfit, sans-serif',

@@ -4,7 +4,6 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2, Sparkles, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
-import WorkspaceSelector from '@/components/WorkspaceSelector';
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
@@ -58,8 +57,8 @@ function PaymentSuccessContent() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
               <img
-                src="/images/Adora_logo.png"
-                alt="Adora Logo"
+                src="/images/logo.png"
+                alt="MarkMosaiq Logo"
                 style={{
                   width: '36px',
                   height: '36px',
@@ -70,7 +69,7 @@ function PaymentSuccessContent() {
                 }}
               />
               <span style={{ fontSize: '1.25rem', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-                ADORA
+                MarkMosaiq
               </span>
             </Link>
             <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>/</span>
@@ -78,7 +77,6 @@ function PaymentSuccessContent() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <WorkspaceSelector />
             <Link
               href="/studio"
               style={{
@@ -151,7 +149,7 @@ function PaymentSuccessContent() {
               textTransform: 'uppercase',
             }}
           >
-            {isSimulated ? 'PAIEMENT SIMULÉ (TEST)' : 'PAIEMENT VALIDÉ PAR PADDLE'}
+            {isSimulated ? 'PAIEMENT SIMULÉ (TEST)' : 'PAIEMENT VALIDÉ PAR WHOP'}
           </span>
 
           <h1 style={{ fontSize: '2rem', fontWeight: 900, margin: '14px 0 8px', letterSpacing: '-0.02em' }}>
@@ -186,8 +184,8 @@ function PaymentSuccessContent() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '12px' }}>
               <span style={{ fontSize: '0.85rem', color: '#64748B' }}>Facturation sécurisée :</span>
-              <span style={{ fontSize: '0.78rem', color: '#10B981', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 700 }}>
-                <ShieldCheck size={14} color="#10B981" /> Paddle Merchant of Record
+              <span style={{ fontSize: '0.78rem', color: '#00E5FF', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 700 }}>
+                <ShieldCheck size={14} color="#00E5FF" /> Whop Merchant of Record
               </span>
             </div>
           </div>
@@ -217,7 +215,7 @@ function PaymentSuccessContent() {
             </Link>
 
             <Link
-              href="/dashboard"
+              href="/"
               style={{
                 background: 'transparent',
                 color: '#94A3B8',

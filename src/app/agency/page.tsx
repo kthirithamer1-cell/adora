@@ -94,7 +94,7 @@ export default function AgencyPortalPage() {
           name: newBrandName.trim(),
           niche: newBrandNiche,
           creditsAllocated: newBrandCredits,
-          logoUrl: '/images/Adora_logo.png',
+          logoUrl: '/images/logo.png',
         }),
       });
       const data = await res.json();
@@ -179,7 +179,7 @@ export default function AgencyPortalPage() {
               {agency?.agencyName || 'Portail Agence Marketing'}
             </h1>
             <p style={{ color: '#64748B', fontSize: '14px', marginTop: '6px' }}>
-              Gérez plusieurs boutiques clientes, allouez des quotas de visuels et activez votre marque blanche sans mention d'Adora.
+              Gérez plusieurs boutiques clientes, allouez des quotas de visuels et activez votre marque blanche sans mention d'MarkMosaiq.
             </p>
           </div>
 
@@ -537,7 +537,7 @@ export default function AgencyPortalPage() {
         {/* ONGLET 2 : MARQUE BLANCHE & SIMULATEUR */}
         {activeTab === 'whitelabel' && agency && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '28px', alignItems: 'start' }}>
-            
+
             {/* Formulaire Marque Blanche */}
             <form onSubmit={handleSaveAgencyConfig} style={{
               background: '#FFFFFF',
@@ -573,7 +573,7 @@ export default function AgencyPortalPage() {
                     Activer le Mode Marque Blanche
                   </div>
                   <div style={{ fontSize: '12px', color: '#64748B' }}>
-                    Masque définitivement le logo et toute mention d'Adora dans les exports ZIP et PDF.
+                    Masque définitivement le logo et toute mention d'MarkMosaiq dans les exports ZIP et PDF.
                   </div>
                 </div>
                 <input
@@ -689,7 +689,7 @@ export default function AgencyPortalPage() {
                   borderRadius: '4px',
                   fontWeight: 700,
                 }}>
-                  {agency.whiteLabelActive ? '✓ Sans Logo Adora' : 'Mode Standard'}
+                  {agency.whiteLabelActive ? '✓ Sans Logo MarkMosaiq' : 'Mode Standard'}
                 </span>
               </div>
 
@@ -814,9 +814,9 @@ export default function AgencyPortalPage() {
                   onClick={() => {
                     setSelectedPlanForCheckout({
                       id: 'agency_299',
-                      name: 'Abonnement Mensuel Agence — 200 Visuels',
+                      name: 'Abonnement Mensuel Agence — 120 Visuels',
                       price: 299,
-                      visualsCount: 200,
+                      visualsCount: 120,
                     });
                     setIsCheckoutOpen(true);
                   }}
@@ -853,14 +853,14 @@ export default function AgencyPortalPage() {
                       {
                         ref: 'FAC-2026-0312',
                         date: '01/03/2026',
-                        item: 'Abonnement Agence B2B — 200 Crédits',
+                        item: 'Abonnement Agence B2B — 120 Crédits',
                         ttc: '356.810 DT',
                         status: 'Payée (Virement)',
                       },
                       {
                         ref: 'FAC-2026-0208',
                         date: '01/02/2026',
-                        item: 'Abonnement Agence B2B — 200 Crédits',
+                        item: 'Abonnement Agence B2B — 120 Crédits',
                         ttc: '356.810 DT',
                         status: 'Payée (Konnect)',
                       },

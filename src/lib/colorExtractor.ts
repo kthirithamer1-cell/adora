@@ -1,6 +1,6 @@
 /**
  * Algorithme d'extraction de couleurs depuis une image / logo (Canvas Pixel Sampler)
- * Conçu pour Adora E-commerce Studio
+ * Conçu pour MarkMosaiq E-commerce Studio
  */
 
 export interface ExtractedPalette {
@@ -222,7 +222,7 @@ export async function extractPaletteFromLogo(imageSrc: string): Promise<Extracte
         // Cas logo monochrome (ex: logo tout noir, tout blanc, ou gris luxe)
         if (visiblePixels.length > 0) {
           const avgLightness = visiblePixels.reduce((acc, p) => acc + p.hsl.l, 0) / visiblePixels.length;
-          
+
           if (avgLightness < 45) {
             // Logo sombre/noir (ex: luxe, Nike, mode) -> Dark luxury avec accent Néon Cyan et Orange CTA
             safeResolve({

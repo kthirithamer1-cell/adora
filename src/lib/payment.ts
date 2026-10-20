@@ -1,12 +1,12 @@
 /**
- * Passerelles de Paiement Tunisiennes & Facturation B2B — Adora SaaS
+ * Passerelles de Paiement Tunisiennes & Facturation B2B — MarkMosaiq SaaS
  * Supporte :
  * 1. Flouci (Portefeuille mobile & QR code)
  * 2. Konnect (Cartes Bancaires CIB / Visa / Mastercard & e-Dinar de la Poste Tunisienne)
  * 3. Facture Proforma B2B (Virement Bancaire & Chèque pour les forfaits High-Ticket)
  */
 
-export type PaymentGateway = 'paddle' | 'flouci' | 'credit_card' | 'konnect' | 'b2b_invoice';
+export type PaymentGateway = 'whop' | 'flouci' | 'credit_card' | 'konnect' | 'b2b_invoice';
 
 export interface CardPaymentDetails {
   cardNumber: string;
@@ -51,12 +51,12 @@ export interface PaymentVerificationResult {
 }
 
 // Configuration par défaut de l'entreprise émettrice pour les factures B2B
-export const ADORA_COMPANY_INFO = {
-  name: 'ADORA AI TECHNOLOGIES SARL',
+export const MarkMosaiq_COMPANY_INFO = {
+  name: 'MarkMosaiq AI TECHNOLOGIES SARL',
   matriculeFiscal: '1849204/B/A/M/000',
   registreCommerce: 'B012482026',
   adresse: 'Centre Urbain Nord, 1082 Tunis, Tunisie',
-  email: 'contact@adora.tn',
+  email: 'contact@MarkMosaiq.tn',
   telephone: '+216 71 800 900',
   ribBancaire: '08 014 0001234567890 44 (BIAT Agence Tunis)',
   timbreFiscalDT: 1.0, // 1000 millimes légal en Tunisie
@@ -70,7 +70,7 @@ export async function initFlouciPayment(params: PaymentInitParams): Promise<Paym
   const appSecret = process.env.FLOUCI_APP_SECRET;
 
   const amountMillimes = Math.round(params.amountTND * 1000);
-  const trackingId = `adora_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const trackingId = `MarkMosaiq_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
   if (appToken && appSecret) {
     try {
@@ -139,16 +139,16 @@ export async function initKonnectPayment(params: PaymentInitParams): Promise<Pay
         },
         body: JSON.stringify({
           receiverWalletId: walletId,
-          token: 'TND',
+          token: 'USD',
           amount: amountMillimes,
           type: 'immediate',
-          description: `Abonnement Adora AI - ${params.packName}`,
+          description: `Abonnement MarkMosaiq AI - ${params.packName}`,
           acceptedPaymentMethods: ['bank_card', 'e-DINAR', 'flouci'],
           lifespan: 30,
           checkoutForm: true,
           addPaymentFeesToAmount: false,
           firstName: params.customerName.split(' ')[0] || 'Client',
-          lastName: params.customerName.split(' ')[1] || 'Adora',
+          lastName: params.customerName.split(' ')[1] || 'MarkMosaiq',
           phoneNumber: params.customerPhone || '',
           email: params.customerEmail || '',
           orderId: trackingId,
@@ -211,14 +211,14 @@ export function generateB2BProformaInvoice(params: PaymentInitParams): {
   const tvaRate = 0.19; // 19% TVA en Tunisie
   const montantHT = Math.round((params.amountTND / (1 + tvaRate)) * 1000) / 1000;
   const montantTVA = Math.round((params.amountTND - montantHT) * 1000) / 1000;
-  const timbre = ADORA_COMPANY_INFO.timbreFiscalDT;
+  const timbre = MarkMosaiq_COMPANY_INFO.timbreFiscalDT;
   const totalTTC = Math.round((params.amountTND + timbre) * 1000) / 1000;
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Facture Proforma ${invoiceNumber} - Adora AI</title>
+  <title>Facture Proforma ${invoiceNumber} - MarkMosaiq AI</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0F172A; margin: 0; padding: 40px; background: #FFF; }
     .header { display: flex; justify-content: space-between; border-bottom: 2px solid #E2E8F0; padding-bottom: 24px; margin-bottom: 30px; }
@@ -240,7 +240,7 @@ export function generateB2BProformaInvoice(params: PaymentInitParams): {
 <body>
   <div class="header">
     <div>
-      <div class="brand">ADORA AI</div>
+      <div class="brand">MarkMosaiq AI</div>
       <div style="font-size: 12px; color: #64748B; margin-top: 4px;">Studio de Contenu E-commerce en Tunisie</div>
     </div>
     <div style="text-align: right;">
@@ -253,11 +253,11 @@ export function generateB2BProformaInvoice(params: PaymentInitParams): {
   <div class="grid">
     <div class="box">
       <h4>Émetteur</h4>
-      <strong>${ADORA_COMPANY_INFO.name}</strong><br>
-      MF : ${ADORA_COMPANY_INFO.matriculeFiscal}<br>
-      RC : ${ADORA_COMPANY_INFO.registreCommerce}<br>
-      ${ADORA_COMPANY_INFO.adresse}<br>
-      Tél : ${ADORA_COMPANY_INFO.telephone}
+      <strong>${MarkMosaiq_COMPANY_INFO.name}</strong><br>
+      MF : ${MarkMosaiq_COMPANY_INFO.matriculeFiscal}<br>
+      RC : ${MarkMosaiq_COMPANY_INFO.registreCommerce}<br>
+      ${MarkMosaiq_COMPANY_INFO.adresse}<br>
+      Tél : ${MarkMosaiq_COMPANY_INFO.telephone}
     </div>
     <div class="box">
       <h4>Client Facturé</h4>
@@ -301,10 +301,10 @@ export function generateB2BProformaInvoice(params: PaymentInitParams): {
   <div class="rib-card">
     <h4>Instructions de Règlement par Virement Bancaire ou Chèque</h4>
     <p style="margin: 4px 0 8px; font-size: 13px; color: #15803D;">
-      Veuillez libeller votre virement ou chèque à l'ordre de <strong>${ADORA_COMPANY_INFO.name}</strong> en mentionnant le numéro de proforma <strong>${invoiceNumber}</strong>.
+      Veuillez libeller votre virement ou chèque à l'ordre de <strong>${MarkMosaiq_COMPANY_INFO.name}</strong> en mentionnant le numéro de proforma <strong>${invoiceNumber}</strong>.
     </p>
     <div style="font-size: 13px; font-family: monospace; background: #FFF; padding: 10px 14px; border-radius: 6px; border: 1px solid #DCFCE7;">
-      RIB BIAT : ${ADORA_COMPANY_INFO.ribBancaire}
+      RIB BIAT : ${MarkMosaiq_COMPANY_INFO.ribBancaire}
     </div>
   </div>
 </body>
@@ -317,3 +317,28 @@ export function generateB2BProformaInvoice(params: PaymentInitParams): {
     html,
   };
 }
+
+/**
+ * Initialise un paiement sécurisé via Whop (Merchant of Record mondial pour Logiciels & SaaS)
+ */
+export async function initWhopPayment(params: PaymentInitParams): Promise<PaymentInitResponse> {
+  const { createWhopCheckout } = await import('./whop');
+  const result = await createWhopCheckout({
+    packId: params.packId,
+    customerName: params.customerName,
+    customerEmail: params.customerEmail,
+    successUrl: params.successUrl,
+    returnUrl: params.failUrl,
+  });
+
+  return {
+    success: result.success,
+    paymentId: result.checkoutId,
+    paymentUrl: result.checkoutUrl,
+    gateway: 'whop',
+    amountTND: params.amountTND,
+    amountMillimes: Math.round(params.amountTND * 1000),
+    error: result.error,
+  };
+}
+

@@ -1,5 +1,5 @@
 /**
- * PIPELINE D'ÉDITION D'IMAGE & COMPOSITION PUBLICITAIRE PRO ADORA (ADORA-67)
+ * PIPELINE D'ÉDITION D'IMAGE & COMPOSITION PUBLICITAIRE PRO MarkMosaiq (MarkMosaiq-67)
  * 
  * Génère des affiches publicitaires commerciales de haut niveau comparables à `image.png` :
  * - Décor méditerranéen / studio de luxe (Sidi Bou Saïd, marbre, podium ensoleillé)
@@ -98,7 +98,7 @@ function generateCommercialAdSvgOverlay(
     objective: string;
   }
 ): string {
-  const brandTitle = (options.brandName || 'ADORA STORE').toUpperCase();
+  const brandTitle = (options.brandName || 'MarkMosaiq STORE').toUpperCase();
   const priceDisplay = options.price || '89 DT';
   const discountLabel = options.badgeText.includes('%') ? options.badgeText : (options.badgeText || 'SOLDÉ -10%');
 
@@ -305,12 +305,17 @@ export async function processProductImageEdit(
 
     const rawInput = options.cutoutBase64 || options.productImageBase64;
 
-    if (rawInput) {
+    if (rawInput && typeof rawInput === 'string') {
       let inputRawBuffer: Buffer | null = null;
       if (rawInput.startsWith('data:')) {
-        const cleanBase64 = rawInput.replace(/^data:image\/\w+;base64,/, '');
-        inputRawBuffer = Buffer.from(cleanBase64, 'base64');
-      } else if (rawInput.startsWith('/images/')) {
+        const base64Part = rawInput.includes('base64,') ? rawInput.split('base64,')[1] : rawInput;
+        inputRawBuffer = Buffer.from(base64Part.trim(), 'base64');
+      } else if (rawInput.startsWith('http://') || rawInput.startsWith('https://')) {
+        const res = await fetch(rawInput);
+        if (res.ok) {
+          inputRawBuffer = Buffer.from(await res.arrayBuffer());
+        }
+      } else if (rawInput.startsWith('/')) {
         const localPath = path.join(process.cwd(), 'public', rawInput.replace(/^\//, ''));
         if (fs.existsSync(localPath)) inputRawBuffer = fs.readFileSync(localPath);
       }
@@ -338,16 +343,14 @@ export async function processProductImageEdit(
         }
 
         // Si l'image n'est pas déjà un PNG transparent, détection et suppression adaptative du fond
+        // Si l'image n'est pas déjà un PNG transparent, suppression du fond par inondation connectée depuis les bordures extérieures
+        // Cette méthode protège à 100% l'intérieur du produit (cadrans de montre, étiquettes, logos, lacets blancs)
         if (!hasRealAlpha) {
           // Échantillonnage de la couleur du fond sur les 4 coins et bordures
           const sampleCoords = [
             [0, 0], [Wimg - 1, 0], [0, Himg - 1], [Wimg - 1, Himg - 1],
             [Math.round(Wimg / 2), 0], [Math.round(Wimg / 2), Himg - 1],
             [0, Math.round(Himg / 2)], [Wimg - 1, Math.round(Himg / 2)],
-            [Math.round(Wimg * 0.05), Math.round(Himg * 0.05)],
-            [Math.round(Wimg * 0.95), Math.round(Himg * 0.05)],
-            [Math.round(Wimg * 0.05), Math.round(Himg * 0.95)],
-            [Math.round(Wimg * 0.95), Math.round(Himg * 0.95)],
           ];
 
           let sumR = 0, sumG = 0, sumB = 0, sCount = 0;
@@ -365,42 +368,106 @@ export async function processProductImageEdit(
           const bgG = sCount > 0 ? sumG / sCount : 225;
           const bgB = sCount > 0 ? sumB / sCount : 225;
           const bgLuminance = (bgR + bgG + bgB) / 3;
-
-          // Seuil de tolérance chromatique adapté aux studios photos (gris, blanc, écru)
           const tolerance = bgLuminance > 160 ? 44 : 32;
-          const softTolerance = 18;
 
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
+          // Flood Fill BFS depuis les bordures
+          const visited = new Uint8Array(Wimg * Himg);
+          const queue: number[] = [];
 
+          const checkAndEnqueue = (x: number, y: number) => {
+            const pIdx = y * Wimg + x;
+            if (visited[pIdx]) return;
+            const bIdx = pIdx * 4;
+            const r = data[bIdx];
+            const g = data[bIdx + 1];
+            const b = data[bIdx + 2];
             const dist = Math.sqrt((r - bgR) ** 2 + (g - bgG) ** 2 + (b - bgB) ** 2);
-            const isStudioNeutralLight = (r > 195 && g > 195 && b > 195) && (Math.abs(r - g) < 20 && Math.abs(g - b) < 20);
+            if (dist <= tolerance) {
+              visited[pIdx] = 1;
+              queue.push(x, y);
+            }
+          };
 
-            if (dist <= tolerance || (isStudioNeutralLight && dist <= tolerance + 30)) {
-              data[i + 3] = 0; // Transparence totale (supprime le carré gris)
-            } else if (dist <= tolerance + softTolerance) {
-              const factor = (dist - tolerance) / softTolerance;
-              data[i + 3] = Math.min(255, Math.max(0, Math.round(factor * 255)));
+          for (let x = 0; x < Wimg; x++) {
+            checkAndEnqueue(x, 0);
+            checkAndEnqueue(x, Himg - 1);
+          }
+          for (let y = 0; y < Himg; y++) {
+            checkAndEnqueue(0, y);
+            checkAndEnqueue(Wimg - 1, y);
+          }
+
+          let qHead = 0;
+          while (qHead < queue.length) {
+            const qx = queue[qHead++];
+            const qy = queue[qHead++];
+            const bIdx = (qy * Wimg + qx) * 4;
+            data[bIdx + 3] = 0; // Transparence
+
+            const neighbors = [
+              [qx + 1, qy],
+              [qx - 1, qy],
+              [qx, qy + 1],
+              [qx, qy - 1],
+            ];
+            for (let n = 0; n < 4; n++) {
+              const nx = neighbors[n][0];
+              const ny = neighbors[n][1];
+              if (nx >= 0 && nx < Wimg && ny >= 0 && ny < Himg) {
+                const npIdx = ny * Wimg + nx;
+                if (!visited[npIdx]) {
+                  const nbIdx = npIdx * 4;
+                  const nr = data[nbIdx];
+                  const ng = data[nbIdx + 1];
+                  const nb = data[nbIdx + 2];
+                  const ndist = Math.sqrt((nr - bgR) ** 2 + (ng - bgG) ** 2 + (nb - bgB) ** 2);
+                  if (ndist <= tolerance) {
+                    visited[npIdx] = 1;
+                    queue.push(nx, ny);
+                  }
+                }
+              }
             }
           }
         }
 
-        productCutoutBuffer = await sharp(data, {
+        const fullPngBuffer = await sharp(data, {
           raw: { width: info.width, height: info.height, channels: 4 },
         })
-          .resize(productWidth, productHeight, { fit: 'inside' })
           .png()
           .toBuffer();
+
+        try {
+          productCutoutBuffer = await sharp(fullPngBuffer)
+            .trim()
+            .resize(productWidth, productHeight, { fit: 'inside' })
+            .png()
+            .toBuffer();
+        } catch {
+          productCutoutBuffer = await sharp(fullPngBuffer)
+            .resize(productWidth, productHeight, { fit: 'inside' })
+            .png()
+            .toBuffer();
+        }
       }
     }
 
     // 3. Ombre de contact physique sous le produit (Contact shadow & Ambient occlusion)
-    // Utilisation de radialGradient SVG standard 100% compatible librsvg sur Windows & Linux
+    let pw = productWidth;
+    let ph = productHeight;
+    if (productCutoutBuffer) {
+      try {
+        const meta = await sharp(productCutoutBuffer).metadata();
+        if (meta.width) pw = meta.width;
+        if (meta.height) ph = meta.height;
+      } catch {
+        // fallback to calculated bounds
+      }
+    }
+
     const shadowCx = Math.round(W / 2 + physics.shadowOffsetX);
     const shadowCy = Math.round(H * (options.aspect === '9:16' || options.aspect === '2:3' ? 0.65 : options.aspect === '1.91:1' || options.aspect === '3:2' ? 0.76 : 0.72));
-    const shadowRx = Math.round(productWidth * 0.44);
+    const shadowRx = Math.round(pw * 0.44);
     const shadowRy = Math.max(physics.contactHeight * 2, 12);
 
     const shadowSvg = `
@@ -417,15 +484,20 @@ export async function processProductImageEdit(
     `;
     const shadowBuffer = Buffer.from(shadowSvg);
 
-    // 3.5. Préparation du logo officiel de la marque (ADORA)
+    // 3.5. Préparation du logo officiel de la marque (MarkMosaiq)
     let logoBuffer: Buffer | null = null;
     const rawLogo = options.logoBase64 || options.brandKit?.logoUrl;
-    if (rawLogo) {
+    if (rawLogo && typeof rawLogo === 'string') {
       let logoRawBuffer: Buffer | null = null;
       if (rawLogo.startsWith('data:')) {
-        const cleanBase64 = rawLogo.replace(/^data:image\/\w+;base64,/, '');
-        logoRawBuffer = Buffer.from(cleanBase64, 'base64');
-      } else if (rawLogo.startsWith('/images/')) {
+        const base64Part = rawLogo.includes('base64,') ? rawLogo.split('base64,')[1] : rawLogo;
+        logoRawBuffer = Buffer.from(base64Part.trim(), 'base64');
+      } else if (rawLogo.startsWith('http://') || rawLogo.startsWith('https://')) {
+        const res = await fetch(rawLogo);
+        if (res.ok) {
+          logoRawBuffer = Buffer.from(await res.arrayBuffer());
+        }
+      } else if (rawLogo.startsWith('/')) {
         const localPath = path.join(process.cwd(), 'public', rawLogo.replace(/^\//, ''));
         if (fs.existsSync(localPath)) logoRawBuffer = fs.readFileSync(localPath);
       }
@@ -449,11 +521,8 @@ export async function processProductImageEdit(
         });
 
         // Centrage horizontal et calage sur le socle/balustrade
-        const meta = await sharp(productCutoutBuffer).metadata();
-        const pw = meta.width || productWidth;
-        const ph = meta.height || productHeight;
         const leftPos = Math.round((W - pw) / 2);
-        const topPos = Math.round(shadowCy - ph + Math.round(shadowRy * 0.4));
+        const topPos = Math.round(shadowCy - ph + Math.round(shadowRy * 0.38));
 
         compositeLayers.push({
           input: productCutoutBuffer,
@@ -498,7 +567,7 @@ export async function processProductImageEdit(
       },
     };
   } catch (err) {
-    console.error('Erreur pipeline de compositing Adora:', err);
+    console.error('Erreur pipeline de compositing MarkMosaiq:', err);
     // En cas d'erreur de calque, renvoyer l'image de fond IA générée sans template externe
     const fallbackAiUrl = options.backgroundBuffer
       ? `data:image/jpeg;base64,${options.backgroundBuffer.toString('base64')}`
@@ -528,7 +597,7 @@ export async function generateAllAdFormats(options: ImageEditOptions): Promise<{
   facebook: string;
   story: string;
 }> {
-  const fallbackUrl = options.backgroundBuffer 
+  const fallbackUrl = options.backgroundBuffer
     ? `data:image/jpeg;base64,${options.backgroundBuffer.toString('base64')}`
     : (options.productImageBase64 || '');
 

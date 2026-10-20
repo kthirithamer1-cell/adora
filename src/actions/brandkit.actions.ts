@@ -1,6 +1,6 @@
 'use server';
 
-import { supabase } from '@/lib/supabase';
+import { supabase, resolveWorkspaceUuid } from '@/lib/supabase';
 import { getCurrentSession } from '@/lib/auth';
 import { getBrandKitByWorkspace, updateBrandKitByWorkspace, BrandKit } from '@/lib/brandkit';
 import { revalidatePath } from 'next/cache';
@@ -8,7 +8,8 @@ import { revalidatePath } from 'next/cache';
 export async function getBrandKitAction(workspaceId?: string) {
   try {
     const session = await getCurrentSession();
-    const wsId = workspaceId || session.workspace.id;
+    const rawWsId = workspaceId || session?.workspace?.id || 'ws_nutristore';
+    const wsId = resolveWorkspaceUuid(rawWsId);
 
     // 1. Tenter depuis Supabase
     try {
@@ -55,6 +56,9 @@ export async function getBrandKitAction(workspaceId?: string) {
 export async function saveBrandKitAction(data: Partial<BrandKit>) {
   try {
     const session = await getCurrentSession();
+    if (!session) {
+      return { success: false, error: 'Session expirée. Veuillez vous reconnecter.' };
+    }
     const wsId = session.workspace.id;
 
     // 1. Sauvegarde Supabase
@@ -62,7 +66,7 @@ export async function saveBrandKitAction(data: Partial<BrandKit>) {
       await supabase.from('brand_kits').upsert({
         workspace_id: wsId,
         shop_name: data.shopName || session.workspace.name,
-        logo_url: data.logoUrl || '/images/Adora_logo.png',
+        logo_url: data.logoUrl || '/images/logo.png',
         primary_color: data.primaryColor || '#00E5FF',
         secondary_color: data.secondaryColor || '#FF5722',
         accent_color: data.accentColor || '#10B981',

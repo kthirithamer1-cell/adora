@@ -21,12 +21,18 @@ export interface CreativeAngleBrief {
   angleLabel: string;
   angleTagline: string;
   targetPainPoint: string;
+  hookHeadlineEn: string;
   hookHeadlineFr: string;
+  hookHeadlineAr: string;
+  hookHeadlineAutre?: string;
   hookHeadlineDarija: string;
   badgeText: string;
   callToAction: string;
   sceneBrief: SceneBrief;
+  metaAdCaptionEn: string;
   metaAdCaptionFr: string;
+  metaAdCaptionAr: string;
+  metaAdCaptionAutre?: string;
   metaAdCaptionDarija: string;
 }
 
@@ -39,6 +45,15 @@ export interface StrategyEngineInput {
   productDescription?: string;
   imageBase64?: string;
   brandKit: BrandKit;
+  copyLanguage?: 'en' | 'fr' | 'ar' | 'autre';
+  customDialectNote?: string;
+}
+
+export function getBriefHeadline(brief: CreativeAngleBrief, lang: 'en' | 'fr' | 'ar' | 'autre'): string {
+  if (lang === 'en') return brief.hookHeadlineEn || brief.hookHeadlineFr;
+  if (lang === 'ar') return brief.hookHeadlineAr || brief.hookHeadlineFr;
+  if (lang === 'autre') return brief.hookHeadlineAutre || brief.hookHeadlineDarija || brief.hookHeadlineFr;
+  return brief.hookHeadlineFr || brief.hookHeadlineEn || brief.hookHeadlineAr || '';
 }
 
 /**
@@ -93,7 +108,7 @@ export const VETTED_DARIJA_BANK: Record<CreativeAngleType, { hooks: string[]; ct
 };
 
 /**
- * Moteur de Stratégie Publicitaire (ADORA-44)
+ * Moteur de Stratégie Publicitaire (MarkMosaiq-44)
  * Génère 3 à 5 angles marketing de conversion distincts pour un produit donné
  */
 export async function generateStrategyBriefs(
@@ -108,27 +123,45 @@ export async function generateStrategyBriefs(
   }
 
   try {
-    const systemPrompt = `Tu es le Directeur Stratégique et Publicitaire Meta Ads N°1 d'Adora SaaS.
-Ton objectif est de transformer un produit e-commerce en 5 ANGLES CRÉATIFS PUBLICITAIRES DISTINCTS conçus pour générer des ventes massives sur le marché tunisien (Instagram, Facebook Ads, TikTok).
+    const selectedLang = input.copyLanguage || 'fr';
+    const isAutre = selectedLang === 'autre';
+    const customDialectPrompt = input.customDialectNote
+      ? `Consigne de dialecte spécifique pour l'option "Autre" : "${input.customDialectNote}"`
+      : 'Dialecte régional ou Darija uniquement si explicitement demandé';
+
+    const systemPrompt = `Tu es le Directeur Stratégique et Publicitaire Meta Ads N°1 d'MarkMosaiq SaaS.
+Ton objectif est de transformer un produit e-commerce en 5 ANGLES CRÉATIFS PUBLICITAIRES DISTINCTS à fort taux de conversion.
+
+RÈGLE D'OR DE LANGUES :
+- Nous couvrons STRICTEMENT 3 langues :
+  1. ANGLAIS ("en")
+  2. FRANÇAIS ("fr")
+  3. ARABE LITTÉRAIRE MODERNE / الفصحى ("ar")
+- Ne JAMAIS forcer de mots dialectaux ou de Darija par défaut.
+- Tout dialecte local (ex: Darija) est EXCLUSIVEMENT réservé au champ "hookHeadlineAutre" lorsque l'option "Autre" est demandée (${isAutre ? `ACTIVÉE: ${customDialectPrompt}` : 'DÉSACTIVÉE'}).
 
 Pour CHAQUE angle, fournis STRICTEMENT un objet complet avec :
 1. "angleId": l'un de ["problem_solution", "social_proof", "offer_urgency", "lifestyle_aspiration", "benefit_ingredient"]
 2. "angleLabel": Titre français du concept publicitaire (ex: "L'Urgence Stock Limité")
 3. "angleTagline": Phrase d'accroche stratégique en 1 ligne
 4. "targetPainPoint": La frustration ou le désir précis visé chez le client
-5. "hookHeadlineFr": Titre choc court (4-6 mots) en français
-6. "hookHeadlineDarija": Accroche percutante en vrai Darija tunisien naturel (zéro faute)
-7. "badgeText": Badge commercial percutant (ex: "🔥 Promo Flash -30%", "⭐ Best-Seller N°1")
-8. "callToAction": Texte du bouton CTA (ex: "Commander en 1 Clic", "Khlass waqt el livri")
-9. "sceneBrief":
+5. "hookHeadlineEn": Titre choc court (4-6 mots) en ANGLAIS (ex: "Elevate Your Routine Today")
+6. "hookHeadlineFr": Titre choc court (4-6 mots) en FRANÇAIS (ex: "L'Excellence Sans Compromis")
+7. "hookHeadlineAr": Titre choc court en ARABE LITTÉRAIRE الفصحى (ex: "الأناقة والجودة العالية بين يديك")
+8. "hookHeadlineAutre": ${isAutre ? 'Titre choc dans le dialecte demandé' : 'null'}
+9. "badgeText": Badge commercial percutant (ex: "🔥 Offre Limitée", "⭐ Best-Seller N°1")
+10. "callToAction": Texte du bouton CTA (ex: "Commander", "Claim Offer")
+11. "sceneBrief":
    - "conceptTitle": Titre de la mise en scène
    - "surfaceDescription": Description de la surface d'accueil (marbre, bois, velours, travertin)
    - "backgroundAtmosphere": Description de l'arrière-plan flou ou décoratif
    - "lightingScheme": Schéma d'éclairage (key light, rim light, ambient)
    - "dallePrompt": Prompt en anglais décrivant STRICTEMENT un podium/piédestal d'accueil VACANT, lisse et propre, sans jamais mentionner d'objet ou de texte
    - "recommendedAspect": "1:1" ou "9:16"
-10. "metaAdCaptionFr": Légende Instagram/Facebook complète avec émojis, bénéfices, garantie et appel à l'action
-11. "metaAdCaptionDarija": Légende en Darija tunisien complète prête à copier-coller
+12. "metaAdCaptionEn": Légende Instagram/Facebook complète en ANGLAIS avec émojis et bénéfices
+13. "metaAdCaptionFr": Légende Instagram/Facebook complète en FRANÇAIS avec émojis et bénéfices
+14. "metaAdCaptionAr": Légende Instagram/Facebook complète en ARABE LITTÉRAIRE الفصحى
+15. "metaAdCaptionAutre": ${isAutre ? 'Légende dans le dialecte demandé' : 'null'}
 
 RÈGLE D'OR : Les 5 angles doivent être RADICALEMENT DIFFÉRENTS les uns des autres pour permettre un A/B testing optimal.
 Format de retour : un objet JSON { "briefs": [ ... 5 objets ... ] }`;
@@ -146,8 +179,8 @@ Brand Kit de l'entreprise :
 - Positionnement : ${brandKit.positioning || 'Premium'}
 - Palette de couleurs : Primaire ${brandKit.palette?.primary || brandKit.primaryColor}, Accent ${brandKit.palette?.accent || brandKit.accentColor}
 - Tonalité de voix : ${brandKit.voice?.tone || 'Expert & Convaincant'}
-- Promesse livraison : ${brandKit.deliveryMention || 'Livraison 24-48h sur toute la Tunisie'}
-- Mode de paiement : ${brandKit.offers?.payment || 'Paiement à la livraison (COD)'}`;
+- Promesse livraison : ${brandKit.deliveryMention || 'Livraison rapide et soignée'}
+- Mode de paiement : ${brandKit.offers?.payment || 'Paiement sécurisé'}`;
 
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -156,7 +189,7 @@ Brand Kit de l'entreprise :
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -174,16 +207,29 @@ Brand Kit de l'entreprise :
     const parsed = JSON.parse(data.choices[0].message.content);
 
     if (Array.isArray(parsed.briefs) && parsed.briefs.length > 0) {
-      return parsed.briefs.map((brief: CreativeAngleBrief) => ({
-        ...brief,
-        sceneBrief: {
-          ...brief.sceneBrief,
-          dallePrompt: compileBrandPrompt(brandKit, brief.sceneBrief.dallePrompt, {
-            isStory: brief.sceneBrief.recommendedAspect === '9:16',
-            angleName: brief.angleLabel,
-          }),
-        },
-      }));
+      return parsed.briefs.map((brief: any) => {
+        const darijaVetted = VETTED_DARIJA_BANK[brief.angleId as CreativeAngleType];
+        return {
+          ...brief,
+          hookHeadlineEn: brief.hookHeadlineEn || brief.hookHeadlineFr || input.productName,
+          hookHeadlineFr: brief.hookHeadlineFr || brief.hookHeadlineEn || input.productName,
+          hookHeadlineAr: brief.hookHeadlineAr || brief.hookHeadlineFr || input.productName,
+          hookHeadlineAutre: brief.hookHeadlineAutre || (isAutre ? darijaVetted?.hooks[0] : undefined),
+          hookHeadlineDarija: brief.hookHeadlineDarija || darijaVetted?.hooks[0] || brief.hookHeadlineFr,
+          metaAdCaptionEn: brief.metaAdCaptionEn || `🔥 Discover ${input.productName} by ${brandKit.shopName}!\n\n✓ 100% Certified Original\n📦 Fast & secure shipping\n💵 Satisfaction guaranteed\n\n👉 Order now at ${priceStr}!`,
+          metaAdCaptionFr: brief.metaAdCaptionFr || `🔥 Découvrez ${input.productName} chez ${brandKit.shopName} !\n\n✓ Qualité certifiée 100% originale\n📦 ${brandKit.deliveryMention || 'Livraison rapide et sécurisée'}\n💵 ${brandKit.offers?.payment || 'Paiement sécurisé disponible'}\n\n👉 Commandez dès maintenant à ${priceStr} !`,
+          metaAdCaptionAr: brief.metaAdCaptionAr || `🔥 اكتشف ${input.productName} من متجر ${brandKit.shopName}!\n\n✓ جودة أصلية ومضمونة 100%\n📦 شحن سريع ومباشر\n💵 دفع آمن ومريح\n\n👉 اطلب الآن بسعر خاص ${priceStr}!`,
+          metaAdCaptionAutre: brief.metaAdCaptionAutre || (isAutre ? `${darijaVetted?.hooks[0]}\n\n✅ Weslet el commande fi boutique mteena !\n🚚 Livri fisaa fi 24h-48h\n💰 Khlass fel livraison\n\nAbathna message bech tcommondi tawwa !` : undefined),
+          metaAdCaptionDarija: brief.metaAdCaptionDarija || `${darijaVetted?.hooks[0]}\n\n✅ Weslet el commande fi boutique mteena !\n🚚 Livri fisaa fi 24h-48h\n💰 Khlass fel livraison\n\nAbathna message bech tcommondi tawwa !`,
+          sceneBrief: {
+            ...brief.sceneBrief,
+            dallePrompt: compileBrandPrompt(brandKit, brief.sceneBrief.dallePrompt, {
+              isStory: brief.sceneBrief.recommendedAspect === '9:16',
+              angleName: brief.angleLabel,
+            }),
+          },
+        };
+      });
     }
 
     return generateFallbackBriefs(input);
@@ -194,14 +240,30 @@ Brand Kit de l'entreprise :
 }
 
 /**
- * Fallback intelligent déterministe avec briefs riches par angle
+ * Fallback intelligent déterministe avec briefs riches par angle (EN, FR, AR, AUTRE)
  */
 function generateFallbackBriefs(input: StrategyEngineInput): CreativeAngleBrief[] {
   const brandKit = input.brandKit;
   const prod = input.productName;
   const price = input.priceTND ? `${input.priceTND} DT` : 'Prix Spécial';
 
-  const angles: { id: CreativeAngleType; label: string; tagline: string; painPoint: string; surface: string; bg: string }[] = [
+  const angles: {
+    id: CreativeAngleType;
+    label: string;
+    tagline: string;
+    painPoint: string;
+    surface: string;
+    bg: string;
+    hookEn: string;
+    hookFr: string;
+    hookAr: string;
+    badgeEn: string;
+    badgeFr: string;
+    badgeAr: string;
+    ctaEn: string;
+    ctaFr: string;
+    ctaAr: string;
+  }[] = [
     {
       id: 'problem_solution',
       label: 'Problème ➔ Solution Immédiate',
@@ -209,6 +271,15 @@ function generateFallbackBriefs(input: StrategyEngineInput): CreativeAngleBrief[
       painPoint: 'Perte de temps et déception avec les produits bas de gamme',
       surface: 'sleek dark titanium surface with clean edges',
       bg: 'moody modern studio background with soft rim lights',
+      hookEn: 'The Definitive Solution You Have Been Searching For',
+      hookFr: `${prod} : La Solution Définitive`,
+      hookAr: 'الحل الأمثل والنهائي الذي تبحث عنه',
+      badgeEn: '✓ 100% Effective',
+      badgeFr: '✓ 100% Efficace',
+      badgeAr: '✓ فعالية مؤكدة 100%',
+      ctaEn: 'Order Now',
+      ctaFr: 'Commander Maintenant',
+      ctaAr: 'اطلب الآن',
     },
     {
       id: 'social_proof',
@@ -217,6 +288,15 @@ function generateFallbackBriefs(input: StrategyEngineInput): CreativeAngleBrief[
       painPoint: 'Peur de se tromper ou d\'acheter un produit non fiable',
       surface: 'elevated polished black Nero Marquina marble podium',
       bg: 'prestigious ambient backdrop with soft bokeh spotlight',
+      hookEn: 'Loved and Trusted by Over 1,200+ Happy Customers',
+      hookFr: 'Recommandé par Plus de 1 200 Clients Satisfaits',
+      hookAr: 'الخيار الأول المفضل لدى أكثر من 1200 عميل',
+      badgeEn: '⭐ Best-Seller N°1',
+      badgeFr: '⭐ Best-Seller N°1',
+      badgeAr: '⭐ الأكثر مبيعاً N°1',
+      ctaEn: 'View Reviews',
+      ctaFr: 'Voir les Avis',
+      ctaAr: 'عرض التقييمات',
     },
     {
       id: 'offer_urgency',
@@ -225,6 +305,15 @@ function generateFallbackBriefs(input: StrategyEngineInput): CreativeAngleBrief[
       painPoint: 'Hésitation et procrastination d\'achat',
       surface: 'minimalist pedestal with vibrant accent lighting',
       bg: 'high-energy commercial studio gradient with warm glow',
+      hookEn: 'Exclusive Flash Deal: Limited Stock Remaining',
+      hookFr: 'Offre Flash Exclusive : Stock Très Limité',
+      hookAr: 'عرض حصري محدود وكميات شارفت على النفاد',
+      badgeEn: '🔥 Limited Offer',
+      badgeFr: '🔥 Offre Limitée',
+      badgeAr: '🔥 عرض لفترة محدودة',
+      ctaEn: 'Claim Deal',
+      ctaFr: 'Profiter de l\'Offre',
+      ctaAr: 'احجز طلبك الآن',
     },
     {
       id: 'lifestyle_aspiration',
@@ -233,6 +322,15 @@ function generateFallbackBriefs(input: StrategyEngineInput): CreativeAngleBrief[
       painPoint: 'Difficulté à se représenter le produit dans la vraie vie',
       surface: 'natural travertine stone table in foreground',
       bg: 'softly blurred sunlit modern interior, warm architectural sunlight',
+      hookEn: 'Elevate Your Daily Routine with Timeless Elegance',
+      hookFr: 'Sublimez Votre Quotidien avec Une Élégance Pure',
+      hookAr: 'ارتقِ بتفاصيل يومك بأناقة ورقي لا مثيل له',
+      badgeEn: '✨ Premium Edition',
+      badgeFr: '✨ Édition Chic',
+      badgeAr: '✨ إصدار متميز',
+      ctaEn: 'Discover Collection',
+      ctaFr: 'Découvrir la Collection',
+      ctaAr: 'اكتشف التشكيلة',
     },
     {
       id: 'benefit_ingredient',
@@ -241,11 +339,20 @@ function generateFallbackBriefs(input: StrategyEngineInput): CreativeAngleBrief[
       painPoint: 'Doute sur la composition réelle et les finitions',
       surface: 'macro smooth reflection acrylic plate with soft water mist',
       bg: 'soft monochrome seamless gradient with macro depth of field',
+      hookEn: 'Pure Certified Craftsmanship and Unmatched Quality',
+      hookFr: 'Une Qualité Pure Certifiée Sans Aucun Compromis',
+      hookAr: 'جودة نقية معتمدة ومصنوعة بأعلى معايير الدقة',
+      badgeEn: '💎 Pure Quality',
+      badgeFr: '💎 Qualité Pure',
+      badgeAr: '💎 جودة نقية',
+      ctaEn: 'Product Details',
+      ctaFr: 'Détails du Produit',
+      ctaAr: 'تفاصيل المنتج',
     },
   ];
 
   return angles.map((a) => {
-    const vetted = VETTED_DARIJA_BANK[a.id];
+    const vettedDarija = VETTED_DARIJA_BANK[a.id];
     const basePrompt = `Commercial product staging set for ${prod}. Empty ${a.surface}, ${a.bg}. Clean vacant central top.`;
     const compiledDalle = compileBrandPrompt(brandKit, basePrompt);
 
@@ -254,10 +361,13 @@ function generateFallbackBriefs(input: StrategyEngineInput): CreativeAngleBrief[
       angleLabel: a.label,
       angleTagline: a.tagline,
       targetPainPoint: a.painPoint,
-      hookHeadlineFr: `${prod} : Le Choix Sans Compromis`,
-      hookHeadlineDarija: vetted.hooks[0],
-      badgeText: vetted.badge,
-      callToAction: vetted.cta,
+      hookHeadlineEn: a.hookEn,
+      hookHeadlineFr: a.hookFr,
+      hookHeadlineAr: a.hookAr,
+      hookHeadlineAutre: vettedDarija.hooks[0],
+      hookHeadlineDarija: vettedDarija.hooks[0],
+      badgeText: a.badgeFr,
+      callToAction: a.ctaFr,
       sceneBrief: {
         conceptTitle: a.label,
         surfaceDescription: a.surface,
@@ -266,8 +376,11 @@ function generateFallbackBriefs(input: StrategyEngineInput): CreativeAngleBrief[
         dallePrompt: compiledDalle,
         recommendedAspect: a.id === 'offer_urgency' ? '9:16' : '1:1',
       },
-      metaAdCaptionFr: `🔥 Découvrez ${prod} chez ${brandKit.shopName} !\n\n✓ Qualité certifiée 100% originale\n📦 ${brandKit.deliveryMention || 'Livraison 24-48h sur toute la Tunisie'}\n💵 ${brandKit.offers?.payment || 'Paiement à la livraison disponible'}\n\n👉 Commandez dès maintenant à seulement ${price} !`,
-      metaAdCaptionDarija: `${vetted.hooks[0]}\n\n✅ Weslet el commande fi boutique mteena !\n🚚 Livri fisaa fi 24h-48h l tounes el kol\n💰 El khlass waqt el livri\n\nAbathna message sur WhatsApp bech treservi mteeek tawwa !`,
+      metaAdCaptionEn: `🔥 Discover ${prod} by ${brandKit.shopName}!\n\n✓ 100% Certified Original\n📦 Fast & secure shipping\n💵 Satisfaction guaranteed\n\n👉 Order now at ${price}!`,
+      metaAdCaptionFr: `🔥 Découvrez ${prod} chez ${brandKit.shopName} !\n\n✓ Qualité certifiée 100% originale\n📦 ${brandKit.deliveryMention || 'Livraison rapide et sécurisée'}\n💵 ${brandKit.offers?.payment || 'Paiement sécurisé disponible'}\n\n👉 Commandez dès maintenant à seulement ${price} !`,
+      metaAdCaptionAr: `🔥 اكتشف ${prod} من متجر ${brandKit.shopName}!\n\n✓ جودة أصلية ومضمونة 100%\n📦 شحن سريع ومباشر\n💵 دفع آمن ومريح\n\n👉 اطلب الآن بسعر خاص ${price}!`,
+      metaAdCaptionAutre: `${vettedDarija.hooks[0]}\n\n✅ Weslet el commande fi boutique mteena !\n🚚 Livri fisaa fi 24h-48h\n💰 Khlass fel livraison\n\nAbathna message sur WhatsApp bech treservi mteeek tawwa !`,
+      metaAdCaptionDarija: `${vettedDarija.hooks[0]}\n\n✅ Weslet el commande fi boutique mteena !\n🚚 Livri fisaa fi 24h-48h\n💰 Khlass fel livraison\n\nAbathna message sur WhatsApp bech treservi mteeek tawwa !`,
     };
   });
 }

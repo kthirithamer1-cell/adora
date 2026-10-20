@@ -121,7 +121,7 @@ const STYLE_OPTIONS: TailoredStyleOption[] = [
   {
     id: 'minimal',
     name: 'Minimal & Clean',
-    thumbnail: '/images/adora_sneakers_clean.jpg',
+    thumbnail: '/images/MarkMosaiq_sneakers_clean.jpg',
     intentId: 'prestige_elevation' as CreativeIntentType,
     description: 'Pure, clutter-free staging with soft studio illumination highlighting product craftsmanship.',
   },
@@ -142,14 +142,14 @@ const STYLE_OPTIONS: TailoredStyleOption[] = [
   {
     id: 'fresh',
     name: 'Modern & Fresh',
-    thumbnail: '/images/adora_hero_perfume.jpg',
+    thumbnail: '/images/MarkMosaiq_hero_perfume.jpg',
     intentId: 'lifestyle_authentic' as CreativeIntentType,
     description: 'Vibrant Mediterranean terrace atmosphere with bright morning light and refreshing coastal accents.',
   },
   {
     id: 'vintage',
     name: 'Vintage / Classic',
-    thumbnail: '/images/adora_fashion_model.jpg',
+    thumbnail: '/images/MarkMosaiq_fashion_model.jpg',
     intentId: 'lifestyle_authentic' as CreativeIntentType,
     description: 'Warm retro travertine and olive wood textures delivering timeless artisanal authenticity.',
   },
@@ -250,6 +250,9 @@ export default function SmartQuestionsModal({
   const activeGoalObj = GOAL_OPTIONS.find((g) => g.id === selectedGoal) || GOAL_OPTIONS[0];
   const activeAudienceObj = AUDIENCE_OPTIONS.find((a) => a.id === selectedAudience) || AUDIENCE_OPTIONS[0];
 
+  // Prompt IA éditable dans la modal pour gpt-image-2.5-flare
+  const [modalEditedPrompt, setModalEditedPrompt] = useState<string>('');
+
   // Résolution du texte final
   const resolvedAdText =
     textTab === 'custom' && customText.trim()
@@ -270,11 +273,13 @@ export default function SmartQuestionsModal({
       }
     }
 
+    const finalStylePrompt = modalEditedPrompt.trim() || activeStyleObj.promptModifier || `Commercial luxury staging set. ${activeStyleObj.description}. Clean polished surface cleanly awaiting an object.`;
+
     onGenerate({
       intentId: targetIntent,
       goal: activeGoalObj.title,
       styleId: activeStyleObj.name,
-      stylePrompt: activeStyleObj.promptModifier,
+      stylePrompt: finalStylePrompt,
       audienceId: activeAudienceObj.title,
       platform: selectedPlatform,
       adText: resolvedAdText,
@@ -292,7 +297,7 @@ export default function SmartQuestionsModal({
           <div className={s.header}>
             <div className={s.headerBrand}>
               <Sparkles size={18} className={s.brandIcon} />
-              <span>Adora</span>
+              <span>MarkMosaiq</span>
             </div>
 
             {/* Stepper horizontal connecté */}
@@ -310,25 +315,22 @@ export default function SmartQuestionsModal({
                   <React.Fragment key={step.num}>
                     <div className={s.stepItem}>
                       <div
-                        className={`${s.stepBadge} ${isActive ? s.stepBadgeActive : ''} ${
-                          isDone ? s.stepBadgeDone : ''
-                        }`}
+                        className={`${s.stepBadge} ${isActive ? s.stepBadgeActive : ''} ${isDone ? s.stepBadgeDone : ''
+                          }`}
                       >
                         {isDone ? <Check size={14} /> : step.num}
                       </div>
                       <span
-                        className={`${s.stepLabel} ${isActive ? s.stepLabelActive : ''} ${
-                          isDone ? s.stepLabelDone : ''
-                        }`}
+                        className={`${s.stepLabel} ${isActive ? s.stepLabelActive : ''} ${isDone ? s.stepLabelDone : ''
+                          }`}
                       >
                         {step.label}
                       </span>
                     </div>
                     {idx < 4 && (
                       <div
-                        className={`${s.stepConnector} ${
-                          currentStep > step.num ? s.stepConnectorDone : ''
-                        }`}
+                        className={`${s.stepConnector} ${currentStep > step.num ? s.stepConnectorDone : ''
+                          }`}
                       />
                     )}
                   </React.Fragment>
@@ -818,6 +820,40 @@ export default function SmartQuestionsModal({
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Box Prompt Éditable pour gpt-image-2.5-flare */}
+              <div style={{ marginTop: '16px', padding: '14px 16px', background: '#0B0E14', borderRadius: '12px', border: '1px solid rgba(0, 229, 255, 0.35)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sparkles size={15} color="#00E5FF" />
+                    <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#FFFFFF' }}>
+                      Prompt IA Décor Studio 4K
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.68rem', fontWeight: 900, color: '#00E5FF', background: 'rgba(0, 229, 255, 0.12)', padding: '2px 8px', borderRadius: '8px' }}>
+                    Éditable en direct
+                  </span>
+                </div>
+                <textarea
+                  value={modalEditedPrompt || activeStyleObj.promptModifier || `Commercial luxury staging set. ${activeStyleObj.description}. The central presentation surface is completely vacant, pristine, smooth and polished, cleanly awaiting an object.`}
+                  onChange={(e) => setModalEditedPrompt(e.target.value)}
+                  rows={3}
+                  placeholder="Ajustez ou complétez le prompt IA..."
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '8px',
+                    background: '#131823',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    color: '#F8FAFC',
+                    fontSize: '0.78rem',
+                    fontFamily: 'monospace, sans-serif',
+                    resize: 'vertical',
+                    outline: 'none',
+                    lineHeight: 1.45,
+                  }}
+                />
               </div>
 
               {/* Info banner : What happens next? */}

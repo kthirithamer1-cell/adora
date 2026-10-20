@@ -5,7 +5,15 @@ import { useWorkspace } from '@/lib/WorkspaceContext';
 import AgencyPortalModal from '@/components/AgencyPortalModal';
 import BillingUsageModal from '@/components/BillingUsageModal';
 
-export default function WorkspaceSelector() {
+interface WorkspaceSelectorProps {
+  hideCredits?: boolean;
+  hidePlanBadge?: boolean;
+}
+
+export default function WorkspaceSelector({
+  hideCredits = false,
+  hidePlanBadge = false,
+}: WorkspaceSelectorProps = {}) {
   const {
     workspace,
     workspaces,
@@ -68,17 +76,19 @@ export default function WorkspaceSelector() {
         >
           <span style={{ fontSize: '0.95rem' }}>🏢</span>
           <span className="ws-selector-name">{workspace.name}</span>
-          <span className="ws-badge-plan" style={{
-            fontSize: '0.62rem',
-            fontWeight: 800,
-            color: planBadge.color,
-            background: planBadge.bg,
-            padding: '2px 6px',
-            borderRadius: '4px',
-            border: `1px solid ${planBadge.color}33`,
-          }}>
-            {planBadge.label}
-          </span>
+          {!hidePlanBadge && (
+            <span className="ws-badge-plan" style={{
+              fontSize: '0.62rem',
+              fontWeight: 800,
+              color: planBadge.color,
+              background: planBadge.bg,
+              padding: '2px 6px',
+              borderRadius: '4px',
+              border: `1px solid ${planBadge.color}33`,
+            }}>
+              {planBadge.label}
+            </span>
+          )}
           <span style={{ fontSize: '0.68rem', color: '#94A3B8' }}>▼</span>
         </button>
 
@@ -161,28 +171,30 @@ export default function WorkspaceSelector() {
       </div>
 
       {/* Bouton Solde Crédits & Facturation */}
-      <button
-        type="button"
-        onClick={() => setIsBillingModalOpen(true)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '5px',
-          background: 'rgba(255, 87, 34, 0.12)',
-          border: '1px solid rgba(255, 87, 34, 0.35)',
-          borderRadius: '10px',
-          padding: '7px 11px',
-          color: '#FF7A50',
-          fontSize: '0.8rem',
-          fontWeight: 800,
-          cursor: 'pointer',
-          boxShadow: '0 0 12px rgba(255, 87, 34, 0.12)',
-          transition: 'all 0.15s ease',
-        }}
-      >
-        <span>⚡</span>
-        <span>{workspace.creditsRemaining}<span className="ws-credits-label"> crédits</span></span>
-      </button>
+      {!hideCredits && (
+        <button
+          type="button"
+          onClick={() => setIsBillingModalOpen(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            background: 'rgba(255, 87, 34, 0.12)',
+            border: '1px solid rgba(255, 87, 34, 0.35)',
+            borderRadius: '10px',
+            padding: '7px 11px',
+            color: '#FF7A50',
+            fontSize: '0.8rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            boxShadow: '0 0 12px rgba(255, 87, 34, 0.12)',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <span>⚡</span>
+          <span>{workspace.creditsRemaining}<span className="ws-credits-label"> crédits</span></span>
+        </button>
+      )}
 
       {/* Bouton Portail Agence si Plan Agence */}
       {workspace.plan === 'agency' && (
@@ -288,9 +300,9 @@ export default function WorkspaceSelector() {
                     fontSize: '0.85rem',
                   }}
                 >
-                  <option value="flash">Pack Flash (29 DT - 10 visuels)</option>
-                  <option value="pro">Pack Pro (59 DT - 20 visuels)</option>
-                  <option value="agency">Abonnement Agence (299 DT/mois - White-label)</option>
+                  <option value="flash">Starter ($19 - 20 crédits)</option>
+                  <option value="pro">Pro ($49 - 50 crédits)</option>
+                  <option value="agency">Advanced ($99/mois - 120 crédits)</option>
                 </select>
               </div>
 

@@ -1,4 +1,4 @@
-# 📐 Architecture Système & Ingénierie des Prompts — Adora AI (V2 Révisée)
+# 📐 Architecture Système & Ingénierie des Prompts — MarkMosaiq AI (V2 Révisée)
 
 > **Spécification Technique & Pipeline de Production** : Génération de décors studio e-commerce sans hallucinations, ancrage physique du produit réel, boucle de validation QA automatisée et composition multi-formats pour le marché tunisien.
 
@@ -9,7 +9,7 @@
 ### 1.1 Le Piège des Prompts Négatifs ("No bottles, no text")
 Sur les modèles de diffusion récents (**DALL-E 3, gpt-image-1/2, Flux**), il n'existe pas de canal d'inférence de prompt négatif natif comme sur Stable Diffusion 1.5.
 > ⚠️ **Constat empirique** : Écrire *"no bottles, no logos, no text"* active les tokens sémantiques associés ("bottle", "text") et **incite l'IA à en dessiner**.
-* **Règle absolue d'Adora** : Décrire l'état d'arrivée de façon **100% positive** :  
+* **Règle absolue d'MarkMosaiq** : Décrire l'état d'arrivée de façon **100% positive** :  
   `"The central pedestal top surface is completely vacant, pristine, matte and polished, smoothly awaiting an object. Clean seamless solid background."`
 
 ### 1.2 Réalités Géographiques & Culturelles (Tunisie)
@@ -41,7 +41,7 @@ graph TD
     subgraph "Moteur de Composition & Harmonisation"
         B & F --> G["Ancrage & Ombre de Contact Relative<br/>• Rayon de flou = 0.04 * W_produit<br/>• Direction ombre = opposée à la lumière du décor<br/>• Réflexion atténuée sur marbre/verre"]
         G --> H["Zones de Sécurité Instagram (14% haut, 20% bas)"]
-        H --> I["Incrustation Badges & Prix (24 Gouvernorats, TND)"]
+        H --> I["Incrustation Badges & Prix (24 Gouvernorats, USD)"]
     end
 
     I --> J["5. Export Multi-Formats (Feed 1:1, Story 9:16, Ads, ZIP)"]
@@ -110,7 +110,7 @@ export interface StagingScene {
 
 ### 5.1 Ombre de Contact Relative (Ambient Occlusion)
 * **Erreur courante** : Définir un flou fixe de 4px, qui devient invisible sur une image 1536px ou baveux sur une image 512px.
-* **Formule Adora relative** :
+* **Formule MarkMosaiq relative** :
   $$\text{Blur}_{\text{contact}} = W_{\text{produit}} \times 0.035$$
   $$\text{Hauteur}_{\text{contact}} = H_{\text{produit}} \times 0.04$$
 * **Couleur** : Noir bleuté profond (`rgba(10, 14, 24, 0.75)`), avec dégradé radial étiré.

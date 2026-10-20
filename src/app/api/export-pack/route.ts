@@ -23,12 +23,12 @@ export async function POST(req: NextRequest) {
     const bannerFolder = zip.folder('04_Banniere_Web_3x2');
 
     // 2. Fichier texte complet de légendes et hashtags tunisiens
-    const brandTitle = whiteLabel && agencyName ? agencyName.toUpperCase() : 'ADORA AI';
+    const brandTitle = whiteLabel && agencyName ? agencyName.toUpperCase() : 'MarkMosaiq AI';
     const brandSignature = whiteLabel && agencyFooter
       ? agencyFooter
       : whiteLabel
-      ? `Studio de Création Graphique & E-commerce`
-      : `Généré par Adora AI — Studio de Contenu Produit E-commerce en Tunisie`;
+        ? `Studio de Création Graphique & E-commerce`
+        : `Généré par MarkMosaiq AI — Studio de Contenu Produit E-commerce en Tunisie`;
 
     const captionContent = `======================================================================
                ${brandTitle} — PACK MARKETING & CONTENU E-COMMERCE
@@ -109,7 +109,7 @@ ${brandSignature}
       compressionOptions: { level: 6 },
     });
 
-    const prefix = whiteLabel && agencyName ? agencyName.replace(/[^a-zA-Z0-9-_]/g, '_') : 'Adora';
+    const prefix = whiteLabel && agencyName ? agencyName.replace(/[^a-zA-Z0-9-_]/g, '_') : 'MarkMosaiq';
     const safeFilename = `Pack_${prefix}_${productName.replace(/[^a-zA-Z0-9-_]/g, '_')}.zip`;
 
     return new NextResponse(zipBuffer as unknown as BodyInit, {

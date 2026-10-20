@@ -10,7 +10,7 @@ export interface UploadResult {
 }
 
 /**
- * Gestionnaire de stockage d'assets haute définition Adora AI.
+ * Gestionnaire de stockage d'assets haute définition MarkMosaiq AI.
  * Supporte :
  * 1. Cloudflare R2 / AWS S3 via signature S3 v4 (aucun SDK lourd requis)
  * 2. Fallback automatique sur le système de fichiers local /public/uploads/

@@ -7,7 +7,9 @@ export interface ProductAnalysis {
   suggestedAngles: string[];
   captions: {
     instagramFeedFr: string;
-    instagramFeedDarija: string;
+    instagramFeedEn?: string;
+    instagramFeedAr?: string;
+    instagramFeedDarija?: string;
     storyUrgency: string;
     facebookAd: string;
   };

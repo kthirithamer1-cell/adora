@@ -7,25 +7,22 @@ import { getCurrentSession } from '@/lib/auth';
 import { Sparkles } from 'lucide-react';
 
 export const metadata = {
-  title: 'Tarifs & Abonnements Studio IA — Adora',
-  description: 'Choisissez le forfait adapté à votre marque e-commerce : Starter, Pro ou Advanced. Paiement sécurisé via Paddle.',
+  title: 'Tarifs & Abonnements Studio IA — MarkMosaiq',
+  description: 'Choisissez le forfait adapté à votre marque e-commerce : Starter, Pro ou Advanced. Paiement sécurisé via Whop.',
 };
 
 export default async function PricingPage() {
-  // 1. Détection du pays côté serveur depuis les headers
   const headerList = await headers();
   const rawCountry =
     headerList.get('x-vercel-ip-country') ||
     headerList.get('cf-ipcountry') ||
     headerList.get('x-country-code');
 
-  // Si le header est absent ou non-ISO (ex: 'OTHERS'), on NE PASSE RIEN : Paddle PricePreview auto-détecte l'IP !
   const countryCode =
     rawCountry && rawCountry.length === 2 && rawCountry !== 'XX' && rawCountry !== 'OTHERS'
       ? rawCountry.toUpperCase()
       : undefined;
 
-  // 2. Pré-remplissage de l'e-mail si l'utilisateur est connecté
   let customerEmail: string | undefined = undefined;
   try {
     const session = await getCurrentSession();
@@ -33,7 +30,7 @@ export default async function PricingPage() {
       customerEmail = session.user.email;
     }
   } catch (err) {
-    // Visiteur anonyme non connecté
+    // Visiteur non connecté
   }
 
   return (
@@ -74,8 +71,8 @@ export default async function PricingPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
               <img
-                src="/images/Adora_logo.png"
-                alt="Adora Logo"
+                src="/images/logo.png"
+                alt="MarkMosaiq Logo"
                 style={{
                   width: '36px',
                   height: '36px',
@@ -86,7 +83,7 @@ export default async function PricingPage() {
                 }}
               />
               <span style={{ fontSize: '1.25rem', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-                ADORA
+                MarkMosaiq
               </span>
             </Link>
             <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>/</span>
@@ -134,7 +131,7 @@ export default async function PricingPage() {
             }}
           >
             <Sparkles size={14} color="#00E5FF" />
-            <span>Paiement International Sécurisé par Paddle Billing</span>
+            <span>Paiement International Sécurisé par Whop (Merchant of Record)</span>
           </span>
 
           <h1
@@ -164,7 +161,7 @@ export default async function PricingPage() {
         </div>
       </section>
 
-      {/* CONTENU PRINCIPAL : TABLE DE TARIFICATION AVEC PADDLE */}
+      {/* CONTENU PRINCIPAL : TABLE DE TARIFICATION AVEC WHOP */}
       <main style={{ flex: 1, padding: '0 24px 80px', maxWidth: '1240px', margin: '0 auto', width: '100%' }}>
         <PricingTable countryCode={countryCode} customerEmail={customerEmail} />
       </main>
@@ -183,13 +180,13 @@ export default async function PricingPage() {
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '8px' }}>
           <img
-            src="/images/Adora_logo.png"
-            alt="Adora Logo"
+            src="/images/logo.png"
+            alt="MarkMosaiq Logo"
             style={{ width: '28px', height: '28px', borderRadius: '7px', objectFit: 'contain', background: '#FFFFFF' }}
           />
-          <span style={{ fontWeight: 900, fontSize: '1.05rem', color: '#FFFFFF', letterSpacing: '-0.02em' }}>ADORA</span>
+          <span style={{ fontWeight: 900, fontSize: '1.05rem', color: '#FFFFFF', letterSpacing: '-0.02em' }}>MarkMosaiq</span>
           <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>•</span>
-          <span style={{ fontWeight: 700, color: '#00E5FF' }}>Paddle Merchant of Record (Sandbox & Production)</span>
+          <span style={{ fontWeight: 700, color: '#00E5FF' }}>Whop Merchant of Record (Paiements Sécurisés)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', margin: '12px 0 8px' }}>
           <Link href="/terms" style={{ color: '#94A3B8', textDecoration: 'none', fontWeight: 600 }}>
@@ -204,7 +201,7 @@ export default async function PricingPage() {
             Politique de Remboursement (Refunds)
           </Link>
         </div>
-        <p style={{ margin: '6px 0 0' }}>© 2026 ADORA AI — Studio E-commerce Haute Définition. Tous droits réservés.</p>
+        <p style={{ margin: '6px 0 0' }}>© 2026 MarkMosaiq AI — Studio E-commerce Haute Définition. Tous droits réservés.</p>
       </footer>
     </div>
   );

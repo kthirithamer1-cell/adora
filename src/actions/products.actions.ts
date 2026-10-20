@@ -1,6 +1,6 @@
 'use server';
 
-import { supabase } from '@/lib/supabase';
+import { supabase, resolveWorkspaceUuid } from '@/lib/supabase';
 import { getCurrentSession } from '@/lib/auth';
 import { getCatalogByWorkspace, addProductToCatalog, deleteProductFromCatalog } from '@/lib/brandkit';
 import { revalidatePath } from 'next/cache';
@@ -8,7 +8,8 @@ import { revalidatePath } from 'next/cache';
 export async function getProductsAction(workspaceId?: string) {
   try {
     const session = await getCurrentSession();
-    const wsId = workspaceId || session.workspace.id;
+    const rawWsId = workspaceId || session?.workspace?.id || 'ws_nutristore';
+    const wsId = resolveWorkspaceUuid(rawWsId);
 
     // 1. Tenter la lecture depuis Supabase
     try {
@@ -60,6 +61,9 @@ export async function createProductAction(data: {
 }) {
   try {
     const session = await getCurrentSession();
+    if (!session) {
+      return { success: false, error: 'Session expirée. Veuillez vous reconnecter.' };
+    }
     const wsId = session.workspace.id;
 
     if (!data.name || !data.name.trim()) {
@@ -118,6 +122,9 @@ export async function createProductAction(data: {
 export async function deleteProductAction(productId: string) {
   try {
     const session = await getCurrentSession();
+    if (!session) {
+      return { success: false, error: 'Session expirée. Veuillez vous reconnecter.' };
+    }
     const wsId = session.workspace.id;
 
     try {

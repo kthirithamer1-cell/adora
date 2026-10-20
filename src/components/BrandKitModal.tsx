@@ -217,7 +217,7 @@ export default function BrandKitModal({ isOpen, onClose, onSaved }: BrandKitModa
                 />
               </div>
 
-              {/* Bloc Téléversement de Logo & Extraction (ADORA-62) */}
+              {/* Bloc Téléversement de Logo & Extraction (MarkMosaiq-62) */}
               <div style={{
                 background: '#F8FAFC',
                 border: '1px solid #E2E8F0',
@@ -319,7 +319,7 @@ export default function BrandKitModal({ isOpen, onClose, onSaved }: BrandKitModa
                     type="text"
                     value={brandKit.logoUrl}
                     onChange={(e) => setBrandKit({ ...brandKit, logoUrl: e.target.value })}
-                    placeholder="URL ou chemin du logo (ex: /images/Adora_logo.png)"
+                    placeholder="URL ou chemin du logo (ex: /images/logo.png)"
                     style={{
                       width: '100%',
                       background: '#FFFFFF',

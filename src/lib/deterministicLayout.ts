@@ -1,7 +1,7 @@
 import { BrandKit } from './brandkit';
 
 /**
- * MOTEUR DE LAYOUT DÉTERMINISTE EN CODE (ADORA AI ENGINE v2 - ADORA-42)
+ * MOTEUR DE LAYOUT DÉTERMINISTE EN CODE (MarkMosaiq AI ENGINE v2 - MarkMosaiq-42)
  * 
  * Ce module assure le rendu déterministe au pixel près de tous les éléments
  * de marque (logos réels, typographies, badges configurables, prix en Dinars,
@@ -253,7 +253,7 @@ export async function renderDeterministicLayout(
       ctx.fillStyle = primaryColor;
       ctx.shadowColor = 'rgba(0,0,0,0.3)';
       ctx.shadowBlur = 8;
-      ctx.fillText(brandKit.shopName || 'ADORA', safe.left, safe.top + 20);
+      ctx.fillText(brandKit.shopName || 'MarkMosaiq', safe.left, safe.top + 20);
       ctx.restore();
     }
   }
@@ -466,7 +466,7 @@ export function generateDeterministicLayoutSVG(options: DeterministicLayoutOptio
     const by = safe.top;
 
     svgElements += `
-      <g id="Adora-Badge" transform="translate(${bx}, ${by})">
+      <g id="MarkMosaiq-Badge" transform="translate(${bx}, ${by})">
         <defs>
           <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="${primary}" />
@@ -490,7 +490,7 @@ export function generateDeterministicLayoutSVG(options: DeterministicLayoutOptio
     const py = H - safe.bottom - ph;
 
     svgElements += `
-      <g id="Adora-PriceTag" transform="translate(${px}, ${py})">
+      <g id="MarkMosaiq-PriceTag" transform="translate(${px}, ${py})">
         <rect width="${pw}" height="${ph}" rx="12" fill="#FFFFFF" stroke="${primary}" stroke-width="2" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.25))" />
         <text x="${pw / 2}" y="${ph / 2 + 6}" font-family="${fontFamily}" font-size="20" font-weight="900" fill="#0F172A" text-anchor="middle">
           ${priceText.includes('DT') ? priceText : `${priceText} DT`}

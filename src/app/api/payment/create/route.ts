@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { initFlouciPayment, initCreditCardPayment, generateB2BProformaInvoice, PaymentInitParams } from '@/lib/payment';
+import { initFlouciPayment, initCreditCardPayment, generateB2BProformaInvoice, PaymentInitParams, initWhopPayment } from '@/lib/payment';
 import { createInvoiceAction } from '@/actions/billing.actions';
 
 export async function POST(req: NextRequest) {
@@ -7,11 +7,11 @@ export async function POST(req: NextRequest) {
     const body: PaymentInitParams = await req.json();
 
     if (!body.amountTND || body.amountTND <= 0) {
-      return NextResponse.json({ success: false, error: 'Montant en TND invalide' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Montant en USD invalide' }, { status: 400 });
     }
 
     if (!body.gateway) {
-      return NextResponse.json({ success: false, error: 'Passerelle de paiement requise (flouci, credit_card, b2b_invoice)' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Passerelle de paiement requise (whop, flouci, credit_card, b2b_invoice)' }, { status: 400 });
     }
 
     // Enregistrement persistant de la facture dans Supabase
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
         packId: body.packId || 'flash',
         amountTND: body.amountTND,
         paymentGateway: body.gateway as any,
-        customerName: body.customerName || 'Client Adora',
+        customerName: body.customerName || 'Client MarkMosaiq',
         customerPhone: body.customerPhone,
         matriculeFiscal: body.matriculeFiscal,
       });
@@ -28,25 +28,9 @@ export async function POST(req: NextRequest) {
       console.warn('Persistance Supabase facture notice :', invErr);
     }
 
-    if (body.gateway === 'paddle') {
-      const { PADDLE_PLANS } = await import('@/lib/paddle');
-      const plan = PADDLE_PLANS[body.packId] || PADDLE_PLANS['pro'];
-      return NextResponse.json({
-        success: true,
-        gateway: 'paddle',
-        clientToken: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN,
-        environment: process.env.NEXT_PUBLIC_PADDLE_ENV || 'sandbox',
-        priceId: plan.priceId,
-        amountTND: body.amountTND || plan.priceTND,
-        amountEUR: plan.priceEUR,
-        creditsCount: plan.credits,
-        customData: {
-          workspace_id: (body as any).workspaceId || 'ws_nutristore',
-          pack_id: plan.id,
-          credits_to_add: plan.credits,
-          customer_name: body.customerName || 'Client Adora',
-        },
-      });
+    if (body.gateway === 'whop') {
+      const result = await initWhopPayment(body);
+      return NextResponse.json(result);
     } else if (body.gateway === 'flouci') {
       const result = await initFlouciPayment(body);
       return NextResponse.json(result);

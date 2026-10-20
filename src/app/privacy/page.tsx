@@ -3,9 +3,9 @@ import LegalLayout, { TocItem } from '@/components/legal/LegalLayout';
 import { Lock, ShieldCheck, CheckCircle2, EyeOff, Server, Database, UserCheck, Sparkles } from 'lucide-react';
 
 export const metadata = {
-  title: 'Politique de Confidentialité & Protection des Données (Privacy Policy) — Adora',
+  title: 'Politique de Confidentialité & Protection des Données (Privacy Policy) — MarkMosaiq',
   description:
-    'Découvrez comment Adora protège vos photos de produits, vos données marchandes et vos informations de paiement en conformité avec les standards de sécurité les plus stricts.',
+    'Découvrez comment MarkMosaiq protège vos photos de produits, vos données marchandes et vos informations de paiement en conformité avec les standards de sécurité les plus stricts.',
 };
 
 const TOC: TocItem[] = [
@@ -13,7 +13,7 @@ const TOC: TocItem[] = [
   { id: 'donnees-collectees', title: '2. Données Collectées' },
   { id: 'finalites', title: '3. Finalités du Traitement' },
   { id: 'protection-photos', title: '4. Vos Photos & Ségrégation IA' },
-  { id: 'paiement-paddle', title: '5. Sécurité Bancaire & Paddle' },
+  { id: 'paiement-whop', title: '5. Sécurité Bancaire & Whop' },
   { id: 'sous-traitants', title: '6. Sous-traitants Certifiés' },
   { id: 'securite-chiffrement', title: '7. Sécurité & Chiffrement' },
   { id: 'conservation', title: '8. Durée de Conservation' },
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
       toc={TOC}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '36px', color: '#CBD5E1', fontSize: '0.96rem', lineHeight: 1.75 }}>
-        
+
         {/* Intro Banner */}
         <div
           style={{
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
               Garantie d'étanchéité de vos visuels produits
             </h4>
             <p style={{ margin: 0, fontSize: '0.9rem', color: '#94A3B8', lineHeight: 1.6 }}>
-              Vos photos de produits, prototypes et nouveaux lancements restent <strong>strictement confidentiels</strong>. Adora ne commercialise jamais vos catalogues, ne les partage à aucun concurrent et isole rigoureusement vos données dans votre espace de travail privé.
+              Vos photos de produits, prototypes et nouveaux lancements restent <strong>strictement confidentiels</strong>. MarkMosaiq ne commercialise jamais vos catalogues, ne les partage à aucun concurrent et isole rigoureusement vos données dans votre espace de travail privé.
             </p>
           </div>
         </div>
@@ -61,10 +61,10 @@ export default function PrivacyPage() {
             1. Engagement Général & Responsable du Traitement
           </h2>
           <p>
-            La présente Politique de Confidentialité s’applique à l’ensemble des données personnelles et visuelles collectées sur le site et l’application logicielle <strong>Adora AI</strong>.
+            La présente Politique de Confidentialité s’applique à l’ensemble des données personnelles et visuelles collectées sur le site et l’application logicielle <strong>MarkMosaiq AI</strong>.
           </p>
           <p>
-            Le responsable du traitement des données personnelles de la plateforme est la société exploitante d’Adora AI. Pour toute question relative à l’application de cette politique ou à l’exercice de vos droits, vous pouvez nous contacter à <code style={{ color: '#00E5FF' }}>privacy@adora.ai</code>.
+            Le responsable du traitement des données personnelles de la plateforme est la société exploitante d’MarkMosaiq AI. Pour toute question relative à l’application de cette politique ou à l’exercice de vos droits, vous pouvez nous contacter à <code style={{ color: '#00E5FF' }}>privacy@MarkMosaiq.ai</code>.
           </p>
         </section>
 
@@ -114,7 +114,7 @@ export default function PrivacyPage() {
             4. Protection de Vos Photos & Ségrégation des Données IA
           </h2>
           <p>
-            Le modèle d’ingénierie d’Adora repose sur une règle inviolable :
+            Le modèle d’ingénierie d’MarkMosaiq repose sur une règle inviolable :
           </p>
           <div
             style={{
@@ -136,18 +136,18 @@ export default function PrivacyPage() {
         </section>
 
         {/* Section 5 */}
-        <section id="paiement-paddle" style={{ scrollMarginTop: '100px' }}>
+        <section id="paiement-whop" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            5. Sécurité Bancaire & Rôle de Paddle
+            5. Sécurité Bancaire & Rôle de Whop
           </h2>
           <p>
             La sécurité de vos règlements est garantie par notre partenaire bancaire agréé :
           </p>
           <p>
-            <strong>Paddle Payments Ltd</strong> opère comme <em>Merchant of Record</em>. Lorsque vous souscrivez à un forfait Adora ou réglez un pack de crédits en ligne, vous transmettez directement vos coordonnées de carte bancaire ou compte PayPal sur les serveurs sécurisés de Paddle, certifiés <strong>PCI-DSS Niveau 1</strong> (le plus haut standard international de sécurité bancaire).
+            <strong>Whop Inc.</strong> opère comme <em>Merchant of Record</em>. Lorsque vous souscrivez à un forfait MarkMosaiq ou réglez un pack de crédits en ligne, vous transmettez directement vos coordonnées de carte bancaire ou compte Apple/Google Pay sur les serveurs sécurisés de Whop, certifiés <strong>PCI-DSS Niveau 1</strong> (le plus haut standard international de sécurité bancaire).
           </p>
           <p>
-            <strong>Adora ne stocke, ne voit et n’a jamais accès à votre numéro complet de carte bancaire ou code CVV.</strong> Nous recevons uniquement un jeton chiffré (token) confirmant la validité du paiement et l'attribution des crédits correspondants.
+            <strong>MarkMosaiq ne stocke, ne voit et n’a jamais accès à votre numéro complet de carte bancaire ou code CVV.</strong> Nous recevons uniquement un jeton chiffré (token) confirmant la validité du paiement et l'attribution des crédits correspondants.
           </p>
         </section>
 
@@ -157,12 +157,12 @@ export default function PrivacyPage() {
             6. Sous-traitants & Partenaires Techniques
           </h2>
           <p>
-            Pour délivrer un service haute performance, Adora s’appuie exclusivement sur des partenaires d’infrastructure reconnus pour leur conformité aux réglementations de protection des données :
+            Pour délivrer un service haute performance, MarkMosaiq s’appuie exclusivement sur des partenaires d’infrastructure reconnus pour leur conformité aux réglementations de protection des données :
           </p>
           <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <li><strong>Paddle :</strong> Facturation internationale, conformité fiscale et gestion des devises.</li>
+            <li><strong>Whop :</strong> Facturation internationale, conformité fiscale et gestion des devises.</li>
             <li><strong>Infrastructures Cloud & GPU :</strong> Hébergement haute disponibilité, clusters de rendu d’images et serveurs d’inférence sécurisés avec chiffrement des disques.</li>
-            <li><strong>Passerelles locales tunisiennes :</strong> Traitement agréé pour les marchands payant en TND (Konnect / Flouci).</li>
+            <li><strong>Passerelles locales tunisiennes :</strong> Traitement agréé pour les marchands payant en USD (Konnect / Flouci).</li>
           </ul>
         </section>
 
@@ -237,8 +237,8 @@ export default function PrivacyPage() {
               gap: '6px',
             }}
           >
-            <div><strong>Délégué à la Protection des Données (DPO) — Adora AI</strong></div>
-            <div>E-mail direct : <a href="mailto:privacy@adora.ai" style={{ color: '#00E5FF' }}>privacy@adora.ai</a></div>
+            <div><strong>Délégué à la Protection des Données (DPO) — MarkMosaiq AI</strong></div>
+            <div>E-mail direct : <a href="mailto:privacy@MarkMosaiq.ai" style={{ color: '#00E5FF' }}>privacy@MarkMosaiq.ai</a></div>
             <div>Délai de réponse moyen constaté : <strong>moins de 24 heures ouvrées</strong></div>
           </div>
         </section>

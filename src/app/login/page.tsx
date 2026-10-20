@@ -3,51 +3,37 @@
 import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-const DEMO_USERS = [
-  {
-    id: 'user_mohamed',
-    email: 'mohamed@nutristore.tn',
-    name: 'Mohamed Ben Salah',
-    roleLabel: 'Owner (NutriStore)',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
-  },
-  {
-    id: 'user_syrine',
-    email: 'syrine@nutristore.tn',
-    name: 'Syrine Trabelsi',
-    roleLabel: 'Manager E-commerce',
-    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=faces',
-  },
-  {
-    id: 'user_agence',
-    email: 'contact@hypergrowth.tn',
-    name: 'Karim Gharbi (HyperGrowth Agency)',
-    roleLabel: 'CEO Agence B2B',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces',
-  },
-  {
-    id: 'user_yassine',
-    email: 'yassine@crea.tn',
-    name: 'Yassine Jaziri',
-    roleLabel: 'Designer Studio',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces',
-  },
-];
+import { getSafeInternalRedirect } from '@/lib/security/redirect';
+import { useLanguage } from '@/lib/LanguageContext';
+import { useWorkspace } from '@/lib/WorkspaceContext';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
+import {
+  Sparkles,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Shield,
+  ArrowLeft,
+  Loader2,
+  CheckCircle2,
+} from 'lucide-react';
 
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get('redirect') || '/dashboard';
+  const redirectUrl = getSafeInternalRedirect(searchParams.get('redirect'), '/studio');
+  const { t } = useLanguage();
+  const { setSessionDirect } = useWorkspace();
 
-  const [authMode, setAuthMode] = useState<'email' | 'phone'>('email');
-  const [email, setEmail] = useState('mohamed@nutristore.tn');
-  const [password, setPassword] = useState('••••••••••••');
-  const [phone, setPhone] = useState('+216 98 123 456');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleLogin = async (targetUserId?: string, targetEmail?: string) => {
+  const handleLogin = async (targetEmail?: string) => {
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -57,23 +43,30 @@ function LoginFormContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: targetUserId,
-          email: targetEmail || (authMode === 'email' ? email : undefined),
+          email: (targetEmail || email).trim().toLowerCase(),
         }),
       });
 
       const data = await res.json();
       if (data.success) {
-        setSuccessMessage(`Bienvenue ${data.data.user.name} ! Redirection en cours...`);
+        if (data.data?.user && data.data?.workspace) {
+          setSessionDirect({
+            user: data.data.user,
+            workspace: data.data.workspace,
+            workspaces: data.data.workspaces || [data.data.workspace],
+            role: data.data.role || 'owner',
+          });
+        }
+        setSuccessMessage(t.auth.login.welcomeSuccess);
         setTimeout(() => {
           router.push(redirectUrl);
           router.refresh();
-        }, 1000);
+        }, 150);
       } else {
-        setErrorMessage(data.error || 'Identifiants incorrects');
+        setErrorMessage(data.error || t.auth.login.errorInvalid);
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'Erreur de connexion au serveur');
+      setErrorMessage(err.message || t.auth.login.errorServer);
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +74,7 @@ function LoginFormContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleLogin(undefined, email);
+    handleLogin(email);
   };
 
   return (
@@ -92,69 +85,105 @@ function LoginFormContent() {
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
-      padding: '24px',
+      padding: '32px 16px',
       fontFamily: 'Outfit, sans-serif',
       color: '#0F172A',
+      position: 'relative',
     }}>
-      
-      {/* Logo & En-tête */}
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-          <img
-            src="/images/Adora_logo.png"
-            alt="Adora Logo"
-            style={{ height: '40px', objectFit: 'contain' }}
-          />
-          <span style={{ fontSize: '26px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em' }}>
-            Adora <span style={{ color: '#4F46E5' }}>Studio</span>
-          </span>
-        </Link>
-        <div style={{
-          marginTop: '10px',
-          display: 'inline-block',
-          background: '#EEF2FF',
-          border: '1px solid #C7D2FE',
-          padding: '4px 12px',
-          borderRadius: '20px',
-          fontSize: '11px',
-          fontWeight: 800,
-          color: '#4F46E5',
-          letterSpacing: '0.05em',
-          textTransform: 'uppercase',
-        }}>
-          Accès Marchand E-commerce Tunisie 🇹🇳
-        </div>
+      {/* Top Right Language Switcher */}
+      <div style={{ position: 'absolute', top: '24px', right: '24px', zIndex: 10 }}>
+        <LanguageSwitcher variant="light" />
       </div>
 
-      {/* Carte de Connexion Principale */}
+      {/* Background Soft Glow matching Signup */}
+      <div style={{
+        position: 'absolute',
+        top: '6%',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '650px',
+        height: '420px',
+        background: 'radial-gradient(ellipse at center, rgba(99, 102, 241, 0.12) 0%, rgba(236, 72, 153, 0.08) 45%, transparent 70%)',
+        pointerEvents: 'none',
+        filter: 'blur(80px)',
+      }} />
+
+      {/* Header Logo matching Signup */}
+      <div style={{ textAlign: 'center', marginBottom: '24px', zIndex: 1 }}>
+        <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+          <img
+            src="/images/logo.png"
+            alt="MarkMosaiq"
+            style={{
+              height: '40px',
+              width: '40px',
+              objectFit: 'contain',
+              background: '#FFFFFF',
+              borderRadius: '10px',
+              boxShadow: '0 4px 14px rgba(99, 102, 241, 0.2)',
+            }}
+          />
+          <span style={{ fontSize: '27px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.03em' }}>
+            Mark<span style={{
+              background: 'linear-gradient(135deg, #6366F1 0%, #EC4899 60%, #F97316 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>Mosaiq</span>
+          </span>
+        </Link>
+        <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '13px', fontWeight: 600 }}>
+          {t.auth.tagline}
+        </p>
+      </div>
+
+      {/* Main Container Card */}
       <div style={{
         width: '100%',
-        maxWidth: '460px',
+        maxWidth: '480px',
         background: '#FFFFFF',
-        borderRadius: '16px',
         border: '1px solid #E2E8F0',
-        padding: '36px',
-        boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.1)',
+        borderRadius: '16px',
+        padding: '36px 30px',
+        boxShadow: '0 20px 40px -15px rgba(99, 102, 241, 0.08)',
+        zIndex: 1,
       }}>
-        
-        <h1 style={{ fontSize: '22px', fontWeight: 900, margin: '0 0 8px 0', textAlign: 'center', color: '#0F172A' }}>
-          Connectez-vous à votre Espace
-        </h1>
-        <p style={{ color: '#64748B', fontSize: '13px', textAlign: 'center', margin: '0 0 24px 0' }}>
-          Accédez à vos générations 4K, votre catalogue et votre tableau de bord.
-        </p>
+        {/* Card Header */}
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: '#EEF2FF',
+            border: '1px solid #C7D2FE',
+            padding: '4px 14px',
+            borderRadius: '20px',
+            color: '#4F46E5',
+            fontSize: '12px',
+            fontWeight: 800,
+            marginBottom: '10px',
+          }}>
+            <Sparkles size={14} color="#6366F1" />
+            {t.auth.login.badge}
+          </div>
+          <h1 style={{ fontSize: '23px', fontWeight: 900, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
+            {t.auth.login.title}
+          </h1>
+          <p style={{ fontSize: '13px', color: '#64748B', marginTop: '6px' }}>
+            {t.auth.login.subtitle}
+          </p>
+        </div>
 
         {/* Messages d'alerte */}
         {errorMessage && (
           <div style={{
-            padding: '12px 14px',
-            borderRadius: '8px',
             background: '#FEF2F2',
-            border: '1px solid #FECDD3',
-            color: '#991B1B',
+            border: '1px solid #FEE2E2',
+            color: '#DC2626',
+            padding: '10px 14px',
+            borderRadius: '8px',
             fontSize: '13px',
-            fontWeight: 700,
-            marginBottom: '20px',
+            marginBottom: '18px',
+            fontWeight: 600,
             textAlign: 'center',
           }}>
             {errorMessage}
@@ -163,263 +192,187 @@ function LoginFormContent() {
 
         {successMessage && (
           <div style={{
-            padding: '12px 14px',
-            borderRadius: '8px',
             background: '#F0FDF4',
             border: '1px solid #BBF7D0',
             color: '#166534',
+            padding: '10px 14px',
+            borderRadius: '8px',
             fontSize: '13px',
+            marginBottom: '18px',
             fontWeight: 700,
-            marginBottom: '20px',
             textAlign: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
           }}>
-            {successMessage}
+            <CheckCircle2 size={16} color="#166534" />
+            <span>{successMessage}</span>
           </div>
         )}
 
-        {/* Bascule Email / Téléphone WhatsApp */}
-        <div style={{
-          display: 'flex',
-          background: '#F1F5F9',
-          padding: '4px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          border: '1px solid #E2E8F0',
-        }}>
-          <button
-            type="button"
-            onClick={() => setAuthMode('email')}
-            style={{
-              flex: 1,
-              padding: '8px',
-              borderRadius: '6px',
-              border: 'none',
-              background: authMode === 'email' ? '#FFFFFF' : 'transparent',
-              color: authMode === 'email' ? '#4F46E5' : '#64748B',
-              fontWeight: 800,
-              fontSize: '12px',
-              cursor: 'pointer',
-              boxShadow: authMode === 'email' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-            }}
-          >
-            Email Professionnel
-          </button>
-          <button
-            type="button"
-            onClick={() => setAuthMode('phone')}
-            style={{
-              flex: 1,
-              padding: '8px',
-              borderRadius: '6px',
-              border: 'none',
-              background: authMode === 'phone' ? '#FFFFFF' : 'transparent',
-              color: authMode === 'phone' ? '#4F46E5' : '#64748B',
-              fontWeight: 800,
-              fontSize: '12px',
-              cursor: 'pointer',
-              boxShadow: authMode === 'phone' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-            }}
-          >
-            WhatsApp / SMS (+216)
-          </button>
-        </div>
-
-        {/* Formulaire standard */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {authMode === 'email' ? (
+        {/* Formulaire standard Email + Password */}
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Email Field */}
             <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#475569', marginBottom: '6px', fontWeight: 600 }}>
-                Adresse Email Marchand
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                {t.auth.login.emailLabel}
               </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="contact@maboutique.tn"
-                style={{
-                  width: '100%',
-                  padding: '12px 14px',
-                  background: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
-                  borderRadius: '8px',
-                  color: '#0F172A',
-                  fontSize: '14px',
-                }}
-              />
+              <div style={{ position: 'relative' }}>
+                <Mail
+                  size={16}
+                  color="#94A3B8"
+                  style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
+                />
+                <input
+                  type="email"
+                  required
+                  placeholder={t.auth.login.emailPlaceholder}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px 10px 36px',
+                    background: '#F8FAFC',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '8px',
+                    color: '#0F172A',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
             </div>
-          ) : (
+
+            {/* Password Field */}
             <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#475569', marginBottom: '6px', fontWeight: 600 }}>
-                Numéro WhatsApp Tunisien
-              </label>
-              <input
-                type="tel"
-                required
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+216 98 000 000"
-                style={{
-                  width: '100%',
-                  padding: '12px 14px',
-                  background: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
-                  borderRadius: '8px',
-                  color: '#0F172A',
-                  fontSize: '14px',
-                }}
-              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+                  {t.auth.login.passwordLabel}
+                </label>
+                <a href="#" style={{ fontSize: '11px', color: '#4F46E5', textDecoration: 'none', fontWeight: 700 }}>
+                  {t.auth.login.forgotPassword}
+                </a>
+              </div>
+              <div style={{ position: 'relative' }}>
+                <Lock
+                  size={16}
+                  color="#94A3B8"
+                  style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
+                />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  placeholder={t.auth.login.passwordPlaceholder}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 40px 10px 36px',
+                    background: '#F8FAFC',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '8px',
+                    color: '#0F172A',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#94A3B8',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  aria-label="Toggle password visibility"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
-          )}
 
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <label style={{ fontSize: '12px', color: '#475569', fontWeight: 600 }}>
-                Mot de Passe
-              </label>
-              <a href="#" style={{ fontSize: '11px', color: '#4F46E5', textDecoration: 'none', fontWeight: 700 }}>
-                Mot de passe oublié ?
-              </a>
-            </div>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px 14px',
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                borderRadius: '8px',
-                color: '#0F172A',
-                fontSize: '14px',
-              }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            style={{
-              padding: '13px',
-              background: 'linear-gradient(135deg, #4F46E5, #3B82F6)',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#FFFFFF',
-              fontSize: '14px',
-              fontWeight: 900,
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              marginTop: '8px',
-              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.25)',
-            }}
-          >
-            {isLoading ? 'Connexion en cours...' : 'Accéder au Studio ➔'}
-          </button>
-        </form>
-
-        {/* Séparateur pour accès direct démo */}
-        <div style={{
-          position: 'relative',
-          margin: '28px 0 20px 0',
-          textAlign: 'center',
-        }}>
-          <div style={{ height: '1px', background: '#E2E8F0' }} />
-          <span style={{
-            position: 'absolute',
-            top: '-9px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: '#FFFFFF',
-            padding: '0 10px',
-            fontSize: '11px',
-            color: '#64748B',
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-          }}>
-            Connexion Démo en 1 Clic
-          </span>
-        </div>
-
-        {/* Profils pré-configurés pour tester immédiatement */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {DEMO_USERS.map((usr) => (
+            {/* Submit Button */}
             <button
-              key={usr.id}
-              type="button"
-              onClick={() => handleLogin(usr.id, usr.email)}
+              type="submit"
+              disabled={isLoading}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '10px 14px',
-                background: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                textAlign: 'left',
+                justifyContent: 'center',
+                gap: '8px',
+                width: '100%',
+                marginTop: '8px',
+                padding: '14px',
+                background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 35%, #EC4899 70%, #F97316 100%)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '15px',
+                fontWeight: 900,
+                cursor: isLoading ? 'default' : 'pointer',
+                opacity: isLoading ? 0.8 : 1,
+                boxShadow: '0 4px 16px rgba(99, 102, 241, 0.3)',
                 transition: 'all 0.2s',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <img
-                  src={usr.avatarUrl}
-                  alt={usr.name}
-                  style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
-                />
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
-                    {usr.name}
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#64748B' }}>
-                    {usr.email}
-                  </div>
-                </div>
-              </div>
-              <span style={{
-                fontSize: '11px',
-                fontWeight: 800,
-                color: usr.id === 'user_agence' ? '#7E22CE' : '#4F46E5',
-                background: usr.id === 'user_agence' ? '#FAF5FF' : '#EEF2FF',
-                padding: '3px 8px',
-                borderRadius: '4px',
-              }}>
-                {usr.roleLabel}
-              </span>
+              {isLoading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>{t.auth.login.loadingBtn}</span>
+                </>
+              ) : (
+                <span>{t.auth.login.submitBtn}</span>
+              )}
             </button>
-          ))}
-        </div>
+          </div>
+        </form>
 
-        {/* Footer carte */}
-        <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '12px', color: '#64748B' }}>
-          Pas encore de compte ?{' '}
-          <Link href="/pricing" style={{ color: '#4F46E5', fontWeight: 700, textDecoration: 'none' }}>
-            Choisir un Pack à partir de 29 DT ➔
+        {/* Card Footer Link to Signup */}
+        <div style={{ marginTop: '22px', textAlign: 'center', fontSize: '13px', color: '#64748B' }}>
+          {t.auth.login.noAccount}{' '}
+          <Link
+            href={searchParams.get('redirect') ? `/signup?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : '/signup'}
+            style={{ color: '#4F46E5', textDecoration: 'none', fontWeight: 700 }}
+          >
+            {t.auth.login.signupLink}
           </Link>
         </div>
-
       </div>
 
-      {/* Liens retour & Footer */}
-      <footer style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', fontSize: '13px' }}>
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <Link href="/" style={{ color: '#64748B', textDecoration: 'none' }}>
-            ← Retour à l'accueil
-          </Link>
-          <Link href="/pricing" style={{ color: '#64748B', textDecoration: 'none' }}>
-            Tarifs en Dinars (DT)
-          </Link>
+      {/* Global Trust Footer matching Signup */}
+      <div style={{
+        marginTop: '28px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        fontSize: '13px',
+        color: '#64748B',
+        zIndex: 1,
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+      }}>
+        <Link href="/" style={{ color: '#64748B', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <ArrowLeft size={14} /> {t.auth.backToHome}
+        </Link>
+        <div>•</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Shield size={14} color="#10B981" />
+          <span>{t.auth.trustProtected}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94A3B8', fontSize: '12px' }}>
-          <img
-            src="/images/Adora_logo.png"
-            alt="Adora Logo"
-            style={{ width: '18px', height: '18px', borderRadius: '4px', objectFit: 'contain' }}
-          />
-          <span>© 2026 Adora AI — Studio E-commerce Haute Définition en Tunisie 🇹🇳</span>
-        </div>
-      </footer>
+        <div>•</div>
+        <div>{t.auth.trustStaging}</div>
+      </div>
     </div>
   );
 }
@@ -428,7 +381,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4F46E5' }}>
-        Chargement du studio...
+        <Loader2 size={24} className="animate-spin" />
       </div>
     }>
       <LoginFormContent />
