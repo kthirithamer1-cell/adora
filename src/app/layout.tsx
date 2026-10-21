@@ -10,6 +10,9 @@ import { getCurrentSession } from '@/lib/auth';
 export const metadata: Metadata = {
   title: 'MarkMosaiq — Studio IA E-commerce & Compléments Alimentaires en Tunisie',
   description: 'Créez des visuels marketing 4K prêts à poster (Feed, Stories, Pubs et Badges Livraison 24 Gouvernorats) à partir d\'une simple photo de votre produit.',
+  verification: {
+    google: 'NPoTVmfYmh4ysR8nlEkdJcWzPMjNnPI_dmtIo5mvwUQ',
+  },
   icons: {
     icon: [
       { url: '/images/logo.png', type: 'image/png' },
