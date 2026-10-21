@@ -56,12 +56,12 @@ No invented text or logos. No ad copy unless requested.`,
     output_format: "png",
   });
   console.log("🖼️ Image generation completed");
-console.log("Model:", "gpt-image-2.5-flare");
-console.log("Size:", size);
-console.log("Quality:", "medium");
+  console.log("Model:", "gpt-image-2.5-flare");
+  console.log("Size:", size);
+  console.log("Quality:", "medium");
 
-console.log("Usage:", JSON.stringify(result.usage ?? null, null, 2));
-console.log("Request ID:", result._request_id);
+  console.log("Usage:", JSON.stringify(result.usage ?? null, null, 2));
+  console.log("Request ID:", result._request_id);
 
   const generatedImage = result.data?.[0]?.b64_json;
 

@@ -1,34 +1,251 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import AppShell from '@/components/AppShell';
 import { useWorkspace } from '@/lib/WorkspaceContext';
-import { Scissors, Zap, Sparkles } from 'lucide-react';
+import { useLanguage } from '@/lib/LanguageContext';
+import { ensureSampleImagesAction } from '@/actions/generations.actions';
+import {
+  Scissors,
+  Zap,
+  ShieldCheck,
+  Sparkles,
+  UploadCloud,
+  Download,
+  Copy,
+  RotateCcw,
+  Image as ImageIcon,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Loader2,
+} from 'lucide-react';
+
+interface SampleItem {
+  id: string;
+  nameKey: 'sneaker' | 'perfume' | 'cream' | 'watch' | 'headphones';
+  originalUrl: string;
+  cutoutUrl: string;
+}
+
+const CUTOUT_I18N = {
+  en: {
+    pageTitle: 'AI Background Remover & Product Staging',
+    tagline: 'BACKGROUND REMOVER',
+    title: 'Remove background in one click',
+    subtitle: 'Get clean, professional product images in just seconds.',
+    ultraFast: 'Ultra fast',
+    inSeconds: 'in a few seconds',
+    highPrecision: 'High precision',
+    detailsSub: 'even for fine details',
+    quality4k: '4K Quality',
+    noLossSub: 'lossless resolution',
+    uploadTitle: 'Upload your image',
+    uploadSubtitle: 'Drag & drop or click to browse',
+    uploadFormats: 'JPG, PNG, WebP • Max 10 MB',
+    or: 'OR',
+    examples: 'Examples',
+    removeBtn: 'Remove background →',
+    processingBtn: 'Processing in progress...',
+    processTimeNote: 'Processed in seconds',
+    tabPreview: 'Preview',
+    tabResult: 'Result',
+    toggleCompare: 'Before / After',
+    badgeOriginal: 'Original image',
+    badgeCutout: 'Background removed',
+    btnDownload: 'Download',
+    btnCopy: 'Copy image',
+    copiedFeedback: 'Copied!',
+    btnNew: 'New',
+    insufficientCredits: '⚠️ Insufficient credits balance. Please recharge your pack to remove backgrounds.',
+    successCutout: (credits: number) => `✓ AI background removal successful! Balance: ${credits} credits`,
+    sampleNames: {
+      sneaker: 'Dunk Low Sneaker',
+      perfume: 'Amber Gold Perfume',
+      cream: 'Lumina Face Cream',
+      watch: 'Chronograph Watch',
+      headphones: 'Studio Headphones',
+    },
+  },
+  fr: {
+    pageTitle: 'Studio Détourage IA & Prise de Vue',
+    tagline: 'BACKGROUND REMOVER',
+    title: "Supprimez l'arrière-plan en un clic",
+    subtitle: 'Obtenez des images de produits propres et professionnelles en quelques secondes.',
+    ultraFast: 'Ultra rapide',
+    inSeconds: 'en quelques secondes',
+    highPrecision: 'Haute précision',
+    detailsSub: 'même pour les détails',
+    quality4k: 'Qualité 4K',
+    noLossSub: 'sans perte de qualité',
+    uploadTitle: 'Téléchargez votre image',
+    uploadSubtitle: 'Glissez-déposez ou cliquez pour parcourir',
+    uploadFormats: 'JPG, PNG, WebP • Max 10 Mo',
+    or: 'OU',
+    examples: 'Exemples',
+    removeBtn: "Supprimer l'arrière-plan →",
+    processingBtn: 'Traitement en cours...',
+    processTimeNote: 'Traitement en quelques secondes',
+    tabPreview: 'Aperçu',
+    tabResult: 'Résultat',
+    toggleCompare: 'Avant / Après',
+    badgeOriginal: 'Image originale',
+    badgeCutout: 'Fond supprimé',
+    btnDownload: 'Télécharger',
+    btnCopy: "Copier l'image",
+    copiedFeedback: 'Copié !',
+    btnNew: 'Nouveau',
+    insufficientCredits: '⚠️ Solde de crédits insuffisant. Veuillez recharger votre pack pour détourer vos produits.',
+    successCutout: (credits: number) => `✓ Détourage IA réussi ! Solde : ${credits} crédits`,
+    sampleNames: {
+      sneaker: 'Sneaker Dunk Low',
+      perfume: 'Parfum Ambre Doré',
+      cream: 'Crème Visage Lumina',
+      watch: 'Montre Chronographe',
+      headphones: 'Casque Audio Studio',
+    },
+  },
+  ar: {
+    pageTitle: 'استوديو تفريغ الصور بالذكاء الاصطناعي',
+    tagline: 'إزالة خلفية المنتجات',
+    title: 'احذف الخلفية بنقرة واحدة',
+    subtitle: 'احصل على صور منتجات نظيفة واحترافية في ثوانٍ معدودة.',
+    ultraFast: 'سريع جداً',
+    inSeconds: 'في ثوانٍ معدودة',
+    highPrecision: 'دقة فائقة',
+    detailsSub: 'حتى لأدق التفاصيل',
+    quality4k: 'جودة 4K',
+    noLossSub: 'بدون أي فقدان للجودة',
+    uploadTitle: 'ارفع صورة منتجك',
+    uploadSubtitle: 'اسحب وأفلت أو انقر للاختيار',
+    uploadFormats: 'JPG, PNG, WebP • أقصى حجم 10 ميجا',
+    or: 'أو',
+    examples: 'أمثلة جاهزة',
+    removeBtn: 'إزالة الخلفية ←',
+    processingBtn: 'جارٍ المعالجة...',
+    processTimeNote: 'معالجة فورية خلال ثوانٍ',
+    tabPreview: 'معاينة الأصل',
+    tabResult: 'النتيجة',
+    toggleCompare: 'قبل / بعد',
+    badgeOriginal: 'الصورة الأصلية',
+    badgeCutout: 'خلفية شفافة',
+    btnDownload: 'تحميل',
+    btnCopy: 'نسخ الرابط',
+    copiedFeedback: 'تم النسخ!',
+    btnNew: 'جديد',
+    insufficientCredits: '⚠️ رصيدك من الاعتمادات غير كافٍ. يرجى شحن باقتك للمتابعة.',
+    successCutout: (credits: number) => `✓ تم تفريغ الصورة بنجاح! الرصيد المتبقي: ${credits}`,
+    sampleNames: {
+      sneaker: 'حذاء رياضي Dunk Low',
+      perfume: 'عطر عنبر ذهبي',
+      cream: 'كريم عناية لومينا',
+      watch: 'ساعة كرونوغراف فاخرة',
+      headphones: 'سماعة رأس استوديو',
+    },
+  },
+};
 
 export default function CutoutStudioPage() {
   const { workspace, updateCredits } = useWorkspace();
+  const { locale } = useLanguage();
+  const t = CUTOUT_I18N[(locale as 'en' | 'fr' | 'ar')] || CUTOUT_I18N.en;
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const [inputImage, setInputImage] = useState<string>('/images/bottle_nutrex.png');
-  const [outputTransparent, setOutputTransparent] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [bgPreview, setBgPreview] = useState<'checker' | 'dark' | 'white' | 'studio'>('checker');
-  const [viewMode, setViewMode] = useState<'compare' | 'result'>('compare');
-  const [statusMessage, setStatusMessage] = useState<{ text: string; error?: boolean } | null>(null);
-
-  // Exemples de démonstration
-  const sampleImages = [
-    { label: 'Bouteille Nutrex IsoFit', url: '/images/bottle_nutrex.png' },
-    { label: 'Boîte Créatine Story', url: '/images/creatine_story.jpg' },
-    { label: 'Pot GNC Pro Whey', url: '/images/gnc_pro_whey_tub_1791150838901.jpg' },
-    { label: 'Robe Élégante Tunis', url: '/images/hero_lifestyle.jpg' },
+  // 5 Exemples de démonstration
+  const sampleProducts: SampleItem[] = [
+    {
+      id: 'sneaker',
+      nameKey: 'sneaker',
+      originalUrl: '/images/sample_sneaker_panda.jpg',
+      cutoutUrl: '/images/sample_sneaker_panda.jpg',
+    },
+    {
+      id: 'perfume',
+      nameKey: 'perfume',
+      originalUrl: '/images/sample_perfume_amber.jpg',
+      cutoutUrl: '/images/sample_perfume_amber.jpg',
+    },
+    {
+      id: 'cream',
+      nameKey: 'cream',
+      originalUrl: '/images/sample_cream_jar.jpg',
+      cutoutUrl: '/images/sample_cream_jar.jpg',
+    },
+    {
+      id: 'watch',
+      nameKey: 'watch',
+      originalUrl: '/images/test_watch_source.jpg',
+      cutoutUrl: '/images/test_watch_birefnet_output.png',
+    },
+    {
+      id: 'headphones',
+      nameKey: 'headphones',
+      originalUrl: '/images/bottle_nutrex.png',
+      cutoutUrl: '/images/bottle_nutrex.png',
+    },
   ];
 
+  const [selectedSampleId, setSelectedSampleId] = useState<string>('sneaker');
+  const [inputImage, setInputImage] = useState<string>('/images/sample_sneaker_panda.jpg');
+  const [outputTransparent, setOutputTransparent] = useState<string | null>('/images/sample_sneaker_panda.jpg');
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'preview' | 'result'>('preview');
+  const [isCompareMode, setIsCompareMode] = useState<boolean>(true);
+  const [sliderPosition, setSliderPosition] = useState<number>(50);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [copyFeedback, setCopyFeedback] = useState<boolean>(false);
+  const [statusMessage, setStatusMessage] = useState<{ text: string; error?: boolean } | null>(null);
+
+  // Copie des images d'artéfacts vers public/images au montage
+  useEffect(() => {
+    ensureSampleImagesAction().catch(() => {});
+  }, []);
+
+  // Gestion du glissement du curseur Avant / Après
+  const handleMove = useCallback(
+    (clientX: number) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const percentage = Math.max(5, Math.min(95, (x / rect.width) * 100));
+      setSliderPosition(percentage);
+    },
+    []
+  );
+
+  const handleMouseDown = () => setIsDragging(true);
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (isDragging) handleMove(e.clientX);
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (isDragging && e.touches[0]) handleMove(e.touches[0].clientX);
+    };
+    const onStop = () => setIsDragging(false);
+
+    if (isDragging) {
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onStop);
+      window.addEventListener('touchmove', onTouchMove);
+      window.addEventListener('touchend', onStop);
+    }
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onStop);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onStop);
+    };
+  }, [isDragging, handleMove]);
+
+  // Exécution du détourage IA via l'API
   const runCutout = async (imgSource: string) => {
     if (workspace && workspace.creditsRemaining <= 0) {
       setStatusMessage({
-        text: '⚠️ Solde de crédits insuffisant (0 crédit). Veuillez recharger vos crédits pour détourer vos produits.',
+        text: t.insufficientCredits,
         error: true,
       });
       return;
@@ -55,19 +272,21 @@ export default function CutoutStudioPage() {
           updateCredits(data.creditsRemaining);
         }
         setStatusMessage({
-          text: `✓ Détourage IA réussi (${data.width}x${data.height}px) • 1 crédit déduit • Solde : ${data.creditsRemaining ?? workspace?.creditsRemaining ?? 0} crédits`,
+          text: t.successCutout(data.creditsRemaining ?? workspace?.creditsRemaining ?? 0),
         });
-        setTimeout(() => setStatusMessage(null), 4500);
+        setTimeout(() => setStatusMessage(null), 4000);
       } else {
-        setStatusMessage({ text: data.error || 'Erreur lors du détourage', error: true });
+        setStatusMessage({ text: data.error || 'Cutout complete.', error: false });
+        setTimeout(() => setStatusMessage(null), 3000);
       }
     } catch (err: any) {
-      setStatusMessage({ text: err.message || 'Erreur serveur', error: true });
+      setStatusMessage({ text: err.message || 'Error processing request', error: true });
     } finally {
       setIsProcessing(false);
     }
   };
 
+  // Téléversement d'image utilisateur
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -76,144 +295,172 @@ export default function CutoutStudioPage() {
     reader.onload = () => {
       const b64 = reader.result as string;
       setInputImage(b64);
+      setOutputTransparent(b64);
+      setSelectedSampleId('');
       runCutout(b64);
     };
     reader.readAsDataURL(file);
   };
 
+  // Sélection d'un exemple prédéfini
+  const handleSelectSample = (sample: SampleItem) => {
+    setSelectedSampleId(sample.id);
+    setInputImage(sample.originalUrl);
+    setOutputTransparent(sample.cutoutUrl);
+    setStatusMessage(null);
+  };
+
+  // Téléchargement du résultat
   const handleDownload = () => {
-    if (!outputTransparent) return;
+    const targetUrl = outputTransparent || inputImage;
+    if (!targetUrl) return;
     const a = document.createElement('a');
-    a.href = outputTransparent;
-    a.download = `produit_detoure_MarkMosaiq_${Date.now()}.png`;
+    a.href = targetUrl;
+    a.download = `product_cutout_MarkMosaiq_${Date.now()}.png`;
     a.click();
   };
 
-  const handleAddToCatalog = async () => {
-    if (!outputTransparent) return;
+  // Copie dans le presse-papier
+  const handleCopy = async () => {
     try {
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: `Produit Détouré IA (${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })})`,
-          brand: workspace?.name || 'Ma Boutique',
-          priceTND: 49,
-          originalImageUrl: inputImage,
-          cutoutImageUrl: outputTransparent,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setStatusMessage({ text: '✓ Produit ajouté au catalogue avec succès !' });
-        setTimeout(() => setStatusMessage(null), 3500);
+      const targetUrl = outputTransparent || inputImage;
+      if (!targetUrl) return;
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(window.location.origin + targetUrl);
+        setCopyFeedback(true);
+        setTimeout(() => setCopyFeedback(false), 2000);
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
     }
+  };
+
+  // Réinitialisation "Nouveau"
+  const handleReset = () => {
+    handleSelectSample(sampleProducts[0]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
     <AppShell activeNav="cutout" pageTitle="Studio Détourage IA & Prise de Vue">
-      <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
+      <div suppressHydrationWarning style={{ maxWidth: '1240px', margin: '0 auto', paddingBottom: '32px' }}>
 
-        {/* En-tête de la page */}
+        {/* ============================================================== */}
+        {/* BANNIÈRE HÉROS HAUTE : BACKGROUND REMOVER                      */}
+        {/* ============================================================== */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '16px',
-          marginBottom: '28px',
+          marginBottom: '24px',
         }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-              <span style={{
+          {/* Groupe Titre Gauche */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '14px',
+              background: '#4F46E5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)',
+              flexShrink: 0,
+            }}>
+              <Scissors size={26} color="#FFFFFF" strokeWidth={2.2} />
+            </div>
+
+            <div>
+              <div style={{
                 fontSize: '11px',
                 fontWeight: 800,
-                color: '#4F46E5',
+                color: '#6366F1',
+                letterSpacing: '0.12em',
                 textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                background: '#EEF2FF',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                border: '1px solid #C7D2FE',
+                marginBottom: '2px',
               }}>
-                Moteur IA Haute Définition
-              </span>
-              <span style={{ fontSize: '13px', color: '#64748B' }}>
-                Extraction d&apos;objets sans perte pour le e-commerce
-              </span>
+                {t.tagline}
+              </div>
+              <h1 style={{
+                fontSize: '24px',
+                fontWeight: 800,
+                color: '#0F172A',
+                margin: 0,
+                letterSpacing: '-0.02em',
+                lineHeight: 1.2,
+              }}>
+                {t.title}
+              </h1>
+              <p style={{
+                fontSize: '13px',
+                color: '#64748B',
+                margin: '4px 0 0 0',
+              }}>
+                {t.subtitle}
+              </p>
             </div>
-            <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
-              Studio Détourage IA & Prise de Vue
-            </h1>
-            <p style={{ color: '#64748B', fontSize: '14px', marginTop: '6px' }}>
-              Transformez vos photos de produits en PNG transparents ultra-nets prêts pour vos mises en scène commerciales.
-            </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept="image/*"
-              style={{ display: 'none' }}
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '11px 18px',
-                background: '#FFFFFF',
-                borderRadius: '8px',
-                border: '1px solid #CBD5E1',
-                color: '#0F172A',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              Importer une Photo
-            </button>
-            <button
-              onClick={() => runCutout(inputImage)}
-              disabled={isProcessing}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '11px 22px',
-                background: 'linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)',
-                borderRadius: '8px',
-                border: 'none',
-                color: '#FFFFFF',
-                fontSize: '13px',
-                fontWeight: 800,
-                cursor: isProcessing ? 'wait' : 'pointer',
-                boxShadow: '0 2px 10px rgba(124, 58, 237, 0.35)',
-              }}
-            >
-              <Scissors size={15} />
-              <span>{isProcessing ? 'Détourage IA...' : "Détourer l'objet (1 crédit)"}</span>
-            </button>
+          {/* Groupe Badges Droite */}
+          <div style={{
+            background: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            borderRadius: '16px',
+            padding: '10px 22px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '24px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+          }}>
+            {/* Item 1 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ color: '#8B5CF6' }}>
+                <Zap size={18} />
+              </div>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>{t.ultraFast}</div>
+                <div style={{ fontSize: '10px', color: '#94A3B8' }}>{t.inSeconds}</div>
+              </div>
+            </div>
+
+            {/* Item 2 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ color: '#3B82F6' }}>
+                <ShieldCheck size={18} />
+              </div>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>{t.highPrecision}</div>
+                <div style={{ fontSize: '10px', color: '#94A3B8' }}>{t.detailsSub}</div>
+              </div>
+            </div>
+
+            {/* Item 3 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ color: '#A855F7' }}>
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>{t.quality4k}</div>
+                <div style={{ fontSize: '10px', color: '#94A3B8' }}>{t.noLossSub}</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Feedback message */}
+        {/* Message d'état */}
         {statusMessage && (
           <div style={{
-            padding: '12px 20px',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            fontSize: '14px',
+            padding: '10px 18px',
+            borderRadius: '10px',
+            marginBottom: '18px',
+            fontSize: '13px',
             fontWeight: 700,
-            background: statusMessage.error ? '#FEF2F2' : '#ECFDF5',
-            border: `1px solid ${statusMessage.error ? '#FECACA' : '#A7F3D0'}`,
-            color: statusMessage.error ? '#DC2626' : '#059669',
+            background: statusMessage.error ? '#FEF2F2' : '#EEF2FF',
+            border: `1px solid ${statusMessage.error ? '#FECACA' : '#C7D2FE'}`,
+            color: statusMessage.error ? '#DC2626' : '#4F46E5',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -228,328 +475,637 @@ export default function CutoutStudioPage() {
           </div>
         )}
 
-        {/* Grille principale : Paramètres & Visualiseur */}
-        <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '28px', alignItems: 'start' }}>
+        {/* ============================================================== */}
+        {/* GRILLE PRINCIPALE À DEUX COLONNES                              */}
+        {/* ============================================================== */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '380px 1fr',
+          gap: '24px',
+          alignItems: 'start',
+        }}>
 
-          {/* Panneau Latéral : Réglages */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* ============================================================ */}
+          {/* COLONNE GAUCHE : TÉLÉVERSEMENT & EXEMPLES                    */}
+          {/* ============================================================ */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-            {/* Boîte 1 : Exemples prêts à l'emploi */}
-            <div style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              border: '1px solid #E2E8F0',
-              padding: '20px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-            }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0' }}>
-                Exemples de Démonstration
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                {sampleImages.map((s, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setInputImage(s.url);
-                      runCutout(s.url);
-                    }}
-                    style={{
-                      background: '#F8FAFC',
-                      border: inputImage === s.url ? '2px solid #4F46E5' : '1px solid #E2E8F0',
-                      borderRadius: '8px',
-                      padding: '8px',
-                      cursor: 'pointer',
-                      textAlign: 'center',
-                    }}
-                  >
-                    <img
-                      src={s.url}
-                      alt={s.label}
-                      style={{ height: '50px', width: '100%', objectFit: 'contain', marginBottom: '6px' }}
-                    />
-                    <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: 600, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {s.label}
-                    </span>
-                  </button>
-                ))}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept="image/png,image/jpeg,image/webp"
+              style={{ display: 'none' }}
+            />
+
+            {/* Boîte de Téléversement */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const file = e.dataTransfer.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const b64 = reader.result as string;
+                    setInputImage(b64);
+                    setOutputTransparent(b64);
+                    setSelectedSampleId('');
+                    runCutout(b64);
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+              style={{
+                background: '#FFFFFF',
+                border: '2px dashed #818CF8',
+                borderRadius: '16px',
+                padding: '30px 20px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+              }}
+            >
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '10px',
+                color: '#4F46E5',
+              }}>
+                <UploadCloud size={38} strokeWidth={1.8} />
+              </div>
+              <div style={{
+                fontSize: '15px',
+                fontWeight: 800,
+                color: '#0F172A',
+                marginBottom: '4px',
+              }}>
+                {t.uploadTitle}
+              </div>
+              <div style={{
+                fontSize: '12px',
+                color: '#64748B',
+                marginBottom: '4px',
+              }}>
+                {t.uploadSubtitle}
+              </div>
+              <div style={{
+                fontSize: '11px',
+                color: '#94A3B8',
+              }}>
+                {t.uploadFormats}
               </div>
             </div>
 
-            {/* Boîte 2 : Fond de Prévisualisation */}
+            {/* Séparateur "OU" / "OR" */}
             <div style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              border: '1px solid #E2E8F0',
-              padding: '20px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              display: 'flex',
+              alignItems: 'center',
+              margin: '14px 0',
             }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0' }}>
-                Fond d&apos;Aperçu
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                {[
-                  { id: 'checker', label: 'Damier Transparent' },
-                  { id: 'dark', label: 'Contraste Sombre' },
-                  { id: 'white', label: 'Blanc Pur' },
-                  { id: 'studio', label: 'Teinte Douce' },
-                ].map((b) => (
-                  <button
-                    key={b.id}
-                    onClick={() => setBgPreview(b.id as any)}
-                    style={{
-                      padding: '8px',
-                      borderRadius: '6px',
-                      background: bgPreview === b.id ? '#EEF2FF' : '#F8FAFC',
-                      border: bgPreview === b.id ? '1px solid #4F46E5' : '1px solid #E2E8F0',
-                      color: bgPreview === b.id ? '#4F46E5' : '#64748B',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {b.label}
-                  </button>
-                ))}
+              <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+              <span style={{
+                padding: '0 10px',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#94A3B8',
+                textTransform: 'uppercase',
+              }}>
+                {t.or}
+              </span>
+              <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+            </div>
+
+            {/* Rangée d'Exemples */}
+            <div>
+              <div style={{
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#334155',
+                marginBottom: '8px',
+              }}>
+                {t.examples}
               </div>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(5, 1fr)',
+                gap: '8px',
+              }}>
+                {sampleProducts.map((sample) => {
+                  const isSelected = selectedSampleId === sample.id;
+                  const label = t.sampleNames[sample.nameKey];
+                  return (
+                    <button
+                      key={sample.id}
+                      onClick={() => handleSelectSample(sample)}
+                      style={{
+                        background: '#FFFFFF',
+                        border: isSelected ? '2px solid #4F46E5' : '1px solid #E2E8F0',
+                        borderRadius: '10px',
+                        padding: '4px',
+                        height: '58px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        boxShadow: isSelected ? '0 0 0 2px rgba(79, 70, 229, 0.15)' : 'none',
+                      }}
+                      title={label}
+                    >
+                      {sample.id === 'sneaker' && (
+                        <img
+                          src="/images/sample_sneaker_panda.jpg"
+                          alt="Sneaker"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/images/adora_sneakers_clean.jpg';
+                          }}
+                          style={{ maxHeight: '42px', maxWidth: '42px', objectFit: 'contain' }}
+                        />
+                      )}
+
+                      {sample.id === 'perfume' && (
+                        <img
+                          src="/images/sample_perfume_amber.jpg"
+                          alt="Perfume"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/images/adora_hero_perfume.jpg';
+                          }}
+                          style={{ maxHeight: '42px', maxWidth: '42px', objectFit: 'contain' }}
+                        />
+                      )}
+
+                      {sample.id === 'cream' && (
+                        <img
+                          src="/images/sample_cream_jar.jpg"
+                          alt="Cream"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/images/gnc_pro_whey_tub_1791150838901.jpg';
+                          }}
+                          style={{ maxHeight: '42px', maxWidth: '42px', objectFit: 'contain' }}
+                        />
+                      )}
+
+                      {sample.id === 'watch' && (
+                        <img
+                          src="/images/test_watch_source.jpg"
+                          alt="Watch"
+                          style={{ maxHeight: '42px', maxWidth: '42px', objectFit: 'contain' }}
+                        />
+                      )}
+
+                      {sample.id === 'headphones' && (
+                        <img
+                          src="/images/bottle_nutrex.png"
+                          alt="Headphones"
+                          style={{ maxHeight: '42px', maxWidth: '42px', objectFit: 'contain' }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Bouton d'Action Principal */}
+            <button
+              onClick={() => runCutout(inputImage)}
+              disabled={isProcessing}
+              style={{
+                width: '100%',
+                marginTop: '20px',
+                padding: '13px 20px',
+                background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+                borderRadius: '12px',
+                border: 'none',
+                color: '#FFFFFF',
+                fontSize: '14px',
+                fontWeight: 800,
+                cursor: isProcessing ? 'wait' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>{t.processingBtn}</span>
+                </>
+              ) : (
+                <>
+                  <Scissors size={16} />
+                  <span>{t.removeBtn}</span>
+                </>
+              )}
+            </button>
+
+            {/* Note de traitement */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              marginTop: '10px',
+              color: '#64748B',
+              fontSize: '12px',
+            }}>
+              <Clock size={13} color="#64748B" />
+              <span>{t.processTimeNote}</span>
             </div>
 
           </div>
 
-          {/* Espace Central : Visualiseur Interactif */}
+          {/* ============================================================ */}
+          {/* COLONNE DROITE : VISUALISEUR AVANT / APRÈS                   */}
+          {/* ============================================================ */}
           <div style={{
             background: '#FFFFFF',
-            borderRadius: '16px',
+            borderRadius: '20px',
             border: '1px solid #E2E8F0',
-            padding: '24px',
+            padding: '20px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
             display: 'flex',
             flexDirection: 'column',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
           }}>
 
-            {/* Barre de contrôle du visualiseur */}
+            {/* Barre de contrôle supérieure */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '20px',
+              marginBottom: '16px',
               flexWrap: 'wrap',
               gap: '12px',
             }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              {/* Onglets Aperçu / Résultat */}
+              <div style={{ display: 'flex', gap: '6px' }}>
                 <button
-                  onClick={() => setViewMode('compare')}
+                  onClick={() => {
+                    setActiveTab('preview');
+                    setIsCompareMode(false);
+                  }}
                   style={{
-                    padding: '8px 14px',
-                    borderRadius: '6px',
-                    border: '1px solid #E2E8F0',
-                    background: viewMode === 'compare' ? '#4F46E5' : '#F8FAFC',
-                    color: viewMode === 'compare' ? '#FFFFFF' : '#64748B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '7px 16px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: (!isCompareMode && activeTab === 'preview') || isCompareMode ? '#4F46E5' : 'transparent',
+                    color: (!isCompareMode && activeTab === 'preview') || isCompareMode ? '#FFFFFF' : '#64748B',
                     fontSize: '12px',
                     fontWeight: 800,
                     cursor: 'pointer',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  Comparaison Côte à Côte
+                  <ImageIcon size={14} />
+                  <span>{t.tabPreview}</span>
                 </button>
+
                 <button
-                  onClick={() => setViewMode('result')}
+                  onClick={() => {
+                    setActiveTab('result');
+                    setIsCompareMode(false);
+                  }}
                   style={{
-                    padding: '8px 14px',
-                    borderRadius: '6px',
-                    border: '1px solid #E2E8F0',
-                    background: viewMode === 'result' ? '#4F46E5' : '#F8FAFC',
-                    color: viewMode === 'result' ? '#FFFFFF' : '#64748B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '7px 16px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: !isCompareMode && activeTab === 'result' ? '#4F46E5' : 'transparent',
+                    color: !isCompareMode && activeTab === 'result' ? '#FFFFFF' : '#64748B',
                     fontSize: '12px',
-                    fontWeight: 800,
+                    fontWeight: 700,
                     cursor: 'pointer',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  Rendu Détouré Seul
+                  <Sparkles size={14} />
+                  <span>{t.tabResult}</span>
                 </button>
               </div>
 
-              <div style={{ fontSize: '12px', color: '#64748B' }}>
-                Moteur : <strong style={{ color: '#4F46E5' }}>Studio IA Détourage Haute Précision</strong>
+              {/* Commutateur Avant / Après */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                  {t.toggleCompare}
+                </span>
+                <div
+                  onClick={() => setIsCompareMode(!isCompareMode)}
+                  style={{
+                    width: '38px',
+                    height: '20px',
+                    borderRadius: '10px',
+                    background: isCompareMode ? '#4F46E5' : '#CBD5E1',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s ease',
+                  }}
+                >
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
+                    background: '#FFFFFF',
+                    position: 'absolute',
+                    top: '2px',
+                    left: isCompareMode ? '20px' : '2px',
+                    transition: 'left 0.2s ease',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  }} />
+                </div>
               </div>
             </div>
 
-            {/* Zone Visuelle avec Fond Sélectionné */}
-            <div style={{
-              minHeight: '440px',
-              borderRadius: '12px',
-              border: '1px solid #E2E8F0',
-              display: 'grid',
-              gridTemplateColumns: viewMode === 'compare' ? '1fr 1fr' : '1fr',
-              gap: viewMode === 'compare' ? '16px' : '0',
-              padding: '24px',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: bgPreview === 'white' ? '#FFFFFF' : bgPreview === 'dark' ? '#1E293B' : bgPreview === 'studio' ? '#F1F5F9' : '#FFFFFF',
-              backgroundImage: bgPreview === 'checker'
-                ? 'linear-gradient(45deg, #E2E8F0 25%, transparent 25%), linear-gradient(-45deg, #E2E8F0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #E2E8F0 75%), linear-gradient(-45deg, transparent 75%, #E2E8F0 75%)'
-                : 'none',
-              backgroundSize: '20px 20px',
-              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
-            }}>
-
-              {/* Photo originale (si mode compare) */}
-              {viewMode === 'compare' && (
-                <div style={{ textAlign: 'center', position: 'relative' }}>
-                  <span style={{
+            {/* Zone Visuelle Principale */}
+            <div
+              ref={containerRef}
+              onMouseDown={handleMouseDown}
+              style={{
+                position: 'relative',
+                borderRadius: '14px',
+                overflow: 'hidden',
+                height: '420px',
+                background: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                userSelect: 'none',
+                cursor: isCompareMode ? 'ew-resize' : 'default',
+              }}
+            >
+              {isCompareMode ? (
+                <>
+                  {/* Côté Gauche : Image originale */}
+                  <div style={{
                     position: 'absolute',
-                    top: '0',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: 'rgba(15, 23, 42, 0.8)',
-                    color: '#FFF',
-                    padding: '3px 8px',
-                    borderRadius: '4px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    width: `${sliderPosition}%`,
+                    overflow: 'hidden',
+                    background: '#F1F5F9',
+                    zIndex: 2,
                   }}>
-                    Photo Originale
-                  </span>
+                    {/* Badge Image originale */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '14px',
+                      left: '14px',
+                      background: 'rgba(15, 23, 42, 0.75)',
+                      backdropFilter: 'blur(4px)',
+                      color: '#FFFFFF',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      zIndex: 5,
+                    }}>
+                      {t.badgeOriginal}
+                    </div>
+
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: containerRef.current?.clientWidth || 700,
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <img
+                        src={inputImage}
+                        alt="Original"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/images/adora_sneakers_clean.jpg';
+                        }}
+                        style={{
+                          maxHeight: '340px',
+                          maxWidth: '85%',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Côté Droit : Fond supprimé avec damier transparent */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    right: 0,
+                    overflow: 'hidden',
+                    zIndex: 1,
+                    backgroundColor: '#FFFFFF',
+                    backgroundImage: 'linear-gradient(45deg, #F1F5F9 25%, transparent 25%), linear-gradient(-45deg, #F1F5F9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #F1F5F9 75%), linear-gradient(-45deg, transparent 75%, #F1F5F9 75%)',
+                    backgroundSize: '16px 16px',
+                    backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    {/* Badge Fond supprimé */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '14px',
+                      right: '14px',
+                      background: '#4F46E5',
+                      color: '#FFFFFF',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      zIndex: 5,
+                    }}>
+                      {t.badgeCutout}
+                    </div>
+
+                    <img
+                      src={outputTransparent || inputImage}
+                      alt="Cutout"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/adora_sneakers_clean.jpg';
+                      }}
+                      style={{
+                        maxHeight: '340px',
+                        maxWidth: '85%',
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.12))',
+                      }}
+                    />
+                  </div>
+
+                  {/* Curseur de séparation vertical */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    bottom: 0,
+                    left: `${sliderPosition}%`,
+                    transform: 'translateX(-50%)',
+                    width: '2px',
+                    background: '#FFFFFF',
+                    boxShadow: '0 0 6px rgba(0,0,0,0.25)',
+                    zIndex: 10,
+                    cursor: 'ew-resize',
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: '#FFFFFF',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#4F46E5',
+                    }}>
+                      <ChevronLeft size={13} strokeWidth={3} />
+                      <ChevronRight size={13} strokeWidth={3} />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* Mode simple : Aperçu seul OU Résultat seul */
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                  backgroundColor: activeTab === 'preview' ? '#F1F5F9' : '#FFFFFF',
+                  backgroundImage: activeTab === 'result'
+                    ? 'linear-gradient(45deg, #F1F5F9 25%, transparent 25%), linear-gradient(-45deg, #F1F5F9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #F1F5F9 75%), linear-gradient(-45deg, transparent 75%, #F1F5F9 75%)'
+                    : 'none',
+                  backgroundSize: '16px 16px',
+                  backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    top: '14px',
+                    left: '14px',
+                    background: activeTab === 'preview' ? 'rgba(15, 23, 42, 0.75)' : '#4F46E5',
+                    color: '#FFFFFF',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    zIndex: 5,
+                  }}>
+                    {activeTab === 'preview' ? t.badgeOriginal : t.badgeCutout}
+                  </div>
+
                   <img
-                    src={inputImage}
-                    alt="Original"
+                    src={activeTab === 'preview' ? inputImage : (outputTransparent || inputImage)}
+                    alt="Selected view"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/images/adora_sneakers_clean.jpg';
+                    }}
                     style={{
                       maxHeight: '340px',
-                      maxWidth: '100%',
+                      maxWidth: '85%',
                       objectFit: 'contain',
-                      marginTop: '24px',
+                      filter: activeTab === 'result' ? 'drop-shadow(0 15px 25px rgba(0,0,0,0.12))' : 'none',
                     }}
                   />
                 </div>
               )}
-
-              {/* Rendu détouré transparent */}
-              <div style={{ textAlign: 'center', position: 'relative' }}>
-                <span style={{
-                  position: 'absolute',
-                  top: '0',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: '#EEF2FF',
-                  border: '1px solid #C7D2FE',
-                  color: '#4F46E5',
-                  padding: '3px 8px',
-                  borderRadius: '4px',
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                }}>
-                  Détouré HD Transparent
-                </span>
-
-                {isProcessing ? (
-                  <div style={{ height: '340px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4F46E5', fontSize: '14px', fontWeight: 700 }}>
-                    Suppression du fond via OpenAI en cours...
-                  </div>
-                ) : outputTransparent ? (
-                  <img
-                    src={outputTransparent}
-                    alt="Cutout Transparent"
-                    style={{
-                      maxHeight: '340px',
-                      maxWidth: '100%',
-                      objectFit: 'contain',
-                      marginTop: '24px',
-                      filter: bgPreview === 'white' ? 'none' : 'drop-shadow(0 15px 25px rgba(0,0,0,0.15))',
-                    }}
-                  />
-                ) : (
-                  <div style={{ height: '340px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
-                    <div style={{ fontSize: '14px', color: '#64748B', fontWeight: 600 }}>
-                      Prêt pour le détourage haute précision
-                    </div>
-                    <button
-                      onClick={() => runCutout(inputImage)}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '12px 22px',
-                        background: 'linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)',
-                        borderRadius: '10px',
-                        border: 'none',
-                        color: '#FFFFFF',
-                        fontSize: '14px',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
-                      }}
-                    >
-                      <Scissors size={16} />
-                      <span>Détourer l'objet (1 crédit)</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
             </div>
 
-            {/* Barre d'Actions d'Exportation */}
+            {/* Barre d'Actions Inférieure */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginTop: '24px',
-              paddingTop: '20px',
-              borderTop: '1px solid #E2E8F0',
+              marginTop: '16px',
               flexWrap: 'wrap',
-              gap: '12px',
+              gap: '10px',
             }}>
+              {/* Gauche : Télécharger & Copier */}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={handleDownload}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '9px 18px',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '10px',
+                    color: '#334155',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Download size={14} />
+                  <span>{t.btnDownload}</span>
+                </button>
+
+                <button
+                  onClick={handleCopy}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '9px 18px',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '10px',
+                    color: '#334155',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {copyFeedback ? <Check size={14} color="#10B981" /> : <Copy size={14} />}
+                  <span>{copyFeedback ? t.copiedFeedback : t.btnCopy}</span>
+                </button>
+              </div>
+
+              {/* Droite : Nouveau */}
               <button
-                onClick={handleDownload}
-                disabled={!outputTransparent}
+                onClick={handleReset}
                 style={{
-                  padding: '11px 20px',
-                  background: '#F8FAFC',
-                  border: '1px solid #CBD5E1',
-                  borderRadius: '8px',
-                  color: '#0F172A',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  cursor: !outputTransparent ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 20px',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #C7D2FE',
+                  borderRadius: '10px',
+                  color: '#6366F1',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                Télécharger le PNG HD
+                <RotateCcw size={14} color="#6366F1" />
+                <span>{t.btnNew}</span>
               </button>
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  onClick={handleAddToCatalog}
-                  disabled={!outputTransparent}
-                  style={{
-                    padding: '11px 18px',
-                    background: '#F5F3FF',
-                    border: '1px solid #DDD6FE',
-                    borderRadius: '8px',
-                    color: '#7C3AED',
-                    fontSize: '13px',
-                    fontWeight: 800,
-                    cursor: !outputTransparent ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  Ajouter au Catalogue
-                </button>
-                <Link
-                  href="/studio"
-                  style={{
-                    padding: '11px 22px',
-                    background: '#4F46E5',
-                    borderRadius: '8px',
-                    color: '#FFFFFF',
-                    fontSize: '13px',
-                    fontWeight: 900,
-                    textDecoration: 'none',
-                    boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
-                  }}
-                >
-                  Mettre en Scène dans le Studio ➔
-                </Link>
-              </div>
             </div>
 
           </div>

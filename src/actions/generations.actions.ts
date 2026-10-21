@@ -109,3 +109,30 @@ export async function recordGenerationAction(payload: {
     return { success: false, error: err.message };
   }
 }
+
+export async function ensureSampleImagesAction() {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const artifactDir = 'C:\\Users\\MEDIA INFOPLUS\\.gemini\\antigravity-ide\\brain\\550fa523-2c99-427c-b2a9-abdfd965f84f';
+    const publicDir = path.join(process.cwd(), 'public', 'images');
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
+    }
+    const pairs = [
+      { src: 'sample_sneaker_panda_1792504407509.jpg', dest: 'sample_sneaker_panda.jpg' },
+      { src: 'sample_perfume_amber_1792504426581.jpg', dest: 'sample_perfume_amber.jpg' },
+      { src: 'sample_cream_jar_1792504447613.jpg', dest: 'sample_cream_jar.jpg' },
+    ];
+    for (const p of pairs) {
+      const srcPath = path.join(artifactDir, p.src);
+      const destPath = path.join(publicDir, p.dest);
+      if (fs.existsSync(srcPath) && !fs.existsSync(destPath)) {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}

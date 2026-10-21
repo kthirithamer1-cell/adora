@@ -155,7 +155,7 @@ export default function StudioNavbar({
         <span className={s.breadcrumbSeparator}>/</span>
 
         <div className={s.breadcrumbCurrent}>
-          <span>{pageTitle || t.studio.navbar.title}</span>
+          <span suppressHydrationWarning>{pageTitle || t.studio.navbar.title}</span>
           {pageBadge ? (
             pageBadge
           ) : (
