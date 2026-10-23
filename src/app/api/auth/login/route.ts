@@ -11,7 +11,7 @@ import {
   syncUserAndWorkspaceToSupabase,
   UserRole,
 } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import { supabase, resolveWorkspaceUuid } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {
@@ -119,9 +119,22 @@ export async function POST(req: NextRequest) {
     }
 
     const activeWorkspace = userWorkspaces[0] || getMemoryWorkspaces()[0];
-    if (activeWorkspace && activeWorkspace.creditsRemaining === 0 && (activeWorkspace.plan === 'flash' || (activeWorkspace as any).plan === 'trial')) {
-      activeWorkspace.creditsRemaining = 8;
-      savePersistedStore();
+    if (activeWorkspace) {
+      try {
+        const cleanWsId = resolveWorkspaceUuid(activeWorkspace.id);
+        const sbWs = await supabase
+          .from('workspaces')
+          .select('credits_remaining, plan')
+          .eq('id', cleanWsId)
+          .limit(1);
+        const wsRows = Array.isArray(sbWs) ? sbWs : sbWs?.data || [];
+        if (wsRows.length > 0 && typeof wsRows[0]?.credits_remaining === 'number') {
+          activeWorkspace.creditsRemaining = wsRows[0].credits_remaining;
+          if (wsRows[0].plan) activeWorkspace.plan = wsRows[0].plan;
+        }
+      } catch {
+        // Fallback sur le solde mémoire si Supabase est temporairement indisponible
+      }
     }
 
     // Assurer la présence dans Supabase

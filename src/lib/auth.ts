@@ -334,6 +334,88 @@ export function getWorkspacesForUser(userId: string): Workspace[] {
   );
 }
 
+function pickRows(res: any): any[] {
+  return Array.isArray(res) ? res : res?.data || [];
+}
+
+/**
+ * Charge les workspaces d'un utilisateur depuis Supabase (source de vérité en déploiement)
+ * et les injecte dans la mémoire de l'instance serverless courante.
+ */
+export async function hydrateWorkspacesFromSupabase(user: User): Promise<Workspace[]> {
+  try {
+    const rows = pickRows(
+      await supabase.from('workspaces').select('*').eq('owner_id', user.id).limit(20)
+    );
+    for (const w of rows) {
+      if (!w?.id || findWorkspaceById(w.id)) continue;
+      memoryWorkspaces.push({
+        id: w.id,
+        name: w.name || `${user.name}'s Store`,
+        slug: w.slug || w.id,
+        ownerId: w.owner_id,
+        plan: w.plan === 'agency' ? 'agency' : w.plan === 'pro' ? 'pro' : 'flash',
+        creditsRemaining: typeof w.credits_remaining === 'number' ? w.credits_remaining : 0,
+        whiteLabelEnabled: w.plan === 'agency',
+        members: [
+          {
+            userId: user.id,
+            userEmail: user.email,
+            userName: user.name,
+            role: 'owner',
+            joinedAt: w.created_at || new Date().toISOString(),
+          },
+        ],
+        createdAt: w.created_at || new Date().toISOString(),
+      });
+    }
+  } catch (err) {
+    console.warn('[hydrateWorkspacesFromSupabase]:', err);
+  }
+  return getWorkspacesForUser(user.id);
+}
+
+/**
+ * Retrouve un utilisateur existant dans Supabase (par id puis par email).
+ * Ne crée JAMAIS de nouveau compte : évite les doublons à 10 crédits sur Vercel.
+ */
+export async function hydrateUserFromSupabase(
+  userId: string | null,
+  userEmail: string | null
+): Promise<User | undefined> {
+  try {
+    let rows: any[] = [];
+    if (userId) {
+      rows = pickRows(await supabase.from('users').select('*').eq('id', userId).limit(1));
+    }
+    if (rows.length === 0 && userEmail) {
+      rows = pickRows(
+        await supabase.from('users').select('*').eq('email', userEmail.trim().toLowerCase()).limit(1)
+      );
+    }
+    const u = rows[0];
+    if (!u?.id) return undefined;
+
+    const existing = findUserById(u.id) || findUserByEmail(u.email);
+    if (existing) return existing;
+
+    const user: User = {
+      id: u.id,
+      email: u.email,
+      name: u.full_name || String(u.email).split('@')[0],
+      phone: u.phone || undefined,
+      avatarUrl: u.avatar_url || undefined,
+      createdAt: u.created_at || new Date().toISOString(),
+    };
+    memoryUsers.push(user);
+    await hydrateWorkspacesFromSupabase(user);
+    return user;
+  } catch (err) {
+    console.warn('[hydrateUserFromSupabase]:', err);
+    return undefined;
+  }
+}
+
 export async function getCurrentSession(): Promise<SessionData | null> {
   try {
     const cookieStore = await cookies();
@@ -364,27 +446,26 @@ export async function getCurrentSession(): Promise<SessionData | null> {
     if (!user && userEmail) {
       user = findUserByEmail(userEmail);
     }
-    if (!user && userEmail) {
-      const cleanEmail = userEmail.trim().toLowerCase();
-      const reg = registerUserAndWorkspace({
-        email: cleanEmail,
-        name: cleanEmail.split('@')[0],
-        shopName: `${cleanEmail.split('@')[0]}'s Store`,
-        plan: 'flash',
-      });
-      user = reg.user;
-      activeWorkspaceId = reg.workspace.id;
+    // Instance serverless « froide » (Vercel) : réhydrater depuis Supabase au lieu de créer un doublon
+    if (!user) {
+      user = (await hydrateUserFromSupabase(userId, userEmail)) || null;
     }
 
     if (!user) {
       return null;
     }
 
-    const userWorkspaces = getWorkspacesForUser(user.id);
+    let userWorkspaces = getWorkspacesForUser(user.id);
+    if (userWorkspaces.length === 0) {
+      userWorkspaces = await hydrateWorkspacesFromSupabase(user);
+    }
     let activeWorkspace = userWorkspaces.find((w) => w.id === activeWorkspaceId);
 
     if (!activeWorkspace) {
-      activeWorkspace = userWorkspaces[0] || memoryWorkspaces[0];
+      activeWorkspace = userWorkspaces[0];
+    }
+    if (!activeWorkspace) {
+      return null;
     }
 
     // Synchronisation en direct depuis Supabase Cloud pour la persistance en déploiement
@@ -689,11 +770,6 @@ export function registerUserAndWorkspace(params: {
     const existingWorkspaces = getWorkspacesForUser(user.id);
     if (existingWorkspaces.length > 0) {
       const activeWs = existingWorkspaces[0];
-      // Si les crédits ont été involontairement remis à 0, restaurer le solde restant (8 crédits)
-      if (activeWs.creditsRemaining === 0 && (activeWs.plan === 'flash' || (activeWs as any).plan === 'trial')) {
-        activeWs.creditsRemaining = 8;
-      }
-      savePersistedStore();
       return { user, workspace: activeWs };
     }
   }

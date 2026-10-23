@@ -271,7 +271,7 @@ export const fr: TranslationDictionary = {
       packSelected: 'Pack Sélectionné',
       trialCredits: '+ 10 Crédits d\'essai offerts',
       whopAfter: 'Paiement Whop après inscription',
-      freePlanLabel: 'Plan Gratuit (0 DT / mois)',
+      freePlanLabel: 'Plan Gratuit ($0 / mois)',
       freeTrialCredits: '+ 5 Crédits d\'essai offerts',
       freeNoCard: 'Accès immédiat sans carte',
       editEmail: 'Modifier l\'email',
