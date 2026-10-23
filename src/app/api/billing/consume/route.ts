@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { productName, category, aspect, amount = 1 } = body;
 
-    const result = deductCredit(session.workspace.id, amount, {
+    const result = await deductCredit(session.workspace.id, amount, {
       productName: productName || 'Produit',
       category: category || 'studio',
       aspect: aspect || '1:1',

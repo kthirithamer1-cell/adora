@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     } = body;
 
     // 1. Vérification du solde de crédits
-    const balanceCheck = checkCreditBalance(workspaceId, 1);
+    const balanceCheck = await checkCreditBalance(workspaceId, 1);
     if (!balanceCheck.sufficient) {
       return NextResponse.json({
         success: false,
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
     const finalImageUrl = result;
 
     // 8. Déduction du crédit & Enregistrement de l'usage
-    const deduction = deductCredit(workspaceId, 1, {
+    const deduction = await deductCredit(workspaceId, 1, {
       productName,
       category: 'studio',
       aspect,

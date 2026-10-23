@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     const rawProductImage = cutoutBase64 || imageBase64;
 
     // 1. Vérification du solde avant exécution
-    const balanceCheck = checkCreditBalance(workspaceId, 1);
+    const balanceCheck = await checkCreditBalance(workspaceId, 1);
     if (!balanceCheck.sufficient) {
       return NextResponse.json({
         success: false,
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     );
 
     // 4. Débit du crédit
-    const deductResult = deductCredit(workspaceId, 1, {
+    const deductResult = await deductCredit(workspaceId, 1, {
       productName: productName || 'Scène Commerciale IA',
       category: category || 'studio',
       aspect,

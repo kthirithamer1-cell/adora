@@ -1,4 +1,5 @@
 import { findWorkspaceById, savePersistedStore } from './auth';
+import { supabase, resolveWorkspaceUuid } from './supabase';
 import { getApiUsageLogs, getApiUsageMetrics, ApiUsageLogEntry } from './apiUsageLogger';
 
 export interface BillingTransaction {
@@ -110,21 +111,55 @@ const initialLogs: Record<string, GenerationLog[]> = {
 let memoryTransactions = { ...initialTransactions };
 let memoryLogs = { ...initialLogs };
 
-export function checkCreditBalance(
+export async function checkCreditBalance(
   workspaceId: string,
   amount: number = 1
-): { sufficient: boolean; remaining: number } {
-  const ws = findWorkspaceById(workspaceId);
-  const remaining = ws ? ws.creditsRemaining : 0;
+): Promise<{ sufficient: boolean; remaining: number }> {
+  const cleanWsId = resolveWorkspaceUuid(workspaceId);
+  const ws = findWorkspaceById(workspaceId) || findWorkspaceById(cleanWsId);
+  let remaining = ws ? ws.creditsRemaining : 0;
+
+  try {
+    const sbWs = await supabase
+      .from('workspaces')
+      .select('credits_remaining')
+      .eq('id', cleanWsId)
+      .limit(1);
+    const rows = Array.isArray(sbWs) ? sbWs : sbWs?.data || [];
+    if (rows.length > 0 && typeof rows[0]?.credits_remaining === 'number') {
+      remaining = rows[0].credits_remaining;
+      if (ws) ws.creditsRemaining = remaining;
+    }
+  } catch (err) {
+    console.warn('[checkCreditBalance Supabase fallback]:', err);
+  }
+
   return {
     sufficient: remaining >= amount,
     remaining,
   };
 }
 
-export function getWorkspaceUsage(workspaceId: string): WorkspaceUsage {
-  const ws = findWorkspaceById(workspaceId);
-  const creditsRemaining = ws ? ws.creditsRemaining : 10;
+export async function getWorkspaceUsage(workspaceId: string): Promise<WorkspaceUsage> {
+  const cleanWsId = resolveWorkspaceUuid(workspaceId);
+  const ws = findWorkspaceById(workspaceId) || findWorkspaceById(cleanWsId);
+  let creditsRemaining = ws ? ws.creditsRemaining : 10;
+
+  try {
+    const sbWs = await supabase
+      .from('workspaces')
+      .select('credits_remaining')
+      .eq('id', cleanWsId)
+      .limit(1);
+    const rows = Array.isArray(sbWs) ? sbWs : sbWs?.data || [];
+    if (rows.length > 0 && typeof rows[0]?.credits_remaining === 'number') {
+      creditsRemaining = rows[0].credits_remaining;
+      if (ws) ws.creditsRemaining = creditsRemaining;
+    }
+  } catch (err) {
+    console.warn('[getWorkspaceUsage Supabase fallback]:', err);
+  }
+
   const logs = memoryLogs[workspaceId] || [];
   const txs = memoryTransactions[workspaceId] || [];
   const apiLogs = getApiUsageLogs(workspaceId, 100);
@@ -146,24 +181,61 @@ export function getWorkspaceUsage(workspaceId: string): WorkspaceUsage {
   };
 }
 
-export function deductCredit(
+export async function deductCredit(
   workspaceId: string,
   amount: number = 1,
   meta: { productName: string; category: string; aspect: string }
-): { success: boolean; remaining: number; error?: string } {
-  const ws = findWorkspaceById(workspaceId);
-  if (!ws) return { success: false, remaining: 0, error: 'Espace introuvable' };
+): Promise<{ success: boolean; remaining: number; error?: string }> {
+  const cleanWsId = resolveWorkspaceUuid(workspaceId);
+  const ws = findWorkspaceById(workspaceId) || findWorkspaceById(cleanWsId);
 
-  if (ws.creditsRemaining < amount) {
+  // 1. Lire le solde réel (en priorité depuis Supabase Cloud pour la cohérence en déploiement)
+  let currentBalance = ws ? ws.creditsRemaining : 0;
+  try {
+    const sbWs = await supabase
+      .from('workspaces')
+      .select('credits_remaining')
+      .eq('id', cleanWsId)
+      .limit(1);
+    const rows = Array.isArray(sbWs) ? sbWs : sbWs?.data || [];
+    if (rows.length > 0 && typeof rows[0]?.credits_remaining === 'number') {
+      currentBalance = rows[0].credits_remaining;
+      if (ws) ws.creditsRemaining = currentBalance;
+    }
+  } catch (err) {
+    console.warn('[deductCredit Supabase read notice]:', err);
+  }
+
+  if (currentBalance < amount) {
     return {
       success: false,
-      remaining: ws.creditsRemaining,
-      error: `Solde insuffisant (${ws.creditsRemaining} crédits restants). Veuillez recharger votre pack en Dinars (DT).`,
+      remaining: currentBalance,
+      error: `Solde insuffisant (${currentBalance} crédits restants). Veuillez recharger votre pack en Dinars (DT).`,
     };
   }
 
-  ws.creditsRemaining -= amount;
-  savePersistedStore();
+  const newBalance = Math.max(0, currentBalance - amount);
+  if (ws) {
+    ws.creditsRemaining = newBalance;
+    savePersistedStore();
+  }
+
+  // 2. Synchronisation immédiate vers Supabase Cloud (ESSENTIEL POUR LE DÉPLOIEMENT VERCEL)
+  try {
+    await supabase.from('workspaces').update({ id: cleanWsId }, {
+      credits_remaining: newBalance,
+    });
+
+    await supabase.from('credit_transactions').insert({
+      workspace_id: cleanWsId,
+      type: 'CONSUME',
+      amount: -amount,
+      balance_after: newBalance,
+      reason: `Consommation studio : ${meta.productName || 'génération IA'}`,
+    });
+  } catch (sbErr) {
+    console.warn('[deductCredit Supabase update notice]:', sbErr);
+  }
 
   if (!memoryLogs[workspaceId]) {
     memoryLogs[workspaceId] = [];
@@ -178,21 +250,54 @@ export function deductCredit(
     createdAt: new Date().toISOString(),
   });
 
-  return { success: true, remaining: ws.creditsRemaining };
+  return { success: true, remaining: newBalance };
 }
 
-export function addCredits(
+export async function addCredits(
   workspaceId: string,
   packId: string,
   packName: string,
   amountTND: number,
   creditsCount: number,
   gateway: 'whop' | 'flouci' | 'konnect' | 'b2b_invoice'
-): BillingTransaction {
-  const ws = findWorkspaceById(workspaceId);
+): Promise<BillingTransaction> {
+  const cleanWsId = resolveWorkspaceUuid(workspaceId);
+  const ws = findWorkspaceById(workspaceId) || findWorkspaceById(cleanWsId);
+
+  let currentBalance = ws ? ws.creditsRemaining : 0;
+  try {
+    const sbWs = await supabase
+      .from('workspaces')
+      .select('credits_remaining')
+      .eq('id', cleanWsId)
+      .limit(1);
+    const rows = Array.isArray(sbWs) ? sbWs : sbWs?.data || [];
+    if (rows.length > 0 && typeof rows[0]?.credits_remaining === 'number') {
+      currentBalance = rows[0].credits_remaining;
+    }
+  } catch {}
+
+  const newBalance = currentBalance + creditsCount;
+
   if (ws) {
-    ws.creditsRemaining += creditsCount;
+    ws.creditsRemaining = newBalance;
     savePersistedStore();
+  }
+
+  try {
+    await supabase.from('workspaces').update({ id: cleanWsId }, {
+      credits_remaining: newBalance,
+    });
+
+    await supabase.from('credit_transactions').insert({
+      workspace_id: cleanWsId,
+      type: 'TOPUP',
+      amount: creditsCount,
+      balance_after: newBalance,
+      reason: `Recharge pack ${packName} (${gateway})`,
+    });
+  } catch (sbErr) {
+    console.warn('[addCredits Supabase update notice]:', sbErr);
   }
 
   if (!memoryTransactions[workspaceId]) {
@@ -201,7 +306,7 @@ export function addCredits(
 
   const tx: BillingTransaction = {
     id: `tx_${Date.now()}`,
-    workspaceId,
+    workspaceId: cleanWsId,
     amountTND,
     packId,
     packName,

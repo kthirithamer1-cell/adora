@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { packId, packName, amountTND, creditsCount, gateway } = body;
 
-    const tx = addCredits(
+    const tx = await addCredits(
       session.workspace.id,
       packId || 'flash',
       packName || 'Recharge Crédits',

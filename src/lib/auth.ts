@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { supabase } from '@/lib/supabase';
+import { supabase, resolveWorkspaceUuid } from '@/lib/supabase';
 
 export function generateUuid(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -387,10 +387,23 @@ export async function getCurrentSession(): Promise<SessionData | null> {
       activeWorkspace = userWorkspaces[0] || memoryWorkspaces[0];
     }
 
-    // Safety restore: if credits were wiped to 0 by the unshift bug on trial/flash, restore to 8
-    if (activeWorkspace && activeWorkspace.creditsRemaining === 0 && (activeWorkspace.plan === 'flash' || (activeWorkspace as any).plan === 'trial')) {
-      activeWorkspace.creditsRemaining = 8;
-      savePersistedStore();
+    // Synchronisation en direct depuis Supabase Cloud pour la persistance en déploiement
+    if (activeWorkspace) {
+      try {
+        const cleanWsId = resolveWorkspaceUuid(activeWorkspace.id);
+        const sbWs = await supabase
+          .from('workspaces')
+          .select('credits_remaining, plan')
+          .eq('id', cleanWsId)
+          .limit(1);
+        const wsRows = Array.isArray(sbWs) ? sbWs : sbWs?.data || [];
+        if (wsRows.length > 0 && typeof wsRows[0]?.credits_remaining === 'number') {
+          activeWorkspace.creditsRemaining = wsRows[0].credits_remaining;
+          if (wsRows[0].plan) activeWorkspace.plan = wsRows[0].plan;
+        }
+      } catch {
+        // Fallback sur le solde mémoire si Supabase est temporairement inaccessible
+      }
     }
 
     const member = activeWorkspace?.members?.find((m) => m.userId === user.id);

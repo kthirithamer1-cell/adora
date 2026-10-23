@@ -5,7 +5,7 @@ import { getWorkspaceUsage } from '@/lib/billing';
 export async function GET() {
   try {
     const session = await getCurrentSession();
-    const usage = getWorkspaceUsage(session.workspace.id);
+    const usage = await getWorkspaceUsage(session.workspace.id);
     return NextResponse.json({
       success: true,
       data: usage,

@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Vérification préalable du solde (1 crédit par détourage IA)
-    const balanceCheck = checkCreditBalance(targetWorkspaceId, 1);
+    const balanceCheck = await checkCreditBalance(targetWorkspaceId, 1);
     if (!balanceCheck.sufficient) {
       return NextResponse.json({
         success: false,
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Débit du crédit après confirmation du détourage réussi
-    const deductResult = deductCredit(targetWorkspaceId, 1, {
+    const deductResult = await deductCredit(targetWorkspaceId, 1, {
       productName: 'Détourage IA Produit',
       category: 'cutout',
       aspect: `${width}x${height}`,
