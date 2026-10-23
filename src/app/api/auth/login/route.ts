@@ -11,6 +11,7 @@ import {
   syncUserAndWorkspaceToSupabase,
   UserRole,
 } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,6 +22,33 @@ export async function POST(req: NextRequest) {
     if (!targetUser && email) {
       const cleanEmail = email.trim().toLowerCase();
       targetUser = findUserByEmail(cleanEmail);
+
+      // Si l'utilisateur n'est pas encore dans la mémoire du serveur (ex: redémarrage ou instance Vercel différente), vérifier Supabase
+      if (!targetUser) {
+        try {
+          const sbUsers = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', cleanEmail)
+            .limit(1);
+          const rows = Array.isArray(sbUsers) ? sbUsers : sbUsers?.data || [];
+          if (rows.length > 0 && rows[0]?.id) {
+            const u = rows[0];
+            targetUser = {
+              id: u.id,
+              email: u.email,
+              name: u.full_name || cleanEmail.split('@')[0],
+              phone: u.phone || undefined,
+              avatarUrl: u.avatar_url || undefined,
+              createdAt: u.created_at || new Date().toISOString(),
+            };
+            getMemoryUsers().push(targetUser);
+          }
+        } catch {
+          // Ignorer et poursuivre
+        }
+      }
+
       if (!targetUser) {
         // Crée automatiquement le profil et workspace pour cet email si nouvel utilisateur
         const reg = registerUserAndWorkspace({
@@ -38,7 +66,44 @@ export async function POST(req: NextRequest) {
       targetUser = getMemoryUsers()[0];
     }
 
-    const userWorkspaces = getWorkspacesForUser(targetUser.id);
+    let userWorkspaces = getWorkspacesForUser(targetUser.id);
+    if (userWorkspaces.length === 0) {
+      try {
+        const sbWs = await supabase
+          .from('workspaces')
+          .select('*')
+          .eq('owner_id', targetUser.id)
+          .limit(1);
+        const wsRows = Array.isArray(sbWs) ? sbWs : sbWs?.data || [];
+        if (wsRows.length > 0 && wsRows[0]?.id) {
+          const w = wsRows[0];
+          const restoredWs = {
+            id: w.id,
+            name: w.name,
+            slug: w.slug,
+            ownerId: w.owner_id,
+            plan: w.plan || 'flash',
+            creditsRemaining: w.credits_remaining ?? 10,
+            whiteLabelEnabled: false,
+            members: [
+              {
+                userId: targetUser.id,
+                userEmail: targetUser.email,
+                userName: targetUser.name,
+                role: 'owner' as const,
+                joinedAt: w.created_at || new Date().toISOString(),
+              },
+            ],
+            createdAt: w.created_at || new Date().toISOString(),
+          };
+          getMemoryWorkspaces().push(restoredWs as any);
+          userWorkspaces = [restoredWs as any];
+        }
+      } catch {
+        // Fallback
+      }
+    }
+
     const activeWorkspace = userWorkspaces[0] || getMemoryWorkspaces()[0];
     if (activeWorkspace && activeWorkspace.creditsRemaining === 0 && (activeWorkspace.plan === 'flash' || (activeWorkspace as any).plan === 'trial')) {
       activeWorkspace.creditsRemaining = 8;

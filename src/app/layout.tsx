@@ -40,6 +40,7 @@ export default async function RootLayout({
         <link rel="icon" href="/images/logo.png" type="image/png" />
         <link rel="shortcut icon" href="/images/logo.png" type="image/png" />
         <link rel="apple-touch-icon" href="/images/logo.png" />
+        <meta name="google-site-verification" content="NPoTVmfYmh4ysR8nlEkdJcWzPMjNnPI_dmtIo5mvwUQ" />
       </head>
       <body>
         <LanguageProvider initialLocale={initialLocale}>

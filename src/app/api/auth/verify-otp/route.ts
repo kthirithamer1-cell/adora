@@ -7,7 +7,10 @@ import {
   findWorkspaceById,
   getWorkspacesForUser,
   syncUserAndWorkspaceToSupabase,
+  getMemoryUsers,
+  getMemoryWorkspaces,
 } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { grantCredits } from '@/lib/services/billing';
 import { verifyIntent, INTENT_COOKIE } from '@/lib/checkout/intent';
 import { buildCheckoutUrl } from '@/lib/checkout/params';
@@ -45,6 +48,33 @@ export async function POST(req: NextRequest) {
 
     // 1. Initialiser ou récupérer l'utilisateur et son workspace
     let existingUser = findUserByEmail(cleanEmail);
+
+    // Si non présent en mémoire locale, vérifier dans Supabase PostgreSQL (ex: créé en production ou sur un autre conteneur)
+    if (!existingUser) {
+      try {
+        const sbUsers = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', cleanEmail)
+          .limit(1);
+        const rows = Array.isArray(sbUsers) ? sbUsers : sbUsers?.data || [];
+        if (rows.length > 0 && rows[0]?.id) {
+          const u = rows[0];
+          existingUser = {
+            id: u.id,
+            email: u.email,
+            name: u.full_name || cleanEmail.split('@')[0],
+            phone: u.phone || undefined,
+            avatarUrl: u.avatar_url || undefined,
+            createdAt: u.created_at || new Date().toISOString(),
+          };
+          getMemoryUsers().push(existingUser);
+        }
+      } catch {
+        // Fallback standard
+      }
+    }
+
     let workspaceId: string;
     let userId: string;
 
@@ -63,7 +93,46 @@ export async function POST(req: NextRequest) {
       await syncUserAndWorkspaceToSupabase(reg.user, reg.workspace);
     } else {
       userId = existingUser.id;
-      const userWorkspaces = getWorkspacesForUser(existingUser.id);
+      let userWorkspaces = getWorkspacesForUser(existingUser.id);
+
+      // Si le workspace n'est pas encore en mémoire, tenter de le charger depuis Supabase
+      if (userWorkspaces.length === 0) {
+        try {
+          const sbWs = await supabase
+            .from('workspaces')
+            .select('*')
+            .eq('owner_id', existingUser.id)
+            .limit(1);
+          const wsRows = Array.isArray(sbWs) ? sbWs : sbWs?.data || [];
+          if (wsRows.length > 0 && wsRows[0]?.id) {
+            const w = wsRows[0];
+            const restoredWs = {
+              id: w.id,
+              name: w.name,
+              slug: w.slug,
+              ownerId: w.owner_id,
+              plan: w.plan || 'flash',
+              creditsRemaining: w.credits_remaining ?? 10,
+              whiteLabelEnabled: false,
+              members: [
+                {
+                  userId: existingUser.id,
+                  userEmail: existingUser.email,
+                  userName: existingUser.name,
+                  role: 'owner' as const,
+                  joinedAt: w.created_at || new Date().toISOString(),
+                },
+              ],
+              createdAt: w.created_at || new Date().toISOString(),
+            };
+            getMemoryWorkspaces().push(restoredWs as any);
+            userWorkspaces = [restoredWs as any];
+          }
+        } catch {
+          // Fallback
+        }
+      }
+
       const ws = userWorkspaces[0] || registerUserAndWorkspace({
         name: existingUser.name,
         email: existingUser.email,

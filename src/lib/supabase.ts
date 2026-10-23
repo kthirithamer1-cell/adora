@@ -5,7 +5,10 @@
  */
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ucgslhophamzwqbkkayu.supabase.co';
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjZ3NsaG9waGFtendxYmtrYXl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3MTQ1MDksImV4cCI6MjEwNzI5MDUwOX0.FLAGfbDzyMnIbOESR3O0E6CJip9AfvGBNswq0d11OkM';
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjZ3NsaG9waGFtendxYmtrYXl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3MTQ1MDksImV4cCI6MjEwNzI5MDUwOX0.FLAGfbDzyMnIbOESR3O0E6CJip9AfvGBNswq0d11OkM';
 
 export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const DEFAULT_WORKSPACE_UUID = 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22';
@@ -388,7 +391,8 @@ class SupabaseTableQuery {
 
     if (!res.ok) {
       const err = await res.text();
-      throw new Error(`Supabase UPSERT error (${this.table}): ${err}`);
+      console.warn(`[Supabase UPSERT fallback (${this.table})]:`, err);
+      return { data: null, error: new Error(err) };
     }
 
     return await res.json();

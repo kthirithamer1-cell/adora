@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getBrandKitAction, saveBrandKitAction } from '@/actions/brandkit.actions';
 
-export async function GET() {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export async function GET(req: NextRequest) {
   try {
-    const result = await getBrandKitAction();
+    const { searchParams } = new URL(req.url);
+    const workspaceId = searchParams.get('workspaceId') || undefined;
+    const result = await getBrandKitAction(workspaceId);
     return NextResponse.json(result);
   } catch (err: any) {
     return NextResponse.json(
