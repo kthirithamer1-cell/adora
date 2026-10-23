@@ -18,6 +18,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { userId, email } = body;
 
+    console.log('[AUTH LOGIN ATTEMPT]:', { email, userId, timestamp: new Date().toISOString() });
+
     let targetUser = userId ? findUserById(userId) : null;
     if (!targetUser && email) {
       const cleanEmail = email.trim().toLowerCase();
@@ -43,28 +45,40 @@ export async function POST(req: NextRequest) {
               createdAt: u.created_at || new Date().toISOString(),
             };
             getMemoryUsers().push(targetUser);
+            console.log('[AUTH LOGIN SUCCESS - Hydrated from Supabase]:', targetUser.email);
           }
-        } catch {
-          // Ignorer et poursuivre
+        } catch (sbErr) {
+          console.warn('[AUTH LOGIN SUPABASE ERROR]:', sbErr);
         }
       }
 
+      // Si l'utilisateur n'existe ni en local ni dans Supabase : REJET FORMEL (Erreur 404)
       if (!targetUser) {
-        // Crée automatiquement le profil et workspace pour cet email si nouvel utilisateur
-        const reg = registerUserAndWorkspace({
-          email: cleanEmail,
-          name: cleanEmail.split('@')[0],
-          shopName: `${cleanEmail.split('@')[0]}'s Store`,
-          plan: 'flash',
-        });
-        targetUser = reg.user;
-        await syncUserAndWorkspaceToSupabase(reg.user, reg.workspace);
+        console.warn(`[AUTH LOGIN REJECTED]: Aucun compte trouvé pour l'email "${cleanEmail}"`);
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Aucun compte associé à l'adresse "${cleanEmail}". Veuillez vérifier votre saisie ou créer un compte.`,
+            code: 'USER_NOT_FOUND',
+          },
+          { status: 404 }
+        );
       }
     }
 
     if (!targetUser) {
-      targetUser = getMemoryUsers()[0];
+      console.warn('[AUTH LOGIN REJECTED]: Aucun identifiant ou email fourni.');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Adresse email ou identifiant utilisateur requis pour se connecter.',
+          code: 'MISSING_CREDENTIALS',
+        },
+        { status: 400 }
+      );
     }
+
+    console.log(`[AUTH LOGIN SUCCESS]: Session ouverte pour "${targetUser.email}" (${targetUser.id})`);
 
     let userWorkspaces = getWorkspacesForUser(targetUser.id);
     if (userWorkspaces.length === 0) {
