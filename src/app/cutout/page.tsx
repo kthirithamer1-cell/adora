@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
+import AuthRedirectScreen from '@/components/AuthRedirectScreen';
 import { useWorkspace } from '@/lib/WorkspaceContext';
 import { useLanguage } from '@/lib/LanguageContext';
 import { ensureSampleImagesAction } from '@/actions/generations.actions';
@@ -147,9 +149,16 @@ const CUTOUT_I18N = {
 };
 
 export default function CutoutStudioPage() {
-  const { workspace, updateCredits } = useWorkspace();
+  const router = useRouter();
+  const { workspace, user, isLoading: isAuthLoading, updateCredits } = useWorkspace();
   const { locale } = useLanguage();
   const t = CUTOUT_I18N[(locale as 'en' | 'fr' | 'ar')] || CUTOUT_I18N.en;
+
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.replace('/login?redirect=/cutout');
+    }
+  }, [isAuthLoading, user, router]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -201,7 +210,7 @@ export default function CutoutStudioPage() {
 
   // Copie des images d'artéfacts vers public/images au montage
   useEffect(() => {
-    ensureSampleImagesAction().catch(() => {});
+    ensureSampleImagesAction().catch(() => { });
   }, []);
 
   // Gestion du glissement du curseur Avant / Après
@@ -341,6 +350,10 @@ export default function CutoutStudioPage() {
     handleSelectSample(sampleProducts[0]);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  if (!user) {
+    return <AuthRedirectScreen />;
+  }
 
   return (
     <AppShell activeNav="cutout" pageTitle="Studio Détourage IA & Prise de Vue">

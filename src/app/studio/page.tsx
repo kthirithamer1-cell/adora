@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import s from './studio.module.css';
 import { LOCAL_BADGES } from '@/lib/templates';
 import CheckoutModal from '@/components/CheckoutModal';
@@ -14,6 +14,7 @@ import SocialPublisherModal from '@/components/SocialPublisherModal';
 import SmartQuestionsModal, { SmartQuestionsPayload } from '@/components/SmartQuestionsModal';
 import WorkspaceSelector from '@/components/WorkspaceSelector';
 import OnboardingChecklist from '@/components/OnboardingChecklist';
+import AuthRedirectScreen from '@/components/AuthRedirectScreen';
 import { CatalogProduct, BrandKit, getBrandKitByWorkspace } from '@/lib/brandkit';
 import { getAdBenchmarksForProduct } from '@/lib/adBenchmarks';
 import {
@@ -808,9 +809,17 @@ const INITIAL_VISUALS: VisualCardData[] = [
 ];
 
 export default function StudioCreativePage() {
-  const { workspace, user, logout, updateCredits } = useWorkspace();
+  const router = useRouter();
+  const { workspace, user, isLoading: isAuthLoading, logout, updateCredits } = useWorkspace();
   const { t, locale } = useLanguage();
   const searchParams = useSearchParams();
+
+  // Accès réservé aux comptes connectés
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.replace('/login?redirect=/studio');
+    }
+  }, [isAuthLoading, user, router]);
   const [hasGeneratedFirstVisual, setHasGeneratedFirstVisual] = useState<boolean>(false);
   const [hasExportedVisual, setHasExportedVisual] = useState<boolean>(false);
   const [showFirstVisualCelebration, setShowFirstVisualCelebration] = useState<boolean>(false);
@@ -2284,6 +2293,10 @@ ${frenchText}
     }
   };
 
+  if (!user) {
+    return <AuthRedirectScreen />;
+  }
+
   return (
     <div className={s.studioContainer}>
       {/* Toast de confirmation en haut à droite */}
@@ -2622,9 +2635,9 @@ ${frenchText}
             />
 
             {/* STATUT OU RÉSULTAT DE L'ANALYSE STRATÉGIQUE DU PRODUIT */}
-           
 
-           
+
+
 
             {/* ÉTAPE 2 : STRATÉGIE MARKETING & PROMPT DÉCOR IA (gpt-image-2.5-flare) */}
             <div className={s.stepCard} style={{ padding: '18px 20px', marginBottom: '16px', border: '1px solid #E2E8F0', borderRadius: '14px', background: '#FFFFFF', width: '100%', boxSizing: 'border-box' }}>
@@ -2746,7 +2759,7 @@ ${frenchText}
               </button>
 
               {/* Bouton secondaire questionnaire guidé */}
-             
+
 
               <div style={{
                 textAlign: 'center',

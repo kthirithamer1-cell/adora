@@ -2,15 +2,24 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
+import AuthRedirectScreen from '@/components/AuthRedirectScreen';
 import { useWorkspace } from '@/lib/WorkspaceContext';
 import { BrandKit, CatalogProduct } from '@/lib/brandkit';
 import { Palette, MessageSquareText, Package, Plus, Sparkles, Check, Trash2, Camera, ShieldCheck, Upload, Wand2 } from 'lucide-react';
 import { extractPaletteFromLogo } from '@/lib/colorExtractor';
 
 export default function BrandKitPage() {
-  const { workspace } = useWorkspace();
+  const router = useRouter();
+  const { workspace, user, isLoading: isAuthLoading } = useWorkspace();
   const [activeTab, setActiveTab] = useState<'identity' | 'catalog' | 'ai-extract'>('identity');
+
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.replace('/login?redirect=/brand-kit');
+    }
+  }, [isAuthLoading, user, router]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -276,6 +285,10 @@ export default function BrandKitPage() {
       console.error('Erreur suppression produit:', err);
     }
   };
+
+  if (!user) {
+    return <AuthRedirectScreen />;
+  }
 
   return (
     <AppShell

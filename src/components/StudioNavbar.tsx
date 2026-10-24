@@ -60,12 +60,12 @@ export default function StudioNavbar({
 
   const userInitials = user?.name
     ? user.name
-        .trim()
-        .split(/\s+/)
-        .map((n) => n[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase()
+      .trim()
+      .split(/\s+/)
+      .map((n) => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase()
     : 'TK';
 
   // Forfaits et CTA
@@ -75,21 +75,21 @@ export default function StudioNavbar({
 
   const nextPlanConfig = isAgencyPlan
     ? {
-        targetPlanId: 'agency_299' as const,
-        navLabel: t.studio.navbar.topUp,
-        icon: Zap,
-        navBtnBg: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-        navBtnShadow: '0 2px 10px rgba(16, 185, 129, 0.35)',
-      }
+      targetPlanId: 'agency_299' as const,
+      navLabel: t.studio.navbar.topUp,
+      icon: Zap,
+      navBtnBg: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+      navBtnShadow: '0 2px 10px rgba(16, 185, 129, 0.35)',
+    }
     : isProPlan
-    ? {
+      ? {
         targetPlanId: 'agency_299' as const,
         navLabel: t.studio.navbar.upgradeAgency,
         icon: Sparkles,
         navBtnBg: 'linear-gradient(135deg, #A855F7 0%, #7C3AED 100%)',
         navBtnShadow: '0 2px 10px rgba(168, 85, 247, 0.35)',
       }
-    : {
+      : {
         targetPlanId: 'pro' as const,
         navLabel: t.studio.navbar.upgradePro,
         icon: Crown,
@@ -209,7 +209,7 @@ export default function StudioNavbar({
         <div className={s.navDivider} />
 
         {/* Notification Bell & Popover */}
-        
+
 
         {/* Account Profile Avatar & Dropdown */}
         <div className={s.navUserMenuWrap} ref={userMenuRef}>
@@ -285,7 +285,7 @@ export default function StudioNavbar({
                       textOverflow: 'ellipsis',
                     }}
                   >
-                    {user?.email || 'contact@markmosaiq.com'}
+                    {user?.email ?? ''}
                   </div>
                   <div
                     style={{

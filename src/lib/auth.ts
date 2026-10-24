@@ -111,12 +111,12 @@ export const INITIAL_USERS: User[] = [
 
 export const INITIAL_WORKSPACES: Workspace[] = [
   {
-    id: 'ws_nutristore',
+    id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
     name: 'NutriStore Tunisie',
     slug: 'nutristore-tn',
     ownerId: 'user_mohamed',
     plan: 'pro',
-    creditsRemaining: 50, // Pack Pro standard : 50 crédits
+    creditsRemaining: 20,
     whiteLabelEnabled: false,
     members: [
       {
@@ -126,69 +126,69 @@ export const INITIAL_WORKSPACES: Workspace[] = [
         role: 'owner',
         joinedAt: '2026-01-15T10:00:00Z',
       },
-      {
-        userId: 'user_syrine',
-        userEmail: 'syrine@nutristore.tn',
-        userName: 'Syrine Trabelsi',
-        role: 'manager',
-        joinedAt: '2026-02-01T12:00:00Z',
-      },
-      {
-        userId: 'user_yassine',
-        userEmail: 'yassine@crea.tn',
-        userName: 'Yassine Jaziri',
-        role: 'designer',
-        joinedAt: '2026-02-10T14:30:00Z',
-      },
     ],
     createdAt: '2026-01-15T10:00:00Z',
   },
   {
-    id: 'ws_hypergrowth',
-    name: 'HyperGrowth Agence Digitale',
-    slug: 'hypergrowth-agency',
-    ownerId: 'user_agence',
-    plan: 'agency',
-    creditsRemaining: 120, // Abonnement Agence : 120 crédits/mois
-    whiteLabelEnabled: true,
+    id: 'f8c0d4b2-3e5f-4a6b-9c7d-0e1f2a3b4c5d',
+    name: "kthirithamer1's Store",
+    slug: 'kthirithamer1-s-store',
+    ownerId: 'e7b9c3a1-2d4e-4f5a-8b6c-9d0e1f2a3b4c',
+    plan: 'flash',
+    creditsRemaining: 19,
+    whiteLabelEnabled: false,
     members: [
       {
-        userId: 'user_agence',
-        userEmail: 'contact@hypergrowth.tn',
-        userName: 'Karim Gharbi (HyperGrowth Agency)',
+        userId: 'e7b9c3a1-2d4e-4f5a-8b6c-9d0e1f2a3b4c',
+        userEmail: 'kthirithamer1@gmail.com',
+        userName: 'kthirithamer1',
         role: 'owner',
-        joinedAt: '2026-01-05T09:00:00Z',
-      },
-      {
-        userId: 'user_yassine',
-        userEmail: 'yassine@crea.tn',
-        userName: 'Yassine Jaziri',
-        role: 'designer',
-        joinedAt: '2026-01-10T11:00:00Z',
+        joinedAt: '2026-10-23T10:14:03Z',
       },
     ],
-    createdAt: '2026-01-05T09:00:00Z',
+    createdAt: '2026-10-23T10:14:03Z',
   },
   {
-    id: 'ws_vestiaire',
-    name: 'Vestiaire Tunis (Client Agence)',
-    slug: 'vestiaire-tunis',
-    ownerId: 'user_agence',
-    plan: 'agency',
-    creditsRemaining: 50,
-    whiteLabelEnabled: true,
+    id: 'a71a24d6-cf47-4f34-acd9-65c6b07504bb',
+    name: 'Ma boutique',
+    slug: 'ma-boutique-zsnw',
+    ownerId: '706a92f7-a9a9-41ad-8be2-3687b0756c62',
+    plan: 'flash',
+    creditsRemaining: 5,
+    whiteLabelEnabled: false,
     members: [
       {
-        userId: 'user_agence',
-        userEmail: 'contact@hypergrowth.tn',
-        userName: 'Karim Gharbi (HyperGrowth Agency)',
+        userId: '706a92f7-a9a9-41ad-8be2-3687b0756c62',
+        userEmail: 'kthirithamer2@gmail.com',
+        userName: 'kthirithamer2',
         role: 'owner',
-        joinedAt: '2026-01-20T10:00:00Z',
+        joinedAt: '2026-10-23T10:14:08Z',
       },
     ],
-    createdAt: '2026-01-20T10:00:00Z',
+    createdAt: '2026-10-23T10:14:08Z',
+  },
+  {
+    id: 'd48096a0-a964-46cd-bb0e-2e6c3527ae66',
+    name: 'Ma boutique',
+    slug: 'ma-boutique-7ups',
+    ownerId: 'ede12ede-d51e-46c5-b2f2-2dea33d35674',
+    plan: 'flash',
+    creditsRemaining: 5,
+    whiteLabelEnabled: false,
+    members: [
+      {
+        userId: 'ede12ede-d51e-46c5-b2f2-2dea33d35674',
+        userEmail: 'thamer.kthiri2@gmail.com',
+        userName: 'thamer.kthiri2',
+        role: 'owner',
+        joinedAt: '2026-10-24T22:12:25Z',
+      },
+    ],
+    createdAt: '2026-10-24T22:12:25Z',
   },
 ];
+
+
 
 // Stockage mémoire persistant en cours d'exécution (préservé sur globalThis et synchronisé sur disque)
 const globalForAuth = globalThis as unknown as {
@@ -777,8 +777,8 @@ export function registerUserAndWorkspace(params: {
   const wsName = shopName?.trim() || `${user.name}'s Store`;
   const baseSlug = wsName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'store';
   const slug = `${baseSlug}-${Math.random().toString(36).substring(2, 6)}`;
-  // Les nouveaux espaces d'essai démarrent avec 10 crédits complets
-  const initialCredits = 10;
+  // Les nouveaux espaces démarrent à 0 crédit avant l'octroi officiel de l'essai ou du pack
+  const initialCredits = 0;
   const dbPlan: 'flash' | 'pro' | 'agency' = plan === 'agency' ? 'agency' : plan === 'pro' ? 'pro' : 'flash';
 
   const newWs: Workspace = {

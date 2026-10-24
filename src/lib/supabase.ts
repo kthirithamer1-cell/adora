@@ -2,13 +2,16 @@
  * Client Supabase Moderne & Typé (PostgREST Zero-Dependency)
  * Compatible Next.js 16 (Server Components, Server Actions & Route Handlers)
  * Projet Ref : ucgslhophamzwqbkkayu
+ *
+ * Utilise la clé publishable (RLS actif). Pour que les policies basées sur
+ * auth.uid() fonctionnent, passer le access_token de l'utilisateur :
+ *   supabase.from('table', accessToken)
  */
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ucgslhophamzwqbkkayu.supabase.co';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjZ3NsaG9waGFtendxYmtrYXl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3MTQ1MDksImV4cCI6MjEwNzI5MDUwOX0.FLAGfbDzyMnIbOESR3O0E6CJip9AfvGBNswq0d11OkM';
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!; // fallback ancien nom de clé
 
 export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const DEFAULT_WORKSPACE_UUID = 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22';
@@ -70,14 +73,16 @@ if (globalForSupabase.__markmosaiq_supabaseOnline === undefined) {
   globalForSupabase.__markmosaiq_lastFailure = 0;
 }
 
-const CIRCUIT_BREAKER_COOLDOWN_MS = 300_000; // 5 minutes bypass on failure to keep dev & browsing blazing fast
-const SUPABASE_TIMEOUT_MS = 800; // 800ms strict timeout
+const CIRCUIT_BREAKER_COOLDOWN_MS = 15_000; // 15s bypass on connection failure
+const SUPABASE_TIMEOUT_MS = 6_000; // 6s timeout for reliable remote queries
 
-function shouldSkipSupabase(): boolean {
+function shouldSkipSupabase(table?: string): boolean {
   if (process.env.SUPABASE_DISABLED === 'true') return true;
+  // Les tables critiques d'authentification et de configuration ne sont jamais bypassées
+  if (table === 'users' || table === 'workspaces' || table === 'brand_kits') return false;
   if (!globalForSupabase.__markmosaiq_supabaseOnline) {
     if (Date.now() - (globalForSupabase.__markmosaiq_lastFailure || 0) < CIRCUIT_BREAKER_COOLDOWN_MS) {
-      return true; // Fast bypass directly to fallback (0ms latency)
+      return true;
     }
     // Allow single probe request after cooldown
     globalForSupabase.__markmosaiq_supabaseOnline = true;
@@ -88,29 +93,63 @@ function shouldSkipSupabase(): boolean {
 function markSupabaseFailure(err: any, table: string) {
   globalForSupabase.__markmosaiq_supabaseOnline = false;
   globalForSupabase.__markmosaiq_lastFailure = Date.now();
-  console.warn(`[Supabase Circuit-Breaker Triggered on ${table} - Bypassing for 5m]:`, err?.message || err);
+  console.warn(`[Supabase Failure on ${table}]:`, err?.message || err);
+}
+
+/**
+ * Erreur HTTP : seules les erreurs serveur (5xx) ouvrent le circuit breaker.
+ * Les 4xx (RLS refusé, table inconnue, JWT invalide...) sont des erreurs de
+ * configuration : on les log sans couper Supabase pendant 5 minutes.
+ */
+function handleHttpError(status: number, body: string, table: string) {
+  if (status >= 500) {
+    markSupabaseFailure(body, table);
+  } else {
+    console.warn(`[Supabase ${status} on ${table}]:`, body);
+  }
+}
+
+function buildHeaders(key: string, token?: string, extra: Record<string, string> = {}) {
+  return {
+    'apikey': key,
+    // Avec un token utilisateur, auth.uid() fonctionne dans les policies RLS.
+    // Sans token, la requête s'exécute en rôle "anon".
+    'Authorization': `Bearer ${token || key}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+    ...extra,
+  };
 }
 
 class SupabaseSelectQuery implements PromiseLike<any> {
   private table: string;
   private url: string;
   private key: string;
+  private token?: string;
   private params: URLSearchParams;
   private isSingleMode: boolean = false;
 
-  constructor(table: string, url: string, key: string, columns: string = '*', options: QueryOptions = {}) {
+  constructor(
+    table: string,
+    url: string,
+    key: string,
+    columns: string = '*',
+    options: QueryOptions = {},
+    token?: string
+  ) {
     this.table = table;
     this.url = url;
     this.key = key;
+    this.token = token;
     this.params = new URLSearchParams();
     this.params.set('select', columns);
 
     if (options.limit) this.params.set('limit', String(options.limit));
     if (options.order) this.params.set('order', options.order);
     if (options.eq) {
-      for (const [key, value] of Object.entries(options.eq)) {
-        const cleanVal = sanitizeColumnValue(key, value);
-        this.params.set(key, `eq.${cleanVal}`);
+      for (const [k, value] of Object.entries(options.eq)) {
+        const cleanVal = sanitizeColumnValue(k, value);
+        this.params.set(k, `eq.${cleanVal}`);
       }
     }
   }
@@ -145,7 +184,7 @@ class SupabaseSelectQuery implements PromiseLike<any> {
   }
 
   private async execute(): Promise<any> {
-    if (shouldSkipSupabase()) {
+    if (shouldSkipSupabase(this.table)) {
       if (this.isSingleMode) return { data: null, error: null };
       const fallbackArr: any = [];
       fallbackArr.data = null;
@@ -157,19 +196,14 @@ class SupabaseSelectQuery implements PromiseLike<any> {
       const endpoint = `${this.url}/rest/v1/${this.table}?${this.params.toString()}`;
       const res = await fetch(endpoint, {
         method: 'GET',
-        headers: {
-          'apikey': this.key,
-          'Authorization': `Bearer ${this.key}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
-        },
+        headers: buildHeaders(this.key, this.token),
         cache: 'no-store',
         signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS),
       });
 
       if (!res.ok) {
         const err = await res.text();
-        markSupabaseFailure(err, this.table);
+        handleHttpError(res.status, err, this.table);
         if (this.isSingleMode) {
           return { data: null, error: new Error(err) };
         }
@@ -215,6 +249,7 @@ class SupabaseMutationQuery implements PromiseLike<any> {
   private table: string;
   private url: string;
   private key: string;
+  private token?: string;
   private method: string;
   private data: Record<string, any> | Record<string, any>[];
   private params: URLSearchParams;
@@ -225,11 +260,13 @@ class SupabaseMutationQuery implements PromiseLike<any> {
     key: string,
     method: 'PATCH' | 'POST' | 'DELETE',
     data: Record<string, any> | Record<string, any>[] = {},
-    initialFilters: Record<string, any> = {}
+    initialFilters: Record<string, any> = {},
+    token?: string
   ) {
     this.table = table;
     this.url = url;
     this.key = key;
+    this.token = token;
     this.method = method;
     this.data = data;
     this.params = new URLSearchParams();
@@ -245,7 +282,7 @@ class SupabaseMutationQuery implements PromiseLike<any> {
   }
 
   private async execute(): Promise<any> {
-    if (shouldSkipSupabase()) {
+    if (shouldSkipSupabase(this.table)) {
       return { data: null, error: null };
     }
 
@@ -268,19 +305,14 @@ class SupabaseMutationQuery implements PromiseLike<any> {
       const endpoint = `${this.url}/rest/v1/${this.table}?${this.params.toString()}`;
       const res = await fetch(endpoint, {
         method: this.method,
-        headers: {
-          'apikey': this.key,
-          'Authorization': `Bearer ${this.key}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
-        },
+        headers: buildHeaders(this.key, this.token),
         body: cleanData !== undefined ? JSON.stringify(cleanData) : undefined,
         signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS),
       });
 
       if (!res.ok) {
         const err = await res.text();
-        markSupabaseFailure(err, this.table);
+        handleHttpError(res.status, err, this.table);
         return { data: null, error: new Error(err) };
       }
 
@@ -304,28 +336,24 @@ class SupabaseTableQuery {
   private table: string;
   private url: string;
   private key: string;
+  private token?: string;
 
-  constructor(table: string, url: string, key: string) {
+  constructor(table: string, url: string, key: string, token?: string) {
     this.table = table;
     this.url = url;
     this.key = key;
+    this.token = token;
   }
 
   private getHeaders(extraHeaders: Record<string, string> = {}) {
-    return {
-      'apikey': this.key,
-      'Authorization': `Bearer ${this.key}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation',
-      ...extraHeaders,
-    };
+    return buildHeaders(this.key, this.token, extraHeaders);
   }
 
   /**
    * Sélectionner des enregistrements (retourne un query chainable et awaitable)
    */
   select(columns: string = '*', options: QueryOptions = {}): SupabaseSelectQuery {
-    return new SupabaseSelectQuery(this.table, this.url, this.key, columns, options);
+    return new SupabaseSelectQuery(this.table, this.url, this.key, columns, options, this.token);
   }
 
   /**
@@ -357,16 +385,16 @@ class SupabaseTableQuery {
    */
   update(arg1: Record<string, any>, arg2?: Record<string, any>): SupabaseMutationQuery {
     if (arg2 !== undefined) {
-      return new SupabaseMutationQuery(this.table, this.url, this.key, 'PATCH', arg2, arg1);
+      return new SupabaseMutationQuery(this.table, this.url, this.key, 'PATCH', arg2, arg1, this.token);
     }
-    return new SupabaseMutationQuery(this.table, this.url, this.key, 'PATCH', arg1);
+    return new SupabaseMutationQuery(this.table, this.url, this.key, 'PATCH', arg1, {}, this.token);
   }
 
   /**
    * Supprimer des enregistrements filtrés
    */
   delete(filters: Record<string, any> = {}): SupabaseMutationQuery {
-    return new SupabaseMutationQuery(this.table, this.url, this.key, 'DELETE', {}, filters);
+    return new SupabaseMutationQuery(this.table, this.url, this.key, 'DELETE', {}, filters, this.token);
   }
 
   /**
@@ -400,7 +428,26 @@ class SupabaseTableQuery {
 }
 
 export const supabase = {
+  /**
+   * @param table       nom de la table
+   * @param accessToken (optionnel) JWT de l'utilisateur connecté, pour que RLS voit auth.uid()
+   *                    Si non fourni, utilise SUPABASE_SERVICE_ROLE_KEY côté serveur pour contourner RLS
+   */
+  from(table: string, accessToken?: string) {
+    const isServer = typeof window === 'undefined';
+    const serverKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const effectiveKey = (accessToken || !isServer || !serverKey) ? SUPABASE_KEY : serverKey;
+    return new SupabaseTableQuery(table, SUPABASE_URL, effectiveKey, accessToken);
+  },
+};
+
+export const supabaseAdmin = {
+  /**
+   * Client serveur utilisant SUPABASE_SERVICE_ROLE_KEY pour contourner RLS (usage strictement serveur)
+   */
   from(table: string) {
-    return new SupabaseTableQuery(table, SUPABASE_URL, SUPABASE_KEY);
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!key) throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing');
+    return new SupabaseTableQuery(table, SUPABASE_URL, key);
   },
 };

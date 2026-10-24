@@ -4,8 +4,10 @@ import { resolveGeoLocale } from '@/lib/geo';
 import { isValidLocale, DEFAULT_LOCALE, Locale } from '@/locales';
 
 export const LOCALE_COOKIE_NAME = 'mm_locale';
+// Doit rester identique à SESSION_COOKIE_NAME dans src/lib/auth.ts
+const SESSION_COOKIE = 'MarkMosaiq_session';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip static assets, internal Next.js files, and API routes
@@ -16,6 +18,42 @@ export function middleware(request: NextRequest) {
     pathname.includes('.') // static files like favicon.ico, logo.png, etc.
   ) {
     return NextResponse.next();
+  }
+
+  // 0. Pages applicatives réservées aux utilisateurs connectés → redirection vers /login
+  const PROTECTED_PREFIXES = [
+    '/studio',
+    '/cutout',
+    '/dashboard',
+    '/generate',
+    '/brand-kit',
+    '/social',
+    '/billing',
+    '/team',
+    '/admin',
+    '/agency',
+  ];
+  const isProtected = PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+
+  if (isProtected) {
+    let hasSession = false;
+    const rawSession = request.cookies.get(SESSION_COOKIE)?.value;
+    if (rawSession) {
+      try {
+        const parsed = JSON.parse(rawSession);
+        hasSession = Boolean(parsed?.userId || parsed?.email);
+      } catch {
+        hasSession = false;
+      }
+    }
+
+    if (!hasSession) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', `${pathname}${request.nextUrl.search}`);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
   // 1. Check if user already has an explicit preference in cookie
@@ -60,6 +98,9 @@ export function middleware(request: NextRequest) {
 
   return response;
 }
+
+// Export par défaut pour conformité Next.js 16
+export default proxy;
 
 export const config = {
   matcher: [

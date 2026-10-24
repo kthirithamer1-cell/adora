@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
+import AuthRedirectScreen from '@/components/AuthRedirectScreen';
 import { useWorkspace } from '@/lib/WorkspaceContext';
 import { WorkspaceUsage } from '@/lib/billing';
 import CheckoutModal from '@/components/CheckoutModal';
@@ -24,9 +26,16 @@ import {
 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { workspace, user } = useWorkspace();
+  const router = useRouter();
+  const { workspace, user, isLoading: isAuthLoading } = useWorkspace();
   const [usage, setUsage] = useState<WorkspaceUsage | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.replace('/login?redirect=/dashboard');
+    }
+  }, [isAuthLoading, user, router]);
   const [selectedPackForCheckout, setSelectedPackForCheckout] = useState<{
     id: string;
     name: string;
@@ -88,6 +97,10 @@ export default function DashboardPage() {
       category: 'Publicité Facebook',
     },
   ];
+
+  if (!user) {
+    return <AuthRedirectScreen />;
+  }
 
   return (
     <AppShell activeNav="dashboard" pageTitle="Accueil Boutique">

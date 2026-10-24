@@ -169,11 +169,11 @@ export async function POST(req: NextRequest) {
 
     const isPaidPurchase = Boolean(targetCheckoutUrl);
 
-    // 3. Octroyer 10 crédits d'essai UNIQUEMENT si inscription gratuite/trial sans intention d'achat
+    // 3. Octroyer 5 crédits d'essai UNIQUEMENT si inscription gratuite/trial sans intention d'achat
     if (!isPaidPurchase) {
       await grantCredits({
         workspaceId,
-        delta: 10,
+        delta: 5,
         reason: 'trial_grant',
       });
     }

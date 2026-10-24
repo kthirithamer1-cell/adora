@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
               phone: u.phone || undefined,
               avatarUrl: u.avatar_url || undefined,
               createdAt: u.created_at || new Date().toISOString(),
+
             };
             getMemoryUsers().push(targetUser);
             console.log('[AUTH LOGIN SUCCESS - Hydrated from Supabase]:', targetUser.email);

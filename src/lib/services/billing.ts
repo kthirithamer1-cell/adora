@@ -1,5 +1,5 @@
 import { PackId, Cycle, Currency, periodMonths } from '@/config/packs';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { findWorkspaceById, getMemoryWorkspaces } from '@/lib/auth';
 
 export type OrderStatus = 'CREATED' | 'PENDING_PAYMENT' | 'PAID' | 'FAILED' | 'CANCELED' | 'EXPIRED';
@@ -401,7 +401,7 @@ export async function grantCredits(p: {
   }
 
   try {
-    await supabase.from('credit_ledger').insert({
+    await supabaseAdmin.from('credit_ledger').insert({
       id: entry.id,
       workspace_id: entry.workspaceId,
       delta: entry.delta,
