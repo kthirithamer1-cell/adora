@@ -247,9 +247,10 @@ export default function TermsPage() {
               gap: '6px',
             }}
           >
-            <div><strong>MarkMosaiq AI Studio — Service Juridique & Conformité</strong></div>
-            <div>E-mail de support : <a href="mailto:support@MarkMosaiq.ai" style={{ color: '#00E5FF' }}>support@MarkMosaiq.ai</a></div>
-            <div>Contact Whop Commerce : <a href="https://whop.com" target="_blank" rel="noopener noreferrer" style={{ color: '#00E5FF' }}>whop.com</a></div>
+            <div><strong>MarkMosaiq Technologies Ltd. — Legal & Corporate Affairs</strong></div>
+            <div>The Chase, Carmanhall Road, Sandyford Business Park, Dublin 18, D18 Y3X2, Ireland</div>
+            <div>Support Email: <a href="mailto:support@markmosaiq.ai" style={{ color: '#00E5FF' }}>support@markmosaiq.ai</a></div>
+            <div>Merchant of Record (MoR): Whop Inc. — <a href="https://whop.com" target="_blank" rel="noopener noreferrer" style={{ color: '#00E5FF' }}>whop.com</a></div>
           </div>
         </section>
 

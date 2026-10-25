@@ -334,7 +334,7 @@ export async function renderDeterministicLayout(
   // 3. DESSIN DU PRIX EN DINARS TUNISIENS (DT)
   if (options.price && options.price.amountTND) {
     const rawPrice = String(options.price.amountTND).trim();
-    const formattedPrice = rawPrice.toLowerCase().includes('dt') ? rawPrice : `${rawPrice} DT`;
+    const formattedPrice = rawPrice.toLowerCase().includes('dt') ? rawPrice : `${rawPrice} $`;
 
     const priceSize = Math.max(W * 0.046, 20);
     const weight = 900;

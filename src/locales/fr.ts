@@ -138,6 +138,7 @@ export const fr: TranslationDictionary = {
     discount20: '-20%',
     currencyDT: 'DT (Tunisie)',
     currencyUSD: '$ USD',
+    currencyEUR: '€ EUR',
     cyclePerMonth: '/mois',
     cyclePerMonthBilledAnnually: '/mois (facturé annuellement)',
     free: {
@@ -210,9 +211,9 @@ export const fr: TranslationDictionary = {
     a4: 'Contrairement aux générateurs IA génériques qui redessinent et déforment vos logos et étiquettes, notre moteur sépare au pixel près votre produit physique intact et génère exclusivement un décor studio vacant calibré, puis applique des ombres physiques de contact et reflets réalistes.',
   },
   footer: {
-    rights: '© 2026 MarkMosaiq. Tous droits réservés.',
+    rights: '© 2026 MarkMosaiq Technologies Ltd. Dublin, Irlande. Tous droits réservés.',
     legal: 'Mentions légales',
-    privacy: 'Politique de confidentialité',
+    privacy: 'Politique de confidentialité (RGPD)',
     contact: 'Contact',
   },
   auth: {

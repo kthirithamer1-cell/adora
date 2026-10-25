@@ -1,38 +1,38 @@
 import React from 'react';
 import LegalLayout, { TocItem } from '@/components/legal/LegalLayout';
-import { Lock, ShieldCheck, CheckCircle2, EyeOff, Server, Database, UserCheck, Sparkles } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, EyeOff, Lock, Server, FileText, Scale } from 'lucide-react';
 
 export const metadata = {
-  title: 'Politique de Confidentialité & Protection des Données (Privacy Policy) — MarkMosaiq',
+  title: 'Privacy Policy & GDPR Compliance — MarkMosaiq Technologies Ltd.',
   description:
-    'Découvrez comment MarkMosaiq protège vos photos de produits, vos données marchandes et vos informations de paiement en conformité avec les standards de sécurité les plus stricts.',
+    'Read our GDPR-compliant Privacy Policy. Learn how MarkMosaiq Technologies Ltd. protects your product assets, merchant catalogs, and personal data in strict compliance with EU Regulation 2016/679.',
 };
 
 const TOC: TocItem[] = [
-  { id: 'engagement', title: '1. Engagement & Responsable' },
-  { id: 'donnees-collectees', title: '2. Données Collectées' },
-  { id: 'finalites', title: '3. Finalités du Traitement' },
-  { id: 'protection-photos', title: '4. Vos Photos & Ségrégation IA' },
-  { id: 'paiement-whop', title: '5. Sécurité Bancaire & Whop' },
-  { id: 'sous-traitants', title: '6. Sous-traitants Certifiés' },
-  { id: 'securite-chiffrement', title: '7. Sécurité & Chiffrement' },
-  { id: 'conservation', title: '8. Durée de Conservation' },
-  { id: 'vos-droits', title: '9. Vos Droits & Portabilité' },
-  { id: 'contact-dpo', title: '10. Contact & Délégué aux Données' },
+  { id: 'controller', title: '1. Data Controller & Scope' },
+  { id: 'data-collected', title: '2. Personal Data We Collect' },
+  { id: 'legal-bases', title: '3. Legal Bases for Processing (GDPR)' },
+  { id: 'asset-protection', title: '4. Product Asset Protection & AI Policy' },
+  { id: 'payment-whop', title: '5. Payments & Whop (Merchant of Record)' },
+  { id: 'international-transfers', title: '6. International Data Transfers' },
+  { id: 'security', title: '7. Technical & Organizational Security' },
+  { id: 'retention', title: '8. Data Retention & Deletion' },
+  { id: 'gdpr-rights', title: '9. Your GDPR Data Subject Rights' },
+  { id: 'dpo-contact', title: '10. Contact & Irish DPC Supervision' },
 ];
 
 export default function PrivacyPage() {
   return (
     <LegalLayout
       currentTab="privacy"
-      title="Politique de Confidentialité & Protection des Données"
-      subtitle="La confidentialité de votre catalogue e-commerce et la sécurité de vos informations marchandes constituent notre priorité absolue. Voici notre engagement transparent."
-      lastUpdated="14 Octobre 2026"
+      title="Privacy Policy & GDPR Compliance"
+      subtitle="MarkMosaiq Technologies Ltd. is committed to protecting your business assets, product catalogs, and personal data under Regulation (EU) 2016/679 (GDPR)."
+      lastUpdated="October 25, 2026"
       toc={TOC}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '36px', color: '#CBD5E1', fontSize: '0.96rem', lineHeight: 1.75 }}>
 
-        {/* Intro Banner */}
+        {/* GDPR Seal Banner */}
         <div
           style={{
             background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(0, 229, 255, 0.08) 100%)',
@@ -44,77 +44,92 @@ export default function PrivacyPage() {
             gap: '14px',
           }}
         >
-          <ShieldCheck size={22} color="#10B981" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <ShieldCheck size={24} color="#10B981" style={{ flexShrink: 0, marginTop: '2px' }} />
           <div>
             <h4 style={{ color: '#FFFFFF', margin: '0 0 6px', fontSize: '1rem', fontWeight: 800 }}>
-              Garantie d'étanchéité de vos visuels produits
+              EU GDPR & Irish Data Protection Compliance Guarantee
             </h4>
             <p style={{ margin: 0, fontSize: '0.9rem', color: '#94A3B8', lineHeight: 1.6 }}>
-              Vos photos de produits, prototypes et nouveaux lancements restent <strong>strictement confidentiels</strong>. MarkMosaiq ne commercialise jamais vos catalogues, ne les partage à aucun concurrent et isole rigoureusement vos données dans votre espace de travail privé.
+              Your product assets, trade photos, and customer catalogs remain <strong>strictly confidential</strong>. MarkMosaiq Technologies Ltd. never sells your media, never trains public generative models on your proprietary products, and guarantees end-to-end data segregation in accordance with EU Regulation 2016/679.
             </p>
           </div>
         </div>
 
         {/* Section 1 */}
-        <section id="engagement" style={{ scrollMarginTop: '100px' }}>
+        <section id="controller" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            1. Engagement Général & Responsable du Traitement
+            1. Data Controller & Scope
           </h2>
           <p>
-            La présente Politique de Confidentialité s’applique à l’ensemble des données personnelles et visuelles collectées sur le site et l’application logicielle <strong>MarkMosaiq AI</strong>.
+            This Privacy Policy sets out how personal data is collected, stored, and processed by <strong>MarkMosaiq Technologies Ltd.</strong> ("MarkMosaiq", "we", "us", or "our") when you access or use the MarkMosaiq AI creative studio platform.
           </p>
+          <div
+            style={{
+              background: '#131823',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '12px',
+              padding: '16px 20px',
+              margin: '14px 0',
+            }}
+          >
+            <div style={{ color: '#FFFFFF', fontWeight: 800, marginBottom: '4px' }}>Registered Legal Entity:</div>
+            <div><strong>MarkMosaiq Technologies Ltd.</strong></div>
+            <div>The Chase, Carmanhall Road, Sandyford Business Park</div>
+            <div>Dublin 18, D18 Y3X2, Ireland</div>
+            <div style={{ marginTop: '6px' }}>Email: <a href="mailto:privacy@markmosaiq.ai" style={{ color: '#00E5FF' }}>privacy@markmosaiq.ai</a></div>
+          </div>
           <p>
-            Le responsable du traitement des données personnelles de la plateforme est la société exploitante d’MarkMosaiq AI. Pour toute question relative à l’application de cette politique ou à l’exercice de vos droits, vous pouvez nous contacter à <code style={{ color: '#00E5FF' }}>privacy@MarkMosaiq.ai</code>.
+            We act as the <strong>Data Controller</strong> for account registration, billing data, telemetry, and service provisioning under the General Data Protection Regulation (Regulation (EU) 2016/679 - GDPR) and the Irish Data Protection Act 2018.
           </p>
         </section>
 
         {/* Section 2 */}
-        <section id="donnees-collectees" style={{ scrollMarginTop: '100px' }}>
+        <section id="data-collected" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            2. Données Collectées
+            2. Personal Data We Collect
           </h2>
           <p>
-            Dans le cadre de l’utilisation de nos services, nous collectons les catégories d’informations suivantes :
+            We process the minimum necessary personal data required to deliver high-performance visual staging services:
           </p>
           <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <li><strong>Données de compte et d’identité :</strong> Nom, prénom, adresse e-mail professionnelle, numéro de téléphone (optionnel), nom de votre boutique ou marque e-commerce.</li>
-            <li><strong>Contenus créatifs et fichiers marchands :</strong> Photos de vos produits téléversées pour détourage, logos de marque, instructions de staging et paramètres de couleur (Brand Kit).</li>
-            <li><strong>Données de télémétrie et d’usage :</strong> Historique des générations de visuels, crédits consommés, options sélectionnées (angles de caméra, ratios 1:1 ou 9:16, surfaces de contact).</li>
-            <li><strong>Informations techniques :</strong> Adresse IP, type de navigateur, identifiants de session et cookies techniques indispensables.</li>
+            <li><strong>Account & Identity Data:</strong> Full name, business email address, company or store name, hashed password, and preferred UI language.</li>
+            <li><strong>Merchant Creative Assets:</strong> Original product photographs uploaded for background removal and staging, brand guidelines, color palettes, and custom slogans.</li>
+            <li><strong>Usage & Telemetry Data:</strong> Generation volume, credits consumed, chosen formats (1:1 Feed, 9:16 Stories, 1.91:1 Banners), and log event timestamps.</li>
+            <li><strong>Technical & Connectivity Data:</strong> IP address, device user-agent, operating system, and strictly necessary session cookies.</li>
           </ul>
         </section>
 
         {/* Section 3 */}
-        <section id="finalites" style={{ scrollMarginTop: '100px' }}>
+        <section id="legal-bases" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            3. Finalités du Traitement
+            3. Legal Bases for Processing (Article 6 GDPR)
           </h2>
           <p>
-            Vos informations sont traitées exclusivement pour répondre aux finalités suivantes :
+            Under Article 6 of the GDPR, every processing operation relies on a verified lawful basis:
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', margin: '16px 0' }}>
             <div style={{ background: '#131823', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
-              <div style={{ color: '#00E5FF', fontWeight: 800, fontSize: '0.9rem', marginBottom: '6px' }}>Rendu & Mises en Scène</div>
-              <p style={{ margin: 0, fontSize: '0.84rem', color: '#94A3B8' }}>Détourage automatique de l'article, composition avec les arrière-plans IA choisis et projection d'ombres physiques réalistes.</p>
+              <div style={{ color: '#00E5FF', fontWeight: 800, fontSize: '0.9rem', marginBottom: '6px' }}>Performance of a Contract (Art. 6(1)(b))</div>
+              <p style={{ margin: 0, fontSize: '0.84rem', color: '#94A3B8' }}>Executing automated product cutout, generating 3D studio environments, allocating monthly credits, and providing customer support.</p>
             </div>
             <div style={{ background: '#131823', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
-              <div style={{ color: '#10B981', fontWeight: 800, fontSize: '0.9rem', marginBottom: '6px' }}>Gestion des Abonnements</div>
-              <p style={{ margin: 0, fontSize: '0.84rem', color: '#94A3B8' }}>Suivi des quotas de visuels, renouvellement des forfaits Starter, Pro ou Agence et émission des factures.</p>
+              <div style={{ color: '#10B981', fontWeight: 800, fontSize: '0.9rem', marginBottom: '6px' }}>Legitimate Interests (Art. 6(1)(f))</div>
+              <p style={{ margin: 0, fontSize: '0.84rem', color: '#94A3B8' }}>Maintaining platform integrity, preventing fraudulent abuse, defending against cyber attacks, and optimizing GPU inference throughput.</p>
             </div>
             <div style={{ background: '#131823', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px' }}>
-              <div style={{ color: '#F59E0B', fontWeight: 800, fontSize: '0.9rem', marginBottom: '6px' }}>Support & Fiabilité</div>
-              <p style={{ margin: 0, fontSize: '0.84rem', color: '#94A3B8' }}>Assistance technique par e-mail, prévention des fraudes et amélioration de la vitesse d'inférence de nos pipelines.</p>
+              <div style={{ color: '#F59E0B', fontWeight: 800, fontSize: '0.9rem', marginBottom: '6px' }}>Legal Obligation (Art. 6(1)(c))</div>
+              <p style={{ margin: 0, fontSize: '0.84rem', color: '#94A3B8' }}>Maintaining statutory commercial accounting, Irish VAT compliance (23% digital services), EU OSS reporting, and tax audit records.</p>
             </div>
           </div>
         </section>
 
         {/* Section 4 */}
-        <section id="protection-photos" style={{ scrollMarginTop: '100px' }}>
+        <section id="asset-protection" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            4. Protection de Vos Photos & Ségrégation des Données IA
+            4. Product Asset Protection & AI Model Ethics
           </h2>
           <p>
-            Le modèle d’ingénierie d’MarkMosaiq repose sur une règle inviolable :
+            Unlike generic consumer AI tools, MarkMosaiq operates under an ironclad enterprise IP protection policy:
           </p>
           <div
             style={{
@@ -127,104 +142,108 @@ export default function PrivacyPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00E5FF', fontWeight: 800, marginBottom: '8px' }}>
               <EyeOff size={18} />
-              <span>Aucune exploitation commerciale de vos visuels</span>
+              <span>Zero Public Model Training & Strict Tenant Isolation</span>
             </div>
             <p style={{ margin: 0, fontSize: '0.88rem', color: '#CBD5E1', lineHeight: 1.6 }}>
-              Vos photos de produits ne sont ni vendues, ni louées, ni cédées à des courtiers de données. Elles ne sont <strong>jamais intégrées dans des bases publiques d'entraînement</strong> de modèles tiers. Vos fichiers restent confinés dans l'infrastructure chiffrée dédiée à votre organisation.
+              Your product photos, unreleased prototypes, packaging files, and brand assets are <strong>never used to train, fine-tune, or calibrate public AI foundation models</strong>. Your data remains strictly isolated within your organization’s dedicated multi-tenant workspace.
             </p>
           </div>
         </section>
 
         {/* Section 5 */}
-        <section id="paiement-whop" style={{ scrollMarginTop: '100px' }}>
+        <section id="payment-whop" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            5. Sécurité Bancaire & Rôle de Whop
+            5. Payments & Whop Inc. as Merchant of Record (MoR)
           </h2>
           <p>
-            La sécurité de vos règlements est garantie par notre partenaire bancaire agréé :
+            All international transactions, recurring subscription billing, and tax calculations are handled by our certified Merchant of Record:
           </p>
           <p>
-            <strong>Whop Inc.</strong> opère comme <em>Merchant of Record</em>. Lorsque vous souscrivez à un forfait MarkMosaiq ou réglez un pack de crédits en ligne, vous transmettez directement vos coordonnées de carte bancaire ou compte Apple/Google Pay sur les serveurs sécurisés de Whop, certifiés <strong>PCI-DSS Niveau 1</strong> (le plus haut standard international de sécurité bancaire).
+            <strong>Whop Inc.</strong> acts as the legal merchant on customer invoices. Whop manages global sales tax, EU VAT MOSS/OSS compliance, and applies the standard <strong>23% Irish VAT</strong> for Irish retail consumers (B2C) or EU reverse-charge (0%) for validated VAT-registered B2B entities.
           </p>
           <p>
-            <strong>MarkMosaiq ne stocke, ne voit et n’a jamais accès à votre numéro complet de carte bancaire ou code CVV.</strong> Nous recevons uniquement un jeton chiffré (token) confirmant la validité du paiement et l'attribution des crédits correspondants.
+            <strong>Cardholder Security:</strong> Payments are processed on Whop's PCI-DSS Level 1 certified infrastructure. MarkMosaiq Technologies Ltd. never receives, stores, or processes your complete credit card numbers, CVVs, or bank security details.
           </p>
         </section>
 
         {/* Section 6 */}
-        <section id="sous-traitants" style={{ scrollMarginTop: '100px' }}>
+        <section id="international-transfers" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            6. Sous-traitants & Partenaires Techniques
+            6. International Data Transfers & Subprocessors
           </h2>
           <p>
-            Pour délivrer un service haute performance, MarkMosaiq s’appuie exclusivement sur des partenaires d’infrastructure reconnus pour leur conformité aux réglementations de protection des données :
+            Where data is transferred outside the European Economic Area (EEA), such transfers are governed by European Commission approved <strong>Standard Contractual Clauses (SCCs)</strong> and the EU-U.S. Data Privacy Framework.
           </p>
           <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <li><strong>Whop :</strong> Facturation internationale, conformité fiscale et gestion des devises.</li>
-            <li><strong>Infrastructures Cloud & GPU :</strong> Hébergement haute disponibilité, clusters de rendu d’images et serveurs d’inférence sécurisés avec chiffrement des disques.</li>
-            <li><strong>Passerelles locales tunisiennes :</strong> Traitement agréé pour les marchands payant en USD (Konnect / Flouci).</li>
+            <li><strong>Whop Inc. (USA / Global):</strong> Merchant of Record, automated VAT remittance, and payment processing.</li>
+            <li><strong>Supabase Inc. (EU Region - Frankfurt / Ireland):</strong> Encrypted PostgreSQL user authentication and workspace state.</li>
+            <li><strong>Enterprise Cloud GPU Clusters:</strong> High-speed headless rendering nodes operating with disk-level encryption.</li>
           </ul>
         </section>
 
         {/* Section 7 */}
-        <section id="securite-chiffrement" style={{ scrollMarginTop: '100px' }}>
+        <section id="security" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            7. Mesures de Sécurité & Chiffrement
+            7. Technical & Organizational Security Measures
           </h2>
-          <p>
-            Nous mettons en œuvre des mesures techniques et organisationnelles conformes aux standards de l'art :
-          </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '14px 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <CheckCircle2 size={16} color="#10B981" />
-              <span>Chiffrement systématique TLS 1.3 / HTTPS de l’ensemble des échanges web et API.</span>
+              <span>TLS 1.3 / HTTPS encryption for all web endpoints and API transmissions.</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <CheckCircle2 size={16} color="#10B981" />
-              <span>Chiffrement au repos (AES-256) de toutes les images stockées sur nos buckets de médias.</span>
+              <span>AES-256 encryption at rest for all stored media buckets and staged exports.</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <CheckCircle2 size={16} color="#10B981" />
-              <span>Authentification par sessions sécurisées avec cookies HttpOnly et SameSite stricts.</span>
+              <span>HttpOnly, Secure, and SameSite strict cookies for session token defense.</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <CheckCircle2 size={16} color="#10B981" />
+              <span>Row-Level Security (RLS) ensuring strict cryptographic isolation between workspace tenants.</span>
             </div>
           </div>
         </section>
 
         {/* Section 8 */}
-        <section id="conservation" style={{ scrollMarginTop: '100px' }}>
+        <section id="retention" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            8. Durée de Conservation des Données
+            8. Data Retention & Deletion
           </h2>
           <p>
-            Vos images et métadonnées sont conservées aussi longtemps que votre compte reste actif afin de vous permettre de retélécharger vos visuels à tout moment. Si vous supprimez un produit ou demandez la clôture de votre compte, vos images sont purgées définitivement de nos serveurs actifs sous 30 jours calendaires.
+            Your generated product creatives and uploaded source images are stored during the active lifespan of your account so you can redownload your marketing assets at any time.
           </p>
           <p>
-            Les pièces comptables et factures sont conservées conformément aux durées légales obligatoires imposées par la réglementation fiscale et notre Merchant of Record.
+            Upon account closure or an explicit deletion request, all personal data and uploaded media are permanently purged from active storage within <strong>30 calendar days</strong>. Invoicing and financial transaction records are retained for the statutory 6-year period required under Irish tax and company law.
           </p>
         </section>
 
         {/* Section 9 */}
-        <section id="vos-droits" style={{ scrollMarginTop: '100px' }}>
+        <section id="gdpr-rights" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            9. Vos Droits & Portabilité
+            9. Your GDPR Data Subject Rights (Articles 15–22)
           </h2>
           <p>
-            Conformément aux réglementations sur la protection des données personnelles, vous disposez des droits suivants :
+            Under Chapter III of the GDPR, European citizens and international customers have the following enforceable rights:
           </p>
           <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <li><strong>Droit d'accès et de rectification :</strong> Vous pouvez consulter et corriger vos informations depuis votre profil.</li>
-            <li><strong>Droit à l'effacement (« Droit à l'oubli ») :</strong> Vous pouvez exiger la suppression intégrale de vos médias et de votre compte en écrivant au support.</li>
-            <li><strong>Droit à la portabilité :</strong> Vous pouvez exporter vos visuels générés sous format haute résolution (PNG / ZIP) à tout moment.</li>
+            <li><strong>Right of Access (Art. 15):</strong> Request a copy of all personal data held about you.</li>
+            <li><strong>Right to Rectification (Art. 16):</strong> Update or correct inaccurate account information directly from your profile.</li>
+            <li><strong>Right to Erasure ("Right to be Forgotten", Art. 17):</strong> Request the permanent deletion of your account and uploaded product media.</li>
+            <li><strong>Right to Restriction of Processing (Art. 18):</strong> Restrict processing during verification or legal disputes.</li>
+            <li><strong>Right to Data Portability (Art. 20):</strong> Export your generated media in structured 4K formats (ZIP / PNG) and account data in JSON format.</li>
+            <li><strong>Right to Object (Art. 21):</strong> Object to processing based on legitimate interests or direct marketing at any time.</li>
           </ul>
         </section>
 
         {/* Section 10 */}
-        <section id="contact-dpo" style={{ scrollMarginTop: '100px' }}>
+        <section id="dpo-contact" style={{ scrollMarginTop: '100px' }}>
           <h2 style={{ color: '#FFFFFF', fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px' }}>
-            10. Contact & Délégué aux Données
+            10. Privacy Contact & Supervisory Authority
           </h2>
           <p>
-            Pour toute réclamation, demande d’exercice de vos droits ou signalement de vulnérabilité :
+            To exercise any of your GDPR rights or for inquiries regarding data governance:
           </p>
           <div
             style={{
@@ -237,9 +256,18 @@ export default function PrivacyPage() {
               gap: '6px',
             }}
           >
-            <div><strong>Délégué à la Protection des Données (DPO) — MarkMosaiq AI</strong></div>
-            <div>E-mail direct : <a href="mailto:privacy@MarkMosaiq.ai" style={{ color: '#00E5FF' }}>privacy@MarkMosaiq.ai</a></div>
-            <div>Délai de réponse moyen constaté : <strong>moins de 24 heures ouvrées</strong></div>
+            <div><strong>Data Protection Officer (DPO) — MarkMosaiq Technologies Ltd.</strong></div>
+            <div>The Chase, Carmanhall Road, Sandyford Business Park, Dublin 18, D18 Y3X2, Ireland</div>
+            <div>Direct Email: <a href="mailto:privacy@markmosaiq.ai" style={{ color: '#00E5FF' }}>privacy@markmosaiq.ai</a></div>
+            <div>Response SLA: <strong>within 24 business hours</strong></div>
+          </div>
+          <p style={{ marginTop: '14px' }}>
+            If you are unsatisfied with our response, you have the statutory right under Article 77 GDPR to lodge a complaint with our lead supervisory authority:
+          </p>
+          <div style={{ background: '#0B0E14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', padding: '14px 18px', fontSize: '0.88rem' }}>
+            <strong>Data Protection Commission (DPC) Ireland</strong><br />
+            21 Fitzwilliam Square South, Dublin 2, D02 RD28, Ireland<br />
+            Website: <a href="https://www.dataprotection.ie" target="_blank" rel="noopener noreferrer" style={{ color: '#00E5FF' }}>dataprotection.ie</a>
           </div>
         </section>
 

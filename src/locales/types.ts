@@ -129,6 +129,7 @@ export interface TranslationDictionary {
     discount20: string;
     currencyDT: string;
     currencyUSD: string;
+    currencyEUR: string;
     cyclePerMonth: string;
     cyclePerMonthBilledAnnually: string;
     free: {

@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import s from './landing.module.css';
 import { useWorkspace } from '@/lib/WorkspaceContext';
-import WorkspaceSelector from '@/components/WorkspaceSelector';
 import { useLanguage } from '@/lib/LanguageContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { buildCheckoutUrl } from '@/lib/checkout/params';
@@ -38,14 +37,36 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
-  const { user, workspace } = useWorkspace();
+  const { user } = useWorkspace();
   const { locale, setLocale, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [isLiked, setIsLiked] = useState<boolean>(true);
   const [likesCount, setLikesCount] = useState<number>(1348);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState<'USD' | 'EUR' | 'DT'>('USD');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  // Auto-detect Irish and European visitors to default to EUR pricing
+  useEffect(() => {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      const lang = (typeof navigator !== 'undefined' && navigator.language) || '';
+      const isEu =
+        tz.includes('Europe') ||
+        tz.includes('Dublin') ||
+        tz.includes('London') ||
+        lang.includes('-IE') ||
+        lang.includes('-FR') ||
+        lang.includes('-DE') ||
+        lang.includes('-ES') ||
+        lang.includes('-IT');
+      if (isEu) {
+        setCurrency('EUR');
+      }
+    } catch {
+      // fallback
+    }
+  }, []);
 
   const toggleLike = () => {
     if (isLiked) {
@@ -85,6 +106,7 @@ export default function HomePage() {
             <a href="#tarifs" className={s.navLink}>{t.navbar.pricing}</a>
             <a href="#exemples" className={s.navLink}>{t.navbar.examples}</a>
             <a href="#faq" className={s.navLink}>{t.navbar.faq}</a>
+            <Link href="/contact" className={s.navLink}>Contact</Link>
           </nav>
 
           {/* Right Actions: Authenticated vs Visitor + Language Switcher */}
@@ -93,7 +115,6 @@ export default function HomePage() {
 
             {user ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <WorkspaceSelector />
                 <Link href="/studio" className={s.primaryPillBtn}>
                   <span>{t.navbar.studioIa}</span>
                 </Link>
@@ -127,25 +148,21 @@ export default function HomePage() {
             <a href="#tarifs" className={s.navLink} onClick={() => setMobileMenuOpen(false)}>{t.navbar.pricing}</a>
             <a href="#exemples" className={s.navLink} onClick={() => setMobileMenuOpen(false)}>{t.navbar.examples}</a>
             <a href="#faq" className={s.navLink} onClick={() => setMobileMenuOpen(false)}>{t.navbar.faq}</a>
+            <Link href="/contact" className={s.navLink} onClick={() => setMobileMenuOpen(false)}>Contact</Link>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.82rem', color: '#94A3B8' }}>Langue / Language:</span>
                 <LanguageSwitcher variant="navbar" />
               </div>
               {user ? (
-                <>
-                  <div style={{ padding: '4px 0' }}>
-                    <WorkspaceSelector />
-                  </div>
-                  <Link
-                    href="/studio"
-                    className={s.primaryPillBtn}
-                    style={{ textAlign: 'center', justifyContent: 'center' }}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {t.navbar.studioIa}
-                  </Link>
-                </>
+                <Link
+                  href="/studio"
+                  className={s.primaryPillBtn}
+                  style={{ textAlign: 'center', justifyContent: 'center' }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t.navbar.studioIa}
+                </Link>
               ) : (
                 <>
                   <Link
@@ -224,6 +241,25 @@ export default function HomePage() {
                   <span>{t.hero.trustSocial}</span>
                 </div>
               </div>
+
+              {/* Differentiator Callout (Why We Are Better) */}
+              <div
+                style={{
+                  marginTop: '22px',
+                  padding: '12px 16px',
+                  background: 'rgba(0, 229, 255, 0.06)',
+                  border: '1px solid rgba(0, 229, 255, 0.22)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                }}
+              >
+                <ShieldCheck size={20} color="#00E5FF" style={{ flexShrink: 0 }} />
+                <div style={{ fontSize: '0.82rem', color: '#E2E8F0', lineHeight: 1.45 }}>
+                  <strong style={{ color: '#00E5FF' }}>Accurate Product Preservation:</strong> Unlike generic AI tools that hallucinate and warp text, MarkMosaiq preserves your exact physical product, labels, and logos with 100% fidelity.
+                </div>
+              </div>
             </div>
 
             {/* Right Column: 3D Stack Mockup */}
@@ -268,11 +304,11 @@ export default function HomePage() {
                     <div className={s.instaUserWrap}>
                       <img
                         src="/images/hero_lifestyle.jpg"
-                        alt="Yousser Abir"
+                        alt="Retailer"
                         className={s.instaAvatar}
                       />
                       <div>
-                        <div className={s.instaHandle}>yousserabir.tn</div>
+                        <div className={s.instaHandle}>atlanticbotanicals.ie</div>
                         <span className={s.instaSponsored}>{t.hero.instaSponsored}</span>
                       </div>
                     </div>
@@ -283,7 +319,7 @@ export default function HomePage() {
                   <div className={s.instaMediaArea}>
                     <img
                       src="/images/adora_hero_perfume.jpg"
-                      alt="Parfum de luxe"
+                      alt="Product visual"
                       className={s.instaMediaImg}
                     />
 
@@ -327,7 +363,7 @@ export default function HomePage() {
 
                   {/* Caption */}
                   <div className={s.instaCaption}>
-                    <span className={s.instaCaptionUsername}>yousserabir.tn</span>
+                    <span className={s.instaCaptionUsername}>atlanticbotanicals.ie</span>
                     {t.hero.instaCaption}
                   </div>
                 </div>
@@ -497,66 +533,66 @@ export default function HomePage() {
 
             {/* Right Column: 2x3 Grid */}
             <div className={s.sectorsCardsGrid}>
-              {/* Card 1: Parfums & Beauté */}
+              {/* Card 1: Skincare & Beauty */}
               <div className={s.sectorCard}>
                 <img
                   src="/images/adora_hero_perfume.jpg"
-                  alt="Parfums & Beauté"
+                  alt={t.sectors.cards.perfumeBeauty}
                   className={s.sectorCardImg}
                 />
                 <div className={s.sectorCardGradient} />
                 <div className={s.sectorPillLabel}>{t.sectors.cards.perfumeBeauty}</div>
               </div>
 
-              {/* Card 2: Nutrition & Sport */}
+              {/* Card 2: Candles & Wellness */}
               <div className={s.sectorCard}>
                 <img
                   src="/images/creatine_story.jpg"
-                  alt="Nutrition & Sport"
+                  alt={t.sectors.cards.nutritionSport}
                   className={s.sectorCardImg}
                 />
                 <div className={s.sectorCardGradient} />
                 <div className={s.sectorPillLabel}>{t.sectors.cards.nutritionSport}</div>
               </div>
 
-              {/* Card 3: Mode & Vêtements */}
+              {/* Card 3: Apparel & Knitwear */}
               <div className={s.sectorCard}>
                 <img
                   src="/images/adora_fashion_model.jpg"
-                  alt="Mode & Vêtements"
+                  alt={t.sectors.cards.fashionApparel}
                   className={s.sectorCardImg}
                 />
                 <div className={s.sectorCardGradient} />
                 <div className={s.sectorPillLabel}>{t.sectors.cards.fashionApparel}</div>
               </div>
 
-              {/* Card 4: Coiffure & Beauté */}
+              {/* Card 4: Hair & Body */}
               <div className={s.sectorCard}>
                 <img
                   src="/images/hero_lifestyle.jpg"
-                  alt="Coiffure & Beauté"
+                  alt={t.sectors.cards.hairBeauty}
                   className={s.sectorCardImg}
                 />
                 <div className={s.sectorCardGradient} />
                 <div className={s.sectorPillLabel}>{t.sectors.cards.hairBeauty}</div>
               </div>
 
-              {/* Card 5: Alimentation & Food */}
+              {/* Card 5: Artisan Food & Gourmet */}
               <div className={s.sectorCard}>
                 <img
                   src="/images/hero_lifestyle.jpg"
-                  alt="Alimentation & Food"
+                  alt={t.sectors.cards.foodDining}
                   className={s.sectorCardImg}
                 />
                 <div className={s.sectorCardGradient} />
                 <div className={s.sectorPillLabel}>{t.sectors.cards.foodDining}</div>
               </div>
 
-              {/* Card 6: Immobilier & Services */}
+              {/* Card 6: Pottery & Living */}
               <div className={s.sectorCard}>
                 <img
                   src="/images/image.png"
-                  alt="Immobilier & Services"
+                  alt={t.sectors.cards.realEstateServices}
                   className={s.sectorCardImg}
                 />
                 <div className={s.sectorCardGradient} />
@@ -761,11 +797,11 @@ export default function HomePage() {
                 <div className={s.featureRow}>
                   <img
                     src="/images/hero_lifestyle.jpg"
-                    alt="Sarra Ben Ali"
+                    alt="Aoife Murphy"
                     style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #EDE9FE' }}
                   />
                   <div>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0F172A' }}>Sarra Ben Ali</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0F172A' }}>Aoife Murphy</div>
                     <div style={{ fontSize: '0.74rem', color: '#64748B' }}>"{t.workflow.testimonialQuote}"</div>
                   </div>
                 </div>
@@ -932,11 +968,11 @@ export default function HomePage() {
               <div className={s.testimonialUser}>
                 <img
                   src="/images/hero_lifestyle.jpg"
-                  alt="Sarra Ben Ali"
+                  alt="Aoife Murphy"
                   className={s.testimonialAvatar}
                 />
                 <div>
-                  <div className={s.testimonialName}>Sarra Ben Ali</div>
+                  <div className={s.testimonialName}>Aoife Murphy</div>
                   <div className={s.testimonialRole}>{t.testimonials.review1Role}</div>
                 </div>
               </div>
@@ -957,11 +993,11 @@ export default function HomePage() {
               <div className={s.testimonialUser}>
                 <img
                   src="/images/creatine_story.jpg"
-                  alt="Ahmed Trabelsi"
+                  alt="Liam O'Connor"
                   className={s.testimonialAvatar}
                 />
                 <div>
-                  <div className={s.testimonialName}>Ahmed Trabelsi</div>
+                  <div className={s.testimonialName}>Liam O'Connor</div>
                   <div className={s.testimonialRole}>{t.testimonials.review2Role}</div>
                 </div>
               </div>
@@ -982,11 +1018,11 @@ export default function HomePage() {
               <div className={s.testimonialUser}>
                 <img
                   src="/images/adora_fashion_model.jpg"
-                  alt="Ines Mansour"
+                  alt="Ciara Walsh"
                   className={s.testimonialAvatar}
                 />
                 <div>
-                  <div className={s.testimonialName}>Ines Mansour</div>
+                  <div className={s.testimonialName}>Ciara Walsh</div>
                   <div className={s.testimonialRole}>{t.testimonials.review3Role}</div>
                 </div>
               </div>
@@ -1056,7 +1092,31 @@ export default function HomePage() {
                 </div>
 
                 {/* Currency Toggle */}
-                
+                <div className={s.cycleTogglePill}>
+                  <button
+                    type="button"
+                    onClick={() => setCurrency('USD')}
+                    className={`${s.cycleToggleBtn} ${currency === 'USD' ? s.cycleToggleBtnActive : ''}`}
+                  >
+                    $ USD
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrency('EUR')}
+                    className={`${s.cycleToggleBtn} ${currency === 'EUR' ? s.cycleToggleBtnActive : ''}`}
+                  >
+                    € EUR
+                  </button>
+                  {locale === 'fr' && (
+                    <button
+                      type="button"
+                      onClick={() => setCurrency('DT')}
+                      className={`${s.cycleToggleBtn} ${currency === 'DT' ? s.cycleToggleBtnActive : ''}`}
+                    >
+                      DT
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1072,7 +1132,7 @@ export default function HomePage() {
 
                   <div className={s.planPriceRow}>
                     <span className={s.planPrice}>
-                      {currency === 'DT' ? '0 DT' : '$0'}
+                      {currency === 'EUR' ? '€0' : currency === 'DT' ? '0 DT' : '$0'}
                     </span>
                     <span className={s.planPriceCycle}>
                       {billingCycle === 'annual' ? t.pricing.cyclePerMonthBilledAnnually : t.pricing.cyclePerMonth}
@@ -1129,7 +1189,9 @@ export default function HomePage() {
 
                   <div className={s.planPriceRow}>
                     <span className={s.planPrice}>
-                      {currency === 'DT'
+                      {currency === 'EUR'
+                        ? billingCycle === 'annual' ? '€14' : '€18'
+                        : currency === 'DT'
                         ? billingCycle === 'annual' ? '47 DT' : '59 DT'
                         : billingCycle === 'annual' ? '$15' : '$19'}
                     </span>
@@ -1165,7 +1227,7 @@ export default function HomePage() {
 
                 <div>
                   <Link
-                    href={user ? buildCheckoutUrl({ pack: 'flash', cycle: billingCycle, currency: 'USD' }) : `/signup?pack=flash&cycle=${billingCycle}&currency=USD`}
+                    href={user ? buildCheckoutUrl({ pack: 'flash', cycle: billingCycle, currency: (currency === 'EUR' ? 'EUR' : 'USD') }) : `/signup?pack=flash&cycle=${billingCycle}&currency=${currency}`}
                     className={s.secondaryPillBtn}
                     style={{ width: '100%', justifyContent: 'center', textAlign: 'center' }}
                   >
@@ -1190,7 +1252,9 @@ export default function HomePage() {
 
                   <div className={s.planPriceRow}>
                     <span className={s.planPrice}>
-                      {currency === 'DT'
+                      {currency === 'EUR'
+                        ? billingCycle === 'annual' ? '€36' : '€45'
+                        : currency === 'DT'
                         ? billingCycle === 'annual' ? '119 DT' : '149 DT'
                         : billingCycle === 'annual' ? '$39' : '$49'}
                     </span>
@@ -1233,7 +1297,7 @@ export default function HomePage() {
 
                 <div>
                   <Link
-                    href={user ? buildCheckoutUrl({ pack: 'pro', cycle: billingCycle, currency: 'USD' }) : `/signup?pack=pro&cycle=${billingCycle}&currency=USD`}
+                    href={user ? buildCheckoutUrl({ pack: 'pro', cycle: billingCycle, currency: (currency === 'EUR' ? 'EUR' : 'USD') }) : `/signup?pack=pro&cycle=${billingCycle}&currency=${currency}`}
                     className={s.primaryPillBtn}
                     style={{ width: '100%', justifyContent: 'center', textAlign: 'center' }}
                   >
@@ -1256,7 +1320,9 @@ export default function HomePage() {
 
                   <div className={s.planPriceRow}>
                     <span className={s.planPrice}>
-                      {currency === 'DT'
+                      {currency === 'EUR'
+                        ? billingCycle === 'annual' ? '€72' : '€89'
+                        : currency === 'DT'
                         ? billingCycle === 'annual' ? '239 DT' : '299 DT'
                         : billingCycle === 'annual' ? '$79' : '$99'}
                     </span>
@@ -1299,7 +1365,7 @@ export default function HomePage() {
 
                 <div>
                   <Link
-                    href={user ? buildCheckoutUrl({ pack: 'agency_299', cycle: billingCycle, currency: 'USD' }) : `/signup?pack=agency_299&cycle=${billingCycle}&currency=USD`}
+                    href={user ? buildCheckoutUrl({ pack: 'agency_299', cycle: billingCycle, currency: (currency === 'EUR' ? 'EUR' : 'USD') }) : `/signup?pack=agency_299&cycle=${billingCycle}&currency=${currency}`}
                     className={s.secondaryPillBtn}
                     style={{ width: '100%', justifyContent: 'center', textAlign: 'center' }}
                   >
@@ -1433,15 +1499,25 @@ export default function HomePage() {
           9. FOOTER
           ========================================================================= */}
       <footer className={s.footer}>
-        <div className={s.footerContainer}>
-          <div>
-            {t.footer.rights}
-          </div>
-          <div className={s.footerLinks} style={{ alignItems: 'center' }}>
-            <Link href="/terms" className={s.footerLink}>{t.footer.legal}</Link>
-            <Link href="/privacy" className={s.footerLink}>{t.footer.privacy}</Link>
-            <Link href="/agency" className={s.footerLink}>{t.footer.contact}</Link>
-            <LanguageSwitcher variant="footer" />
+        <div className={s.footerContainer} style={{ flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <div style={{ fontWeight: 800, color: '#FFFFFF', fontSize: '0.94rem', marginBottom: '4px' }}>
+                MarkMosaiq Technologies Ltd.
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#94A3B8' }}>
+                The Chase, Carmanhall Road, Sandyford Business Park, Dublin 18, D18 Y3X2, Ireland
+              </div>
+              <div style={{ fontSize: '0.74rem', color: '#64748B', marginTop: '4px' }}>
+                {t.footer.rights}
+              </div>
+            </div>
+            <div className={s.footerLinks} style={{ alignItems: 'center' }}>
+              <Link href="/terms" className={s.footerLink}>{t.footer.legal}</Link>
+              <Link href="/privacy" className={s.footerLink}>{t.footer.privacy}</Link>
+              <Link href="/contact" className={s.footerLink}>{t.footer.contact}</Link>
+              <LanguageSwitcher variant="footer" />
+            </div>
           </div>
         </div>
       </footer>

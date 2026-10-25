@@ -8,7 +8,7 @@
 export const PACK_IDS = ['free', 'flash', 'pro', 'agency_299'] as const;
 export type PackId = (typeof PACK_IDS)[number];
 export type Cycle = 'monthly' | 'annual';
-export type Currency = 'USD';
+export type Currency = 'USD' | 'EUR';
 
 export interface PackDef {
   id: PackId;
@@ -30,9 +30,11 @@ export const PACKS: Record<PackId, PackDef> = {
     priceMinor: {
       monthly: {
         USD: 0,
+        EUR: 0,
       },
       annual: {
         USD: 0,
+        EUR: 0,
       },
     },
     whopPlanEnvVar: '',
@@ -53,9 +55,11 @@ export const PACKS: Record<PackId, PackDef> = {
     priceMinor: {
       monthly: {
         USD: 1900,  // $19
+        EUR: 1800,  // €18
       },
       annual: {
-        USD: 18200,  // $182 (-20% rounded)
+        USD: 18200,  // $182 (-20% rounded, $15/mo)
+        EUR: 16800,  // €168 (-20% rounded, €14/mo)
       },
     },
     whopPlanEnvVar: 'WHOP_PLAN_FLASH',
@@ -76,9 +80,11 @@ export const PACKS: Record<PackId, PackDef> = {
     priceMinor: {
       monthly: {
         USD: 4900,   // $49
+        EUR: 4500,   // €45
       },
       annual: {
-        USD: 47000,   // $470 (-20% rounded)
+        USD: 47000,   // $470 (-20% rounded, $39/mo)
+        EUR: 43200,   // €432 (-20% rounded, €36/mo)
       },
     },
     whopPlanEnvVar: 'WHOP_PLAN_PRO',
@@ -99,9 +105,11 @@ export const PACKS: Record<PackId, PackDef> = {
     priceMinor: {
       monthly: {
         USD: 9900,   // $99 (Confirmed)
+        EUR: 8900,   // €89
       },
       annual: {
-        USD: 95000,  // $950 (-20% rounded)
+        USD: 95000,  // $950 (-20% rounded, $79/mo)
+        EUR: 86400,  // €864 (-20% rounded, €72/mo)
       },
     },
     whopPlanEnvVar: 'WHOP_PLAN_AGENCY',
@@ -121,14 +129,15 @@ export function getPriceMinor(pack: PackId, cycle: Cycle, currency: Currency = '
   if (!packDef) {
     throw new Error(`Unknown pack ID: ${pack}`);
   }
-  return packDef.priceMinor[cycle]?.USD ?? packDef.priceMinor[cycle]?.[currency] ?? 4900;
+  return packDef.priceMinor[cycle]?.[currency] ?? packDef.priceMinor[cycle]?.USD ?? 4900;
 }
 
 export function periodMonths(cycle: Cycle): 1 | 12 {
   return cycle === 'annual' ? 12 : 1;
 }
 
-export function formatPrice(minor: number, currency?: Currency): string {
-  const dollars = minor / 100;
-  return Number.isInteger(dollars) ? `$${dollars}` : `$${dollars.toFixed(2)}`;
+export function formatPrice(minor: number, currency: Currency = 'USD'): string {
+  const amount = minor / 100;
+  const formatted = Number.isInteger(amount) ? `${amount}` : `${amount.toFixed(2)}`;
+  return currency === 'EUR' ? `€${formatted}` : `$${formatted}`;
 }

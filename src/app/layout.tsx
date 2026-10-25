@@ -8,8 +8,8 @@ import { Locale, isValidLocale, DEFAULT_LOCALE } from '@/locales';
 import { getCurrentSession } from '@/lib/auth';
 
 export const metadata: Metadata = {
-  title: 'MarkMosaiq — Studio IA E-commerce & Compléments Alimentaires en Tunisie',
-  description: 'Créez des visuels marketing 4K prêts à poster (Feed, Stories, Pubs et Badges Livraison 24 Gouvernorats) à partir d\'une simple photo de votre produit.',
+  title: 'MarkMosaiq — AI Product Staging & Commercial Creative Studio',
+  description: 'Turn product photos into studio-grade 4K lifestyle scenes, social ads, and e-commerce visuals in seconds with pixel-accurate product preservation and zero distorted text.',
   verification: {
     google: 'NPoTVmfYmh4ysR8nlEkdJcWzPMjNnPI_dmtIo5mvwUQ',
   },

@@ -684,21 +684,7 @@ function SignupWizardContent() {
               </p>
             </div>
 
-            {devCodeHint && (
-              <div style={{
-                background: '#FAF5FF',
-                border: '1px dashed #A855F7',
-                borderRadius: '8px',
-                padding: '10px',
-                fontSize: '12px',
-                color: '#7C3AED',
-                textAlign: 'center',
-                marginBottom: '16px',
-                fontWeight: 700,
-              }}>
-                ⚡ Dev Mode Code: <strong>{devCodeHint}</strong> ({t.auth.signup.devModeOr} <strong>123456</strong>)
-              </div>
-            )}
+            
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>

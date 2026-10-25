@@ -67,8 +67,20 @@ export function normalizeCheckoutParams(
     }
   }
 
-  // 3. Resolve currency (Strictly base in USD per user instruction)
-  const currency: Currency = 'USD';
+  // 3. Resolve currency (Supports EUR and USD, auto-detects Ireland/EU countries)
+  const rawCurrency = getParam('currency');
+  let currency: Currency = 'USD';
+  if (rawCurrency) {
+    const cleaned = rawCurrency.trim().toUpperCase();
+    currency = cleaned === 'EUR' ? 'EUR' : 'USD';
+  } else if (
+    ctx.country &&
+    ['IE', 'FR', 'DE', 'IT', 'ES', 'NL', 'BE', 'PT', 'AT', 'FI', 'GR', 'LU', 'EE', 'LV', 'LT', 'SK', 'SI', 'CY', 'MT'].includes(
+      ctx.country.toUpperCase()
+    )
+  ) {
+    currency = 'EUR';
+  }
 
   return {
     ok: true,
