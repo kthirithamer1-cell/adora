@@ -101,6 +101,8 @@ export interface TranslationDictionary {
     subtitle: string;
     cta: string;
     testimonialQuote: string;
+    cutoutFeature: string;
+    cutoutFeatureSub: string;
     multiChannel: string;
     multiChannelSub: string;
     publishing: string;

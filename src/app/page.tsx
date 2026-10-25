@@ -304,11 +304,11 @@ export default function HomePage() {
                     <div className={s.instaUserWrap}>
                       <img
                         src="/images/hero_lifestyle.jpg"
-                        alt="Retailer"
+                        alt="Brand preview"
                         className={s.instaAvatar}
                       />
                       <div>
-                        <div className={s.instaHandle}>atlanticbotanicals.ie</div>
+                        <div className={s.instaHandle}>@yourbrand.preview</div>
                         <span className={s.instaSponsored}>{t.hero.instaSponsored}</span>
                       </div>
                     </div>
@@ -363,18 +363,18 @@ export default function HomePage() {
 
                   {/* Caption */}
                   <div className={s.instaCaption}>
-                    <span className={s.instaCaptionUsername}>atlanticbotanicals.ie</span>
+                    <span className={s.instaCaptionUsername}>@yourbrand.preview</span>
                     {t.hero.instaCaption}
                   </div>
                 </div>
 
-                {/* Floating Metric Pill */}
+                {/* Floating Feature Pill */}
                 <div className={s.floatingStatBadge}>
                   <div className={s.statTopRow}>
-                    <span style={{ color: '#A855F7' }}>📈</span>
-                    <span>+80%</span>
+                    <span style={{ color: '#00E5FF' }}>⚡</span>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 900 }}>4K UHD</span>
                   </div>
-                  <div className={s.statSubLabel}>{t.hero.statPill}</div>
+                  <div className={s.statSubLabel}>Studio Staging</div>
                 </div>
               </div>
             </div>
@@ -795,14 +795,12 @@ export default function HomePage() {
 
               <div className={s.featuresList}>
                 <div className={s.featureRow}>
-                  <img
-                    src="/images/hero_lifestyle.jpg"
-                    alt="Aoife Murphy"
-                    style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #EDE9FE' }}
-                  />
+                  <div className={s.featureSquareIcon} style={{ background: '#EEF2FF', borderColor: '#C7D2FE', color: '#4F46E5' }}>
+                    <Layers size={18} />
+                  </div>
                   <div>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0F172A' }}>Aoife Murphy</div>
-                    <div style={{ fontSize: '0.74rem', color: '#64748B' }}>"{t.workflow.testimonialQuote}"</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0F172A' }}>{t.workflow.cutoutFeature}</div>
+                    <div style={{ fontSize: '0.74rem', color: '#64748B' }}>{t.workflow.cutoutFeatureSub}</div>
                   </div>
                 </div>
 
@@ -946,100 +944,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* =========================================================================
-          7. SECTION 6: TÉMOIGNAGES CLIENTS
-          ========================================================================= */}
-      <section id="temoignages" className={s.testimonialsSection}>
-        <div className={s.container}>
-          <div className={s.testimonialsHeader}>
-            <div className={s.lavenderBadge}>
-              <Heart size={13} color="#7C3AED" />
-              <span>{t.testimonials.pillBadge}</span>
-            </div>
-
-            <h2 className={s.sectorsTitle}>
-              {t.testimonials.titlePart1} <span className={s.gradientPurpleText}>{t.testimonials.titleHighlight}</span>
-            </h2>
-          </div>
-
-          <div className={s.testimonialsGrid}>
-            {/* Testimonial 1 */}
-            <div className={s.testimonialCard}>
-              <div className={s.testimonialUser}>
-                <img
-                  src="/images/hero_lifestyle.jpg"
-                  alt="Aoife Murphy"
-                  className={s.testimonialAvatar}
-                />
-                <div>
-                  <div className={s.testimonialName}>Aoife Murphy</div>
-                  <div className={s.testimonialRole}>{t.testimonials.review1Role}</div>
-                </div>
-              </div>
-
-              <p className={s.testimonialQuote}>
-                "{t.testimonials.review1Quote}"
-              </p>
-
-              <div className={s.testimonialStars}>
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={15} fill="#F59E0B" color="#F59E0B" />
-                ))}
-              </div>
-            </div>
-
-            {/* Testimonial 2 */}
-            <div className={s.testimonialCard}>
-              <div className={s.testimonialUser}>
-                <img
-                  src="/images/creatine_story.jpg"
-                  alt="Liam O'Connor"
-                  className={s.testimonialAvatar}
-                />
-                <div>
-                  <div className={s.testimonialName}>Liam O'Connor</div>
-                  <div className={s.testimonialRole}>{t.testimonials.review2Role}</div>
-                </div>
-              </div>
-
-              <p className={s.testimonialQuote}>
-                "{t.testimonials.review2Quote}"
-              </p>
-
-              <div className={s.testimonialStars}>
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={15} fill="#F59E0B" color="#F59E0B" />
-                ))}
-              </div>
-            </div>
-
-            {/* Testimonial 3 */}
-            <div className={s.testimonialCard}>
-              <div className={s.testimonialUser}>
-                <img
-                  src="/images/adora_fashion_model.jpg"
-                  alt="Ciara Walsh"
-                  className={s.testimonialAvatar}
-                />
-                <div>
-                  <div className={s.testimonialName}>Ciara Walsh</div>
-                  <div className={s.testimonialRole}>{t.testimonials.review3Role}</div>
-                </div>
-              </div>
-
-              <p className={s.testimonialQuote}>
-                "{t.testimonials.review3Quote}"
-              </p>
-
-              <div className={s.testimonialStars}>
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={15} fill="#F59E0B" color="#F59E0B" />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* =========================================================================
           8. SECTION 7: PRICING BANNER ("Choisis la formule qui te correspond")
@@ -1503,10 +1407,10 @@ export default function HomePage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '16px' }}>
             <div>
               <div style={{ fontWeight: 800, color: '#FFFFFF', fontSize: '0.94rem', marginBottom: '4px' }}>
-                MarkMosaiq Technologies Ltd.
+                MarkMosaiq
               </div>
               <div style={{ fontSize: '0.78rem', color: '#94A3B8' }}>
-                The Chase, Carmanhall Road, Sandyford Business Park, Dublin 18, D18 Y3X2, Ireland
+                AI Product Photography & Commercial Creative Studio
               </div>
               <div style={{ fontSize: '0.74rem', color: '#64748B', marginTop: '4px' }}>
                 {t.footer.rights}

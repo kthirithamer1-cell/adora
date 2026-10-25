@@ -1,11 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
-import { Mail, MapPin, Building2, Phone, ShieldCheck, Clock, ArrowRight, HelpCircle } from 'lucide-react';
+import { Mail, ShieldCheck, ArrowRight, HelpCircle, Briefcase, Clock } from 'lucide-react';
 
 export const metadata = {
-  title: 'Contact Us — MarkMosaiq Technologies Ltd.',
+  title: 'Contact Us — MarkMosaiq Studio',
   description:
-    'Get in touch with MarkMosaiq Technologies Ltd. Reach out to our Dublin, Ireland headquarters for enterprise inquiries, creator support, and partnership opportunities.',
+    'Get in touch with MarkMosaiq for customer support, merchant inquiries, enterprise volume staging, and partnership opportunities.',
 };
 
 export default function ContactPage() {
@@ -87,20 +87,20 @@ export default function ContactPage() {
               marginBottom: '16px',
             }}
           >
-            <Building2 size={14} />
-            <span>Official Corporate Headquarters</span>
+            <HelpCircle size={14} />
+            <span>Merchant & Creator Support</span>
           </div>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.03em', margin: '0 0 14px' }}>
             Contact <span style={{ background: 'linear-gradient(135deg, #00E5FF, #A855F7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>MarkMosaiq</span>
           </h1>
           <p style={{ color: '#94A3B8', fontSize: '1.05rem', maxWidth: '640px', margin: '0 auto', lineHeight: 1.6 }}>
-            Have questions about our AI product photography studio, bespoke retail integrations, or enterprise volume pricing? Our Dublin team is here to assist you.
+            Have questions about our AI product photography studio, custom catalog integrations, or enterprise volume pricing? Our support desk is here to help you succeed.
           </p>
         </div>
 
         {/* Contact Cards Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '48px' }}>
-          {/* Card 1: Head Office Address */}
+          {/* Card 1: Customer & Merchant Support */}
           <div
             style={{
               background: '#0B0E14',
@@ -124,22 +124,24 @@ export default function ContactPage() {
                 color: '#00E5FF',
               }}
             >
-              <MapPin size={22} />
+              <Mail size={22} />
             </div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '6px 0 0' }}>Registered Office</h3>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '6px 0 0' }}>Merchant Support Desk</h3>
             <p style={{ color: '#94A3B8', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
-              <strong>MarkMosaiq Technologies Ltd.</strong><br />
-              The Chase, Carmanhall Road<br />
-              Sandyford Business Park<br />
-              Dublin 18, D18 Y3X2<br />
-              Ireland
+              Need assistance with image uploads, studio staging, resolution settings, or account access?
             </p>
+            <div style={{ marginTop: '4px' }}>
+              <strong style={{ color: '#FFFFFF', fontSize: '0.85rem' }}>Direct Support Email:</strong><br />
+              <a href="mailto:support@markmosaiq.ai" style={{ color: '#00E5FF', textDecoration: 'none', fontWeight: 700, fontSize: '0.95rem' }}>
+                support@markmosaiq.ai
+              </a>
+            </div>
             <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 'auto', paddingTop: '10px' }}>
-              Company registered in Ireland • EU Member State
+              Average response time: within 24 hours
             </div>
           </div>
 
-          {/* Card 2: Email & Support */}
+          {/* Card 2: Commercial & Legal Inquiries */}
           <div
             style={{
               background: '#0B0E14',
@@ -163,19 +165,19 @@ export default function ContactPage() {
                 color: '#A855F7',
               }}
             >
-              <Mail size={22} />
+              <Briefcase size={22} />
             </div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '6px 0 0' }}>Email Contacts</h3>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '6px 0 0' }}>Commercial & Privacy</h3>
             <p style={{ color: '#94A3B8', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
-              <strong>General & Merchant Support:</strong><br />
-              <a href="mailto:support@markmosaiq.ai" style={{ color: '#00E5FF', textDecoration: 'none' }}>support@markmosaiq.ai</a>
+              <strong>Bespoke & Volume Plans:</strong><br />
+              <a href="mailto:enterprise@markmosaiq.ai" style={{ color: '#00E5FF', textDecoration: 'none' }}>enterprise@markmosaiq.ai</a>
             </p>
             <p style={{ color: '#94A3B8', fontSize: '0.9rem', lineHeight: 1.6, margin: '6px 0 0' }}>
-              <strong>Privacy, GDPR & Legal:</strong><br />
+              <strong>GDPR & Data Protection:</strong><br />
               <a href="mailto:privacy@markmosaiq.ai" style={{ color: '#A855F7', textDecoration: 'none' }}>privacy@markmosaiq.ai</a>
             </p>
             <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 'auto', paddingTop: '10px' }}>
-              Average response time: &lt; 24 hours on business days
+              Dedicated SLA for agency and enterprise subscribers
             </div>
           </div>
 
@@ -205,15 +207,15 @@ export default function ContactPage() {
             >
               <ShieldCheck size={22} />
             </div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '6px 0 0' }}>Billing & Tax Inquiries</h3>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '6px 0 0' }}>Billing & Payments</h3>
             <p style={{ color: '#94A3B8', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
-              All international card transactions and EU VAT remittance (23% Irish standard rate) are processed via our certified Merchant of Record:
+              All international card transactions, subscriptions, and applicable EU VAT compliance are securely processed through our authorized Merchant of Record:
             </p>
             <div style={{ color: '#FFFFFF', fontWeight: 700, fontSize: '0.88rem', marginTop: '4px' }}>
               Whop Inc. (Merchant of Record)
             </div>
             <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 'auto', paddingTop: '10px' }}>
-              Tax receipts, VAT reclaim IDs & commercial invoices generated automatically
+              Automated invoice receipts & VAT documentation via checkout
             </div>
           </div>
         </div>
@@ -263,7 +265,7 @@ export default function ContactPage() {
       <footer style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', background: '#05070B', padding: '24px' }}>
         <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ fontSize: '0.82rem', color: '#64748B' }}>
-            © 2026 MarkMosaiq Technologies Ltd. Dublin, Ireland. All rights reserved.
+            © 2026 MarkMosaiq. All rights reserved.
           </div>
           <div style={{ display: 'flex', gap: '20px', fontSize: '0.84rem' }}>
             <Link href="/terms" style={{ color: '#94A3B8', textDecoration: 'none' }}>Terms of Service</Link>

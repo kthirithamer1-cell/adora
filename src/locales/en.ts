@@ -100,13 +100,15 @@ export const en: TranslationDictionary = {
     },
   },
   workflow: {
-    pillBadge: 'Trusted & Proven',
-    titlePart1: 'Brands and creators who tested &',
-    titleHighlight: 'adopted AI',
+    pillBadge: 'Precision & Control',
+    titlePart1: 'Built for modern',
+    titleHighlight: 'e-commerce velocity',
     subtitle:
-      'From raw product photos to winning ad creative, MarkMosaiq elevates your workflow. Monitor live visual metrics in an uncluttered workspace.',
+      'From raw product snaps to winning commercial creatives, MarkMosaiq streamlines staging and publishing in one unified studio.',
     cta: 'View All Plans & Pricing',
-    testimonialQuote: '"Unbelievable visuals ready in seconds for our seasonal collections."',
+    testimonialQuote: '"Studio-grade lifestyle scenes ready in seconds for every product launch."',
+    cutoutFeature: 'Precision Product Cutout',
+    cutoutFeatureSub: 'Sub-pixel edge detection isolating your packaging with clean reflection and shadow retention.',
     multiChannel: 'Multi-Channel Formats',
     multiChannelSub: 'Instagram Feed, Stories, TikTok, Shopify store & Meta Ads.',
     publishing: 'Streamlined Publishing',
@@ -115,18 +117,18 @@ export const en: TranslationDictionary = {
     analyticsSub: 'Track customer engagement and maximize your return on ad spend.',
   },
   testimonials: {
-    pillBadge: 'Loved by Independent Retailers',
-    titlePart1: 'Trusted by founders &',
+    pillBadge: 'Product Staging Quality',
+    titlePart1: 'Built for independent founders &',
     titleHighlight: 'e-commerce leaders',
-    review1Role: 'Founder, Atlantic Botanicals (Galway)',
+    review1Role: 'E-Commerce Merchant',
     review1Quote:
-      '"MarkMosaiq transformed our product staging. As an independent Irish skincare brand, hiring a photography studio for every batch was out of reach. Now we generate studio-grade lifestyle scenes that boosted our online conversion rate by 48%."',
-    review2Role: 'Co-Founder, Ember & Moss Candles (Dublin)',
+      '"Studio-quality product staging ready in minutes without photoshoot expenses."',
+    review2Role: 'Brand Founder',
     review2Quote:
-      '"The product preservation is unmatched. Unlike generic AI tools that warp our candle labels and ruin text, MarkMosaiq keeps our packaging 100% crisp while creating cozy, authentic living room backdrops that resonate with our customers."',
-    review3Role: 'E-Commerce Lead, Connemara Woollens (Cork)',
+      '"Clean edge isolation and product preservation keeping all labels sharp."',
+    review3Role: 'Creative Director',
     review3Quote:
-      '"Producing clean social ad creatives used to take days of back-and-forth. With MarkMosaiq, our creative team turns one flat-lay apparel photo into a complete seasonal ad campaign ready for Instagram and TikTok in minutes."',
+      '"Streamlines social media and store asset generation across multiple ratios."',
   },
   pricing: {
     pillBadge: 'Transparent & Predictable Pricing',
@@ -211,7 +213,7 @@ export const en: TranslationDictionary = {
     a4: 'Unlike generic text-to-image tools that hallucinate and warp your labels, text, and logos, MarkMosaiq uses pixel-accurate product preservation. Your authentic physical product is isolated at 100% fidelity—every font, barcode, and label stays completely untouched. We generate only the vacant, ultra-realistic 3D studio backdrop with true physical contact shadows and reflections.',
   },
   footer: {
-    rights: '© 2026 MarkMosaiq Technologies Ltd. Dublin, Ireland. All rights reserved.',
+    rights: '© 2026 MarkMosaiq. All rights reserved.',
     legal: 'Terms of Service',
     privacy: 'Privacy Policy (GDPR)',
     contact: 'Contact',

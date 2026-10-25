@@ -3,9 +3,9 @@ import LegalLayout, { TocItem } from '@/components/legal/LegalLayout';
 import { ShieldCheck, CheckCircle2, EyeOff, Lock, Server, FileText, Scale } from 'lucide-react';
 
 export const metadata = {
-  title: 'Privacy Policy & GDPR Compliance — MarkMosaiq Technologies Ltd.',
+  title: 'Privacy Policy & GDPR Compliance — MarkMosaiq',
   description:
-    'Read our GDPR-compliant Privacy Policy. Learn how MarkMosaiq Technologies Ltd. protects your product assets, merchant catalogs, and personal data in strict compliance with EU Regulation 2016/679.',
+    'Read our GDPR-compliant Privacy Policy. Learn how MarkMosaiq protects your product assets, merchant catalogs, and personal data in strict compliance with EU Regulation 2016/679.',
 };
 
 const TOC: TocItem[] = [
@@ -18,7 +18,7 @@ const TOC: TocItem[] = [
   { id: 'security', title: '7. Technical & Organizational Security' },
   { id: 'retention', title: '8. Data Retention & Deletion' },
   { id: 'gdpr-rights', title: '9. Your GDPR Data Subject Rights' },
-  { id: 'dpo-contact', title: '10. Contact & Irish DPC Supervision' },
+  { id: 'dpo-contact', title: '10. Contact & Supervisory Authority' },
 ];
 
 export default function PrivacyPage() {
@@ -26,7 +26,7 @@ export default function PrivacyPage() {
     <LegalLayout
       currentTab="privacy"
       title="Privacy Policy & GDPR Compliance"
-      subtitle="MarkMosaiq Technologies Ltd. is committed to protecting your business assets, product catalogs, and personal data under Regulation (EU) 2016/679 (GDPR)."
+      subtitle="MarkMosaiq is committed to protecting your business assets, product catalogs, and personal data under Regulation (EU) 2016/679 (GDPR)."
       lastUpdated="October 25, 2026"
       toc={TOC}
     >
@@ -47,10 +47,10 @@ export default function PrivacyPage() {
           <ShieldCheck size={24} color="#10B981" style={{ flexShrink: 0, marginTop: '2px' }} />
           <div>
             <h4 style={{ color: '#FFFFFF', margin: '0 0 6px', fontSize: '1rem', fontWeight: 800 }}>
-              EU GDPR & Irish Data Protection Compliance Guarantee
+              EU GDPR & Data Protection Compliance Guarantee
             </h4>
             <p style={{ margin: 0, fontSize: '0.9rem', color: '#94A3B8', lineHeight: 1.6 }}>
-              Your product assets, trade photos, and customer catalogs remain <strong>strictly confidential</strong>. MarkMosaiq Technologies Ltd. never sells your media, never trains public generative models on your proprietary products, and guarantees end-to-end data segregation in accordance with EU Regulation 2016/679.
+              Your product assets, trade photos, and customer catalogs remain <strong>strictly confidential</strong>. MarkMosaiq never sells your media, never trains public generative models on your proprietary products, and guarantees end-to-end data segregation in accordance with EU Regulation 2016/679.
             </p>
           </div>
         </div>
@@ -61,7 +61,7 @@ export default function PrivacyPage() {
             1. Data Controller & Scope
           </h2>
           <p>
-            This Privacy Policy sets out how personal data is collected, stored, and processed by <strong>MarkMosaiq Technologies Ltd.</strong> ("MarkMosaiq", "we", "us", or "our") when you access or use the MarkMosaiq AI creative studio platform.
+            This Privacy Policy sets out how personal data is collected, stored, and processed by <strong>MarkMosaiq</strong> ("MarkMosaiq", "we", "us", or "our") when you access or use the MarkMosaiq AI creative studio platform.
           </p>
           <div
             style={{
@@ -72,14 +72,13 @@ export default function PrivacyPage() {
               margin: '14px 0',
             }}
           >
-            <div style={{ color: '#FFFFFF', fontWeight: 800, marginBottom: '4px' }}>Registered Legal Entity:</div>
-            <div><strong>MarkMosaiq Technologies Ltd.</strong></div>
-            <div>The Chase, Carmanhall Road, Sandyford Business Park</div>
-            <div>Dublin 18, D18 Y3X2, Ireland</div>
+            <div style={{ color: '#FFFFFF', fontWeight: 800, marginBottom: '4px' }}>Platform Operations & Contact:</div>
+            <div><strong>MarkMosaiq Platform Operations</strong></div>
+            <div>Dedicated Customer & Merchant Privacy Desk</div>
             <div style={{ marginTop: '6px' }}>Email: <a href="mailto:privacy@markmosaiq.ai" style={{ color: '#00E5FF' }}>privacy@markmosaiq.ai</a></div>
           </div>
           <p>
-            We act as the <strong>Data Controller</strong> for account registration, billing data, telemetry, and service provisioning under the General Data Protection Regulation (Regulation (EU) 2016/679 - GDPR) and the Irish Data Protection Act 2018.
+            We act as the <strong>Data Controller</strong> for account registration, billing telemetry, and service provisioning under the General Data Protection Regulation (Regulation (EU) 2016/679 - GDPR).
           </p>
         </section>
 
@@ -162,7 +161,7 @@ export default function PrivacyPage() {
             <strong>Whop Inc.</strong> acts as the legal merchant on customer invoices. Whop manages global sales tax, EU VAT MOSS/OSS compliance, and applies the standard <strong>23% Irish VAT</strong> for Irish retail consumers (B2C) or EU reverse-charge (0%) for validated VAT-registered B2B entities.
           </p>
           <p>
-            <strong>Cardholder Security:</strong> Payments are processed on Whop's PCI-DSS Level 1 certified infrastructure. MarkMosaiq Technologies Ltd. never receives, stores, or processes your complete credit card numbers, CVVs, or bank security details.
+            <strong>Cardholder Security:</strong> Payments are processed on Whop's PCI-DSS Level 1 certified infrastructure. MarkMosaiq never receives, stores, or processes your complete credit card numbers, CVVs, or bank security details.
           </p>
         </section>
 
@@ -256,13 +255,13 @@ export default function PrivacyPage() {
               gap: '6px',
             }}
           >
-            <div><strong>Data Protection Officer (DPO) — MarkMosaiq Technologies Ltd.</strong></div>
-            <div>The Chase, Carmanhall Road, Sandyford Business Park, Dublin 18, D18 Y3X2, Ireland</div>
+            <div><strong>Data Protection Desk — MarkMosaiq</strong></div>
+            <div>Online Platform Data Governance</div>
             <div>Direct Email: <a href="mailto:privacy@markmosaiq.ai" style={{ color: '#00E5FF' }}>privacy@markmosaiq.ai</a></div>
             <div>Response SLA: <strong>within 24 business hours</strong></div>
           </div>
           <p style={{ marginTop: '14px' }}>
-            If you are unsatisfied with our response, you have the statutory right under Article 77 GDPR to lodge a complaint with our lead supervisory authority:
+            If you are unsatisfied with our response, you have the statutory right under Article 77 GDPR to lodge a complaint with your competent supervisory authority (such as the Data Protection Commission in Ireland for European users):
           </p>
           <div style={{ background: '#0B0E14', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', padding: '14px 18px', fontSize: '0.88rem' }}>
             <strong>Data Protection Commission (DPC) Ireland</strong><br />

@@ -100,13 +100,15 @@ export const fr: TranslationDictionary = {
     },
   },
   workflow: {
-    pillBadge: 'Simple et confiance',
-    titlePart1: 'Des créateurs et entreprises ont testé et',
-    titleHighlight: "adopté l'IA",
+    pillBadge: 'Précision & Vitesse',
+    titlePart1: 'Conçu pour le workflow',
+    titleHighlight: 'e-commerce moderne',
     subtitle:
-      "De l'idée à la publication, MarkMosaiq t'accompagne à chaque étape. Et avec notre tableau de bord épuré, tu suis la performance de tes visuels en direct.",
+      'De la photo brute au visuel publicitaire haute conversion, MarkMosaiq simplifie vos mises en scène et publications en un clic.',
     cta: 'Découvrir tous les tarifs & forfaits',
-    testimonialQuote: '"Des visuels uniques en quelques secondes pour mes lancements."',
+    testimonialQuote: '"Des visuels de studio ultra-réalistes prêts en quelques secondes pour chaque lancement."',
+    cutoutFeature: 'Détourage Sub-Pixel Précis',
+    cutoutFeatureSub: 'Détection chirurgicale des contours préservant étiquettes, flacons et reflets naturels.',
     multiChannel: 'Formats multi-canaux prêts',
     multiChannelSub: 'Instagram, TikTok, Facebook, site web et WhatsApp.',
     publishing: 'Gestion des publications',
@@ -121,12 +123,12 @@ export const fr: TranslationDictionary = {
     review1Role: 'Boutique de parfums',
     review1Quote:
       '"MarkMosaiq a complètement changé ma façon de créer du contenu. En quelques minutes, j\'obtiens des visuels incroyables qui attirent vraiment mes clients !"',
-    review2Role: 'Coach sportif',
+    review2Role: 'Boutique en ligne',
     review2Quote:
-      '"La qualité des images est impressionnante. Mon engagement sur Instagram a augmenté de 40% depuis que j\'utilise MarkMosaiq."',
+      '"La qualité de mise en scène est impressionnante. Nos visuels produits sont plus attractifs et professionnels sur les réseaux sociaux."',
     review3Role: 'Créatrice de contenu',
     review3Quote:
-      '"Simple, rapide et super intuitif. Même sans compétences en design, j\'arrive à créer des visuels pro comme un vrai designer."',
+      '"Simple, rapide et intuitif. Sans compétences en graphisme complexe, on obtient des visuels studio impeccables."',
   },
   pricing: {
     pillBadge: 'Des tarifs simples et transparents',
@@ -211,7 +213,7 @@ export const fr: TranslationDictionary = {
     a4: 'Contrairement aux générateurs IA génériques qui redessinent et déforment vos logos et étiquettes, notre moteur sépare au pixel près votre produit physique intact et génère exclusivement un décor studio vacant calibré, puis applique des ombres physiques de contact et reflets réalistes.',
   },
   footer: {
-    rights: '© 2026 MarkMosaiq Technologies Ltd. Dublin, Irlande. Tous droits réservés.',
+    rights: '© 2026 MarkMosaiq. Tous droits réservés.',
     legal: 'Mentions légales',
     privacy: 'Politique de confidentialité (RGPD)',
     contact: 'Contact',

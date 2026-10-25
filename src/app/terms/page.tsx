@@ -247,8 +247,8 @@ export default function TermsPage() {
               gap: '6px',
             }}
           >
-            <div><strong>MarkMosaiq Technologies Ltd. — Legal & Corporate Affairs</strong></div>
-            <div>The Chase, Carmanhall Road, Sandyford Business Park, Dublin 18, D18 Y3X2, Ireland</div>
+            <div><strong>MarkMosaiq — Commercial & Legal Inquiries</strong></div>
+            <div>Online Platform Operations</div>
             <div>Support Email: <a href="mailto:support@markmosaiq.ai" style={{ color: '#00E5FF' }}>support@markmosaiq.ai</a></div>
             <div>Merchant of Record (MoR): Whop Inc. — <a href="https://whop.com" target="_blank" rel="noopener noreferrer" style={{ color: '#00E5FF' }}>whop.com</a></div>
           </div>
