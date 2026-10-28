@@ -119,16 +119,22 @@ export async function ensureSampleImagesAction() {
     if (!fs.existsSync(publicDir)) {
       fs.mkdirSync(publicDir, { recursive: true });
     }
+    const currentArtifactDir = 'C:\\Users\\MEDIA INFOPLUS\\.gemini\\antigravity-ide\\brain\\f3c8488d-4c5e-4613-8683-e6d28b42c34c';
     const pairs = [
-      { src: 'sample_sneaker_panda_1792504407509.jpg', dest: 'sample_sneaker_panda.jpg' },
-      { src: 'sample_perfume_amber_1792504426581.jpg', dest: 'sample_perfume_amber.jpg' },
-      { src: 'sample_cream_jar_1792504447613.jpg', dest: 'sample_cream_jar.jpg' },
+      { dir: artifactDir, src: 'sample_sneaker_panda_1792504407509.jpg', dest: 'sample_sneaker_panda.jpg' },
+      { dir: artifactDir, src: 'sample_perfume_amber_1792504426581.jpg', dest: 'sample_perfume_amber.jpg' },
+      { dir: artifactDir, src: 'sample_cream_jar_1792504447613.jpg', dest: 'sample_cream_jar.jpg' },
+      { dir: currentArtifactDir, src: 'carousel_slide1_rose_1793181410324.jpg', dest: 'carousel_bg_slide1.jpg' },
+      { dir: currentArtifactDir, src: 'carousel_slide2_petals_1793181453004.jpg', dest: 'carousel_bg_slide2.jpg' },
+      { dir: currentArtifactDir, src: 'carousel_slide3_stone_1793181473871.jpg', dest: 'carousel_bg_slide3.jpg' },
     ];
     for (const p of pairs) {
-      const srcPath = path.join(artifactDir, p.src);
+      const srcPath = path.join(p.dir, p.src);
       const destPath = path.join(publicDir, p.dest);
-      if (fs.existsSync(srcPath) && !fs.existsSync(destPath)) {
-        fs.copyFileSync(srcPath, destPath);
+      if (fs.existsSync(srcPath)) {
+        try {
+          fs.copyFileSync(srcPath, destPath);
+        } catch {}
       }
     }
     return { success: true };

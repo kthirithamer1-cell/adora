@@ -285,9 +285,7 @@ TYPOGRAPHY:
   const sheet = Buffer.from(base64, "base64");
 
   
-  const timestamp = Date.now();
-  fs.writeFileSync(path.join(aiDir, `carousel_sheet_${timestamp}.png`), sheet);
-  console.log(`💾 Image contact sheet IA sauvegardée dans : public/ai/carousel_sheet_${timestamp}.png`);
+ ;
 
   const metadata = await sharp(sheet).metadata();
 
@@ -335,7 +333,6 @@ TYPOGRAPHY:
       .toBuffer();
 
     // Sauvegarder chaque slide individuelle dans public/ai
-    fs.writeFileSync(path.join(aiDir, `carousel_${timestamp}_slide_${i + 1}.png`), crop);
 
     slides.push({
       index: i + 1,

@@ -30,6 +30,12 @@ import {
   Sparkle,
   ArrowRight,
   Loader2,
+  Heart,
+  MessageCircle,
+  Send,
+  Bookmark,
+  Music,
+  ChevronLeft,
 } from 'lucide-react';
 
 /* =========================================================================
@@ -91,6 +97,7 @@ export default function CarouselStudioPage() {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [copiedCaption, setCopiedCaption] = useState(false);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
   // Initialisation et copie des arrières-plans réels
   useEffect(() => {
@@ -541,20 +548,21 @@ ${hashtags.length > 0 ? hashtags.join(' ') : `#${productName.toLowerCase().repla
             </div>
           </div>
 
-          {/* ================= COLONNE DROITE (PREVIEW 3 SLIDES) ======== */}
+          {/* ================= COLONNE DROITE (REEL PREVIEW MOCKUP) ====== */}
           <div className={s.previewColumn}>
             <div className={s.previewCard}>
+              {/* HEADER AVEC TITRE, TABS & ACTIONS */}
               <div className={s.previewHeader}>
                 <div className={s.previewTitleWrap}>
                   <div className={s.previewIconBox}>
-                    <Layers size={18} strokeWidth={2.2} />
+                    <Smartphone size={18} strokeWidth={2.2} />
                   </div>
-                  <h2 className={s.previewTitle}>Carousel Preview</h2>
+                  <h2 className={s.previewTitle}>Reel Preview</h2>
+                  <span className={s.reelFormatBadge}>Vertical 9:16</span>
                   <span className={s.badgeSlidesCount}>
                     {slides.length > 0 ? `${slides.length} slides` : '0 slide'}
                   </span>
                 </div>
-
                 <div className={s.previewActions}>
                   <button
                     type="button"
@@ -569,7 +577,6 @@ ${hashtags.length > 0 ? hashtags.join(' ') : `#${productName.toLowerCase().repla
                     )}
                     <span>Download All</span>
                   </button>
-
                   <button
                     type="button"
                     className={s.actionIconBtn}
@@ -582,90 +589,156 @@ ${hashtags.length > 0 ? hashtags.join(' ') : `#${productName.toLowerCase().repla
                 </div>
               </div>
 
-              {/* LES 3 SLIDES CÔTE À CÔTE */}
-              <div className={s.slidesGrid}>
-                {slides.length >= 3 ? (
-                  <>
-                    {/* SLIDE 1 : HOOK */}
-                    <div className={s.slideCard}>
+              {/* REEL MOCKUP LAYOUT: PHONE + THUMBNAILS */}
+              <div className={s.reelLayout}>
+                {/* IPHONE MOCKUP */}
+                <div className={s.iphoneFrame}>
+                  {/* Status bar */}
+                  <div className={s.iphoneStatusBar}>
+                    <span className={s.iphoneTime}>9:41</span>
+                    <div className={s.iphoneNotch} />
+                    <div className={s.iphoneStatusIcons}>
+                      <svg width="16" height="11" viewBox="0 0 16 11" fill="white"><path d="M1 7.5C1 7.5 3 4 8 4s7 3.5 7 3.5" stroke="white" strokeWidth="1.2" fill="none"/><circle cx="8" cy="8" r="1.5" fill="white"/></svg>
+                      <svg width="15" height="11" viewBox="0 0 15 11" fill="white"><rect x="0" y="3" width="2.5" height="8" rx="0.5" fill="white" opacity="0.4"/><rect x="3.5" y="2" width="2.5" height="9" rx="0.5" fill="white" opacity="0.6"/><rect x="7" y="1" width="2.5" height="10" rx="0.5" fill="white" opacity="0.8"/><rect x="10.5" y="0" width="2.5" height="11" rx="0.5" fill="white"/></svg>
+                      <svg width="24" height="12" viewBox="0 0 24 12" fill="white"><rect x="0" y="1" width="20" height="10" rx="2" stroke="white" strokeWidth="1" fill="none"/><rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="white"/><rect x="21" y="4" width="2" height="4" rx="1" fill="white" opacity="0.4"/></svg>
+                    </div>
+                  </div>
+
+                  {/* Instagram Reels top bar */}
+                  <div className={s.reelsTopBar}>
+                    <div className={s.reelsTopLeft}>
+                      <ChevronLeft size={22} color="white" strokeWidth={2.5} />
+                    </div>
+                    <span className={s.reelsTopTitle}>Reels</span>
+                    <div className={s.reelsTopRight}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                  </div>
+
+                  {/* MAIN REEL VISUAL */}
+                  <div className={s.reelVisualContainer}>
+                    {slides.length >= 3 ? (
                       <img
-                        src={slides[0].bgUrl}
-                        alt="Slide 1 Hook"
-                        className={s.slideBgImage}
+                        src={slides[activeSlideIndex]?.bgUrl || slides[0].bgUrl}
+                        alt={`Slide ${activeSlideIndex + 1}`}
+                        className={s.reelMainImage}
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/images/image.png';
                         }}
                       />
-                      <div className={s.slideBadgeNumber}>1</div>
-                    </div>
-
-                    {/* SLIDE 2 : VALUE */}
-                    <div className={s.slideCard}>
-                      <img
-                        src={slides[1].bgUrl}
-                        alt="Slide 2 Value"
-                        className={s.slideBgImage}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/images/image.png';
-                        }}
-                      />
-                      <div className={s.slideBadgeNumber}>2</div>
-                    </div>
-
-                    {/* SLIDE 3 : CTA */}
-                    <div className={s.slideCard}>
-                      <img
-                        src={slides[2].bgUrl}
-                        alt="Slide 3 CTA"
-                        className={s.slideBgImage}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/images/adora_hero_perfume.jpg';
-                        }}
-                      />
-                      <div className={s.slideBadgeNumber}>3</div>
-                    </div>
-                  </>
-                ) : (
-                  [1, 2, 3].map((num) => (
-                    <div
-                      key={num}
-                      className={s.slideCard}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: '#F8FAFC',
-                        border: '2px dashed #E2E8F0',
-                        minHeight: '380px',
-                      }}
-                    >
-                      <div className={s.slideBadgeNumber}>{num}</div>
-                      <div style={{ textAlign: 'center', padding: '20px', color: '#64748B' }}>
-                        <div
-                          style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            background: '#EDE9FE',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            margin: '0 auto 12px auto',
-                            color: '#7C3AED',
-                          }}
-                        >
-                          <Layers size={18} />
+                    ) : (
+                      <div className={s.reelPlaceholder}>
+                        <div className={s.reelPlaceholderIcon}>
+                          <Layers size={32} />
                         </div>
-                        <div style={{ fontWeight: 700, fontSize: '13px', color: '#334155', marginBottom: '4px' }}>
-                          {num === 1 ? 'Slide 1 — Hook' : num === 2 ? 'Slide 2 — Value' : 'Slide 3 — CTA'}
+                        <span>Generate your carousel to see the preview</span>
+                      </div>
+                    )}
+
+                    {/* Gradient overlays for text readability */}
+                    {slides.length >= 3 && (
+                      <>
+                        <div className={s.reelGradientTop} />
+                        <div className={s.reelGradientBottom} />
+                      </>
+                    )}
+
+                    {/* Right action icons (Instagram-style) */}
+                    {slides.length >= 3 && (
+                      <div className={s.reelSideActions}>
+                        <div className={s.reelActionItem}>
+                          <Heart size={26} color="white" fill="none" strokeWidth={2} />
+                          <span>1,132</span>
                         </div>
-                        <div style={{ fontSize: '11px', color: '#94A3B8' }}>
-                          En attente de génération
+                        <div className={s.reelActionItem}>
+                          <MessageCircle size={24} color="white" fill="none" strokeWidth={2} />
+                          <span>86</span>
+                        </div>
+                        <div className={s.reelActionItem}>
+                          <Send size={22} color="white" fill="none" strokeWidth={2} />
+                        </div>
+                        <div className={s.reelActionItem}>
+                          <Bookmark size={24} color="white" fill="none" strokeWidth={2} />
+                        </div>
+                        <div className={s.reelActionItem}>
+                          <div className={s.reelMusicThumb}>
+                            <Music size={10} color="white" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
+                    )}
+
+                    {/* Bottom Instagram overlay: username, caption, audio */}
+                    {slides.length >= 3 && (
+                      <div className={s.reelBottomOverlay}>
+                        <div className={s.reelProfileRow}>
+                          <div className={s.reelAvatar}>M</div>
+                          <span className={s.reelUsername}>MarkMosaiq</span>
+                          <button type="button" className={s.reelFollowBtn}>Follow</button>
+                        </div>
+                        <p className={s.reelCaptionPreview}>
+                          {caption
+                            ? caption.substring(0, 80) + (caption.length > 80 ? '...' : '')
+                            : `${productName} — Discover now ✨`}
+                        </p>
+                        <div className={s.reelSeeMore}>See more</div>
+                        <div className={s.reelAudioRow}>
+                          <Music size={10} color="white" />
+                          <span>Original Audio • MarkMosaiq</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Slide progress dots */}
+                    {slides.length >= 3 && (
+                      <div className={s.reelProgressDots}>
+                        {slides.map((_, i) => (
+                          <div
+                            key={i}
+                            className={`${s.reelDot} ${i === activeSlideIndex ? s.reelDotActive : ''}`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* iPhone home indicator */}
+                  <div className={s.iphoneHomeIndicator}>
+                    <div className={s.iphoneHomePill} />
+                  </div>
+                </div>
+
+                {/* VERTICAL THUMBNAILS STRIP */}
+                <div className={s.reelThumbStrip}>
+                  {slides.length >= 3 ? (
+                    slides.map((slide, i) => (
+                      <button
+                        key={slide.index}
+                        type="button"
+                        className={`${s.reelThumbCard} ${i === activeSlideIndex ? s.reelThumbActive : ''}`}
+                        onClick={() => setActiveSlideIndex(i)}
+                      >
+                        <div className={s.reelThumbBadge}>{i + 1}</div>
+                        <img
+                          src={slide.bgUrl}
+                          alt={`Thumb ${i + 1}`}
+                          className={s.reelThumbImg}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/images/image.png';
+                          }}
+                        />
+                        {i === activeSlideIndex && <div className={s.reelThumbPlayIcon}><ChevronRight size={16} color="white" /></div>}
+                      </button>
+                    ))
+                  ) : (
+                    [1, 2, 3].map((num) => (
+                      <div key={num} className={s.reelThumbCardEmpty}>
+                        <div className={s.reelThumbBadge}>{num}</div>
+                        <Layers size={16} color="#94A3B8" />
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
 
               {/* BANNIÈRE DE NOTE EN BAS DU PRÉVIEW */}
