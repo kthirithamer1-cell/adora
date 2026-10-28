@@ -15,6 +15,7 @@ import {
   Zap,
   Crown,
   X,
+  Layers,
 } from 'lucide-react';
 import s from './StudioShell.module.css';
 
@@ -159,6 +160,18 @@ export default function StudioSidebar({
             <Sparkles size={18} className={activeNav === 'studio' ? s.navIconActive : undefined} />
             <span>{t.studio.sidebar.navCreateAd}</span>
             {activeNav === 'studio' && <span className={s.navBadge}>{t.studio.sidebar.activeBadge}</span>}
+          </Link>
+
+          {/* 1.1 Carrousel IA 3-Slides Coordonnées */}
+          <Link
+            href="/carousel"
+            className={`${s.navItem} ${activeNav === 'carousel' ? s.navItemActive : ''}`}
+            title="Campagnes Carrousel 3-Slides Synchronisées"
+            onClick={onCloseMobile}
+          >
+            <Layers size={18} className={activeNav === 'carousel' ? s.navIconActive : undefined} />
+            <span>Carrousel IA 3-Slides</span>
+            <span style={{ fontSize: '10px', background: 'linear-gradient(135deg, #00E5FF, #6366F1)', color: '#FFF', padding: '2px 6px', borderRadius: '4px', fontWeight: 900 }}>HOT</span>
           </Link>
 
           {/* 2. Remove background */}

@@ -1,0 +1,876 @@
+/* =========================================================================
+   MarkMosaiq AI CAROUSEL STUDIO DESIGN SYSTEM (STUDIO LUXE & CLEAN AESTHETIC)
+   ========================================================================= */
+
+.pageWrapper {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* ================= HEADER BANNER ================= */
+.headerBanner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.headerIconBox {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #EDE9FE;
+  color: #7C3AED;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.15);
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.headerSubtitle {
+  font-size: 13.5px;
+  color: #64748B;
+  margin: 4px 0 0 0;
+  max-width: 650px;
+  line-height: 1.45;
+}
+
+.headerBadgeCard {
+  background: #F5F3FF;
+  border: 1px solid #EDE9FE;
+  border-radius: 16px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.04);
+}
+
+.headerBadgeTitle {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #7C3AED;
+  letter-spacing: -0.01em;
+}
+
+.headerBadgeSub {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+  margin-top: 2px;
+}
+
+/* ================= 2-COLUMN GRID ================= */
+.studioGrid {
+  display: grid;
+  grid-template-columns: 430px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1180px) {
+  .studioGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================= LEFT CONFIGURATION CARDS ================= */
+.configColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: #CBD5E1;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.cardHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stepNumberCircle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #EDE9FE;
+  color: #7C3AED;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.badgeCompleted {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #10B981;
+}
+
+.badgeRecommended {
+  display: inline-flex;
+  align-items: center;
+  background: #EDE9FE;
+  color: #7C3AED;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.badgeReady {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7C3AED;
+}
+
+/* Card 1: Product Row */
+.productRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #F8FAFC;
+  border: 1px solid #F1F5F9;
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.productInfoLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.productThumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.productName {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.changeProductBtn {
+  background: none;
+  border: none;
+  color: #6366F1;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s ease;
+}
+
+.changeProductBtn:hover {
+  color: #4F46E5;
+  text-decoration: underline;
+}
+
+/* Card 2: Settings Rows */
+.settingsList {
+  display: flex;
+  flex-direction: column;
+}
+
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #F1F5F9;
+  cursor: pointer;
+  background: none;
+  width: 100%;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.settingRow:last-child {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+.settingRowLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settingRowRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #0F172A;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.settingChevron {
+  color: #94A3B8;
+  transition: transform 0.2s ease;
+}
+
+/* Card 3: Prompt Section */
+.promptHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 4px;
+}
+
+.promptSubtext {
+  font-size: 12px;
+  color: #64748B;
+  line-height: 1.45;
+  margin: 0 0 12px 0;
+}
+
+.textareaWrap {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 10px 12px 8px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s ease;
+}
+
+.textareaWrap:focus-within {
+  border-color: #818CF8;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.promptTextarea {
+  border: none;
+  background: transparent;
+  width: 100%;
+  resize: vertical;
+  min-height: 90px;
+  font-size: 12.5px;
+  color: #0F172A;
+  font-family: inherit;
+  line-height: 1.5;
+  outline: none;
+}
+
+.promptTextarea::placeholder {
+  color: #94A3B8;
+}
+
+.charCount {
+  align-self: flex-end;
+  font-size: 11px;
+  color: #94A3B8;
+  margin-top: 4px;
+}
+
+/* Prompt Chips */
+.chipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  margin-bottom: 16px;
+}
+
+.chipBtn {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.chipBtn:hover {
+  background: #EDE9FE;
+  color: #7C3AED;
+  border-color: #DDD6FE;
+}
+
+.chipActive {
+  background: #EDE9FE;
+  color: #7C3AED;
+  border-color: #C4B5FD;
+  font-weight: 700;
+}
+
+/* Big Generate Button */
+.generateBtn {
+  width: 100%;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, #7C3AED 0%, #6366F1 100%);
+  border: none;
+  border-radius: 12px;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+  transition: all 0.2s ease;
+}
+
+.generateBtn:hover:not(:disabled) {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.45);
+}
+
+.generateBtn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+/* ================= RIGHT PREVIEW COLUMN ================= */
+.previewColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.previewCard {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.previewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.previewTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.previewIconBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #EDE9FE;
+  color: #7C3AED;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewTitle {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.badgeSlidesCount {
+  background: #CCFBF1;
+  color: #0D9488;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.previewActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.downloadAllBtn {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 9px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0F172A;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.downloadAllBtn:hover:not(:disabled) {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+.downloadAllBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.actionIconBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.actionIconBtn:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+}
+
+/* ================= 3 SLIDES ROW ================= */
+.slidesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .slidesGrid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+}
+
+.slideCard {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background: #1E293B;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.14);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.slideCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+}
+
+.slideBgImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.slideVignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.1) 70%, rgba(0, 0, 0, 0.4) 100%);
+  pointer-events: none;
+}
+
+/* Slide 1 Light Vignette Option */
+.slideVignetteLight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.35) 100%);
+  pointer-events: none;
+}
+
+.slideBadgeNumber {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 5;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-size: 13px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.slideContent {
+  position: relative;
+  z-index: 4;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.slideTopCopy {
+  margin-top: 26px;
+  text-align: center;
+  padding: 0 6px;
+}
+
+.slideHeadline1 {
+  font-family: 'Playfair Display', 'Outfit', serif;
+  font-style: italic;
+  font-size: 21px;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.2;
+  margin: 0 0 6px 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.slideSubheadline1 {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.35;
+  margin: 0;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.slideBottomPill {
+  align-self: center;
+  margin-bottom: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  color: #0F172A;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 18px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Slide 2: Value & Feature Bullets */
+.slideHeadline2 {
+  font-size: 17px;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1.25;
+  margin: 0 0 12px 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  padding: 5px 10px;
+  border-radius: 20px;
+  color: #0F172A;
+  font-size: 11px;
+  font-weight: 700;
+  width: fit-content;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.featureItemIcon {
+  color: #7C3AED;
+  display: flex;
+  align-items: center;
+}
+
+/* Slide 3: CTA */
+.slideHeadline3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.25;
+  margin: 0;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, 0.6);
+}
+
+.slideCtaBtn {
+  align-self: center;
+  margin-bottom: 8px;
+  background: #0F172A;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 8px 18px;
+  border-radius: 22px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.slideCtaBtn:hover {
+  transform: scale(1.03);
+}
+
+/* ================= BOTTOM NOTE BANNER ================= */
+.bottomNoteBanner {
+  margin-top: 18px;
+  background: #F5F3FF;
+  border: 1px solid #EDE9FE;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #7C3AED;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ================= POPUP SETTING SELECTOR ================= */
+.settingModalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.settingModal {
+  background: #FFFFFF;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 400px;
+  padding: 22px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid #E2E8F0;
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.settingModalTitle {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settingOptionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settingOptionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.settingOptionBtn:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+.settingOptionBtnActive {
+  background: #F5F3FF;
+  border-color: #C4B5FD;
+  color: #7C3AED;
+  font-weight: 800;
+}
+
+/* ================= SOCIAL CAPTION BOX ================= */
+.captionCard {
+  margin-top: 16px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.captionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.captionTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copyCaptionBtn {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 7px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.copyCaptionBtn:hover {
+  background: #EDE9FE;
+  color: #7C3AED;
+  border-color: #C4B5FD;
+}
+
+.captionContent {
+  font-size: 12.5px;
+  color: #475569;
+  line-height: 1.6;
+  white-space: pre-line;
+  max-height: 120px;
+  overflow-y: auto;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 12px;
+}

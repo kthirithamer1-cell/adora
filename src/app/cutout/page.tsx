@@ -356,7 +356,28 @@ export default function CutoutStudioPage() {
   }
 
   return (
-    <AppShell activeNav="cutout" pageTitle="Studio Détourage IA & Prise de Vue">
+    <AppShell
+      activeNav="cutout"
+      pageTitle="Studio Détourage IA & Prise de Vue"
+      pageBadge={
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            color: '#7C3AED',
+            background: '#F5F3FF',
+            border: '1px solid #EDE9FE',
+            borderRadius: '20px',
+            padding: '3px 10px',
+            fontWeight: 800,
+            fontSize: '11px',
+          }}
+        >
+          <Scissors size={12} color="#7C3AED" /> BiRefNet 4K
+        </span>
+      }
+    >
       <div suppressHydrationWarning style={{ maxWidth: '1240px', margin: '0 auto', paddingBottom: '32px' }}>
 
         {/* ============================================================== */}
@@ -376,21 +397,22 @@ export default function CutoutStudioPage() {
               width: '52px',
               height: '52px',
               borderRadius: '14px',
-              background: '#4F46E5',
+              background: '#EDE9FE',
+              color: '#7C3AED',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)',
+              boxShadow: '0 4px 14px rgba(124, 58, 237, 0.15)',
               flexShrink: 0,
             }}>
-              <Scissors size={26} color="#FFFFFF" strokeWidth={2.2} />
+              <Scissors size={26} color="#7C3AED" strokeWidth={2.2} />
             </div>
 
             <div>
               <div style={{
                 fontSize: '11px',
                 fontWeight: 800,
-                color: '#6366F1',
+                color: '#7C3AED',
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
                 marginBottom: '2px',
@@ -419,14 +441,14 @@ export default function CutoutStudioPage() {
 
           {/* Groupe Badges Droite */}
           <div style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
+            background: '#F5F3FF',
+            border: '1px solid #EDE9FE',
             borderRadius: '16px',
             padding: '10px 22px',
             display: 'flex',
             alignItems: 'center',
             gap: '24px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+            boxShadow: '0 2px 8px rgba(124, 58, 237, 0.04)',
           }}>
             {/* Item 1 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -696,7 +718,7 @@ export default function CutoutStudioPage() {
                 width: '100%',
                 marginTop: '20px',
                 padding: '13px 20px',
-                background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+                background: 'linear-gradient(135deg, #7C3AED 0%, #6366F1 100%)',
                 borderRadius: '12px',
                 border: 'none',
                 color: '#FFFFFF',
@@ -707,7 +729,7 @@ export default function CutoutStudioPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+                boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
                 transition: 'all 0.2s ease',
               }}
             >

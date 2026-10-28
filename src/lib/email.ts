@@ -44,7 +44,7 @@ export interface SendEmailParams {
  * - Couleurs officielles du Logo (Dégradé Indigo #6366F1 ➔ Magenta #EC4899 ➔ Coral #F97316)
  * - Typographie contrastée et lisible (#0F172A)
  */
-export function generateEmailContent(params: SendEmailParams): { subject: string; html: string; previewText: string } {
+export function generateEmailContent(params: SendEmailParams): { subject: string; html: string; previewText: string; text?: string } {
   const { trigger, recipientName, storeName, niche = 'general', leadScore } = params;
   const storeDisplay = storeName || 'Your Store';
   const starterCheckoutUrl = WHOP_PLANS.flash.checkoutUrl || 'https://whop.com/checkout/plan_C5UC5OslFfbUI';
@@ -66,21 +66,29 @@ export function generateEmailContent(params: SendEmailParams): { subject: string
     nicheAdvice = 'For jewelry and luxury items, black velvet pedestals with directional spotlighting make gemstones and precious metals sparkle vividly.';
   }
 
-  // Header et Footer HTML partagés utilisant les couleurs officielles du logo MarkMosaiq
+  // Header et Footer HTML partagés utilisant les couleurs officielles de MarkMosaiq (0KB attachment, instant load)
   const emailHeader = `
     <div style="background: #F8FAFC; padding: 32px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
       <div style="max-width: 580px; margin: 0 auto; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.08);">
         <!-- Top Vibrant Logo Gradient Accent Bar -->
         <div style="height: 5px; background: linear-gradient(90deg, #2563EB 0%, #6366F1 35%, #EC4899 70%, #F97316 100%);"></div>
         
-        <!-- Header with MarkMosaiq Official Logo (Inline Embedded CID) -->
-        <div style="padding: 28px 24px 20px; text-align: center; border-bottom: 1px solid #F1F5F9;">
-          <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px;">
-            <img src="cid:markmosaiq_logo" alt="MarkMosaiq" width="40" height="40" style="display: inline-block; width: 40px; height: 40px; border-radius: 10px; object-fit: contain; vertical-align: middle; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);" />
-            <span style="font-size: 24px; font-weight: 900; color: #0F172A; letter-spacing: -0.02em; vertical-align: middle;">
-              Mark<span style="background: linear-gradient(135deg, #6366F1, #EC4899, #F97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Mosaiq</span>
-            </span>
-          </div>
+        <!-- Header with MarkMosaiq Brand (Zero-Attachment, Universal Email Client Compatible) -->
+        <div style="padding: 26px 24px 18px; text-align: center; border-bottom: 1px solid #F1F5F9;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+            <tr>
+              <td style="vertical-align: middle; padding-right: 10px;">
+                <div style="width: 38px; height: 38px; line-height: 38px; border-radius: 10px; background: linear-gradient(135deg, #6366F1, #EC4899); color: #FFFFFF; font-weight: 900; font-size: 19px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);">
+                  M
+                </div>
+              </td>
+              <td style="vertical-align: middle;">
+                <span style="font-size: 24px; font-weight: 900; color: #0F172A; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                  Mark<span style="color: #6366F1;">Mosaiq</span>
+                </span>
+              </td>
+            </tr>
+          </table>
           <p style="margin: 6px 0 0; color: #64748B; font-size: 13px; font-weight: 500;">AI Product Staging Studio for E-Commerce Brands</p>
         </div>
   `;
@@ -103,7 +111,8 @@ export function generateEmailContent(params: SendEmailParams): { subject: string
     case 'VERIFICATION_CODE':
       return {
         subject: `🔐 Your MarkMosaiq verification code is ${params.verificationCode || '123456'}`,
-        previewText: `Use code ${params.verificationCode || '123456'} to verify your account and unlock your 10 free credits.`,
+        previewText: `Use code ${params.verificationCode || '123456'} to verify your account and unlock your 5 free credits.`,
+        text: `Hi ${recipientName},\n\nYour MarkMosaiq verification code is: ${params.verificationCode || '123456'}\n\nEnter this 6-digit code to verify your account and unlock your 10 Free 4K Studio Credits.\n\nThis code will expire in 15 minutes. If you did not request this, you can safely ignore this email.\n\nMarkMosaiq Studio\nhttps://www.markmosaiq.com`,
         html: `
           ${emailHeader}
           <div style="padding: 32px 28px; text-align: center;">
@@ -114,7 +123,7 @@ export function generateEmailContent(params: SendEmailParams): { subject: string
               Verify Your Email Address
             </h1>
             <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
-              Hi ${recipientName}, enter the 6-digit verification code below to confirm your account and unlock your <strong>10 Free 4K Studio Credits</strong>.
+              Hi ${recipientName}, enter the 6-digit verification code below to confirm your account and unlock your <strong>5 Free 4K Studio Credits</strong>.
             </p>
 
             ${params.storeName ? `
@@ -181,7 +190,7 @@ export function generateEmailContent(params: SendEmailParams): { subject: string
               Welcome, ${recipientName}! 🎉
             </h1>
             <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
-              Your account has been activated and <strong>10 Free 4K Studio Visual Credits</strong> are now available for <strong>${storeDisplay}</strong>.
+              Your account has been activated and <strong>5 Free 4K Studio Visual Credits</strong> are now available for <strong>${storeDisplay}</strong>.
             </p>
 
             <!-- Niche Pro Tip Card -->
@@ -276,7 +285,7 @@ export function generateEmailContent(params: SendEmailParams): { subject: string
     case 'INACTIVITY_NUDGE':
       return {
         subject: `Need a hand staging your first product for ${storeDisplay}?`,
-        previewText: `Your 10 free 4K visuals are waiting in your MarkMosaiq workspace.`,
+        previewText: `Your 5 free 4K visuals are waiting in your MarkMosaiq workspace.`,
         html: `
           ${emailHeader}
           <div style="padding: 32px 28px;">
@@ -322,10 +331,52 @@ export function generateEmailContent(params: SendEmailParams): { subject: string
   }
 }
 
+// Connection pool singleton pour Namecheap SMTP afin d'accélérer l'envoi et d'éviter les poignées de main TLS répétées
+let cachedTransporter: any = null;
+let cachedTransporterConfigKey = '';
+
+async function getPooledTransporter(
+  smtpHost: string,
+  smtpPort: number,
+  smtpSecure: boolean,
+  smtpUser: string,
+  smtpPassword: string
+) {
+  const configKey = `${smtpHost}:${smtpPort}:${smtpSecure}:${smtpUser}`;
+  if (cachedTransporter && cachedTransporterConfigKey === configKey) {
+    return cachedTransporter;
+  }
+
+  const nodemailer = await import('nodemailer');
+  cachedTransporter = nodemailer.createTransport({
+    pool: true, // Connexion persistante réutilisable
+    maxConnections: 3,
+    maxMessages: 100,
+    rateDelta: 1000,
+    rateLimit: 5,
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpSecure,
+    auth: {
+      user: smtpUser,
+      pass: smtpPassword,
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 5000,
+    socketTimeout: 15000,
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+
+  cachedTransporterConfigKey = configKey;
+  return cachedTransporter;
+}
+
 /**
- * Dispatcher universel d'Email Marketing :
+ * Dispatcher universel d'Email Transactionnel & Marketing :
  * 1. Enregistre l'événement dans le CRM local / Supabase pour la Vision Fondateur
- * 2. Envoi direct via SMTP Namecheap Private Email (ou mode dev sandbox)
+ * 2. Envoi instantané ultra-léger (0 Mo d'attachement, ~3 KB payload) via SMTP Namecheap Private Email
  */
 export async function sendMarketingEmail(params: SendEmailParams): Promise<{ success: boolean; logId: string; subject: string }> {
   const content = generateEmailContent(params);
@@ -347,55 +398,47 @@ export async function sendMarketingEmail(params: SendEmailParams): Promise<{ suc
   // 1. Sauvegarde dans le CRM mémoire de l'application
   memoryEmailLogs.unshift(logEntry);
 
-  // 2. Dispatcher externe : Namecheap Private Email (SMTP via Nodemailer)
+  // 2. Dispatcher externe : Namecheap Private Email (SMTP via Nodemailer Pool)
   const smtpUser = process.env.SMTP_USER;
   const smtpPassword = process.env.SMTP_PASSWORD;
   const smtpHost = process.env.SMTP_HOST || 'mail.privateemail.com';
   const smtpPort = Number(process.env.SMTP_PORT) || 465;
   const smtpSecure = process.env.SMTP_SECURE !== undefined ? process.env.SMTP_SECURE === 'true' : smtpPort === 465;
-  const fromEmail = process.env.SMTP_FROM || process.env.EMAIL_FROM || (smtpUser ? `MarkMosaiq <${smtpUser}>` : 'MarkMosaiq <hello@markmosaiq.com>');
+  const fromEmail = process.env.SMTP_FROM || process.env.EMAIL_FROM || (smtpUser ? `MarkMosaiq <${smtpUser}>` : 'MarkMosaiq <contact@markmosaiq.com>');
 
   if (smtpUser && smtpPassword) {
     try {
-      const nodemailer = await import('nodemailer');
-      const path = await import('path');
-      const fs = await import('fs');
-      const logoPath = path.join(process.cwd(), 'public', 'images', 'logo.png');
-      const hasLocalLogo = fs.existsSync(logoPath);
+      const transporter = await getPooledTransporter(
+        smtpHost,
+        smtpPort,
+        smtpSecure,
+        smtpUser,
+        smtpPassword
+      );
 
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpSecure,
-        auth: {
-          user: smtpUser,
-          pass: smtpPassword,
-        },
-      });
-
+      // Payload ultra-léger sans attachement binaire pour transmission instantanée et zéro blocage antispam
       const mailOptions: any = {
         from: fromEmail,
         to: params.recipientEmail,
         subject: content.subject,
+        text: content.text || content.previewText,
         html: content.html,
+        headers: {
+          'X-Priority': '1',
+          'X-MSMail-Priority': 'High',
+          'Importance': 'High',
+          'Auto-Submitted': 'auto-generated',
+        },
       };
-
-      if (hasLocalLogo) {
-        mailOptions.attachments = [
-          {
-            filename: 'logo.png',
-            path: logoPath,
-            cid: 'markmosaiq_logo',
-          },
-        ];
-      }
 
       await transporter.sendMail(mailOptions);
 
       logEntry.status = 'DELIVERED';
-      console.log(`[SMTP EMAIL SENT via ${smtpHost}] To: ${params.recipientEmail} | Subject: "${content.subject}"`);
+      console.log(`[SMTP EMAIL SENT via ${smtpHost}] To: ${params.recipientEmail} | Subject: "${content.subject}" (Instant 0KB attachment)`);
     } catch (smtpErr) {
       console.warn(`[Namecheap SMTP Dispatch notice, logged in CRM] :`, smtpErr);
+      // En cas de rupture du pool, réinitialiser le cache pour forcer une reconnexion propre
+      cachedTransporter = null;
     }
   } else {
     // Mode Sandbox / Local Logging pour les fondateurs
