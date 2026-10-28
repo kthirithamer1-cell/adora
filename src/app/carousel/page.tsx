@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import StudioShell from '@/components/StudioShell';
 import { useWorkspace } from '@/lib/WorkspaceContext';
 import { useLanguage } from '@/lib/LanguageContext';
-import { ensureSampleImagesAction } from '@/actions/generations.actions';
 import { CatalogProduct } from '@/lib/brandkit';
 import CheckoutModal from '@/components/CheckoutModal';
 import s from './carousel.module.css';
@@ -98,11 +97,6 @@ export default function CarouselStudioPage() {
   const [copiedCaption, setCopiedCaption] = useState(false);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
-
-  // Initialisation et copie des arrières-plans réels
-  useEffect(() => {
-    ensureSampleImagesAction().catch(() => { });
-  }, []);
 
   // Upload manuel de produit
   const handleFileUpload = (file: File) => {

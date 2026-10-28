@@ -6,7 +6,6 @@ import AppShell from '@/components/AppShell';
 import AuthRedirectScreen from '@/components/AuthRedirectScreen';
 import { useWorkspace } from '@/lib/WorkspaceContext';
 import { useLanguage } from '@/lib/LanguageContext';
-import { ensureSampleImagesAction } from '@/actions/generations.actions';
 import {
   Scissors,
   Zap,
@@ -207,11 +206,6 @@ export default function CutoutStudioPage() {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<{ text: string; error?: boolean } | null>(null);
-
-  // Copie des images d'artéfacts vers public/images au montage
-  useEffect(() => {
-    ensureSampleImagesAction().catch(() => { });
-  }, []);
 
   // Gestion du glissement du curseur Avant / Après
   const handleMove = useCallback(

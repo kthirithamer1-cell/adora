@@ -109,36 +109,3 @@ export async function recordGenerationAction(payload: {
     return { success: false, error: err.message };
   }
 }
-
-export async function ensureSampleImagesAction() {
-  try {
-    const fs = await import('fs');
-    const path = await import('path');
-    const artifactDir = 'C:\\Users\\MEDIA INFOPLUS\\.gemini\\antigravity-ide\\brain\\550fa523-2c99-427c-b2a9-abdfd965f84f';
-    const publicDir = path.join(process.cwd(), 'public', 'images');
-    if (!fs.existsSync(publicDir)) {
-      fs.mkdirSync(publicDir, { recursive: true });
-    }
-    const currentArtifactDir = 'C:\\Users\\MEDIA INFOPLUS\\.gemini\\antigravity-ide\\brain\\f3c8488d-4c5e-4613-8683-e6d28b42c34c';
-    const pairs = [
-      { dir: artifactDir, src: 'sample_sneaker_panda_1792504407509.jpg', dest: 'sample_sneaker_panda.jpg' },
-      { dir: artifactDir, src: 'sample_perfume_amber_1792504426581.jpg', dest: 'sample_perfume_amber.jpg' },
-      { dir: artifactDir, src: 'sample_cream_jar_1792504447613.jpg', dest: 'sample_cream_jar.jpg' },
-      { dir: currentArtifactDir, src: 'carousel_slide1_rose_1793181410324.jpg', dest: 'carousel_bg_slide1.jpg' },
-      { dir: currentArtifactDir, src: 'carousel_slide2_petals_1793181453004.jpg', dest: 'carousel_bg_slide2.jpg' },
-      { dir: currentArtifactDir, src: 'carousel_slide3_stone_1793181473871.jpg', dest: 'carousel_bg_slide3.jpg' },
-    ];
-    for (const p of pairs) {
-      const srcPath = path.join(p.dir, p.src);
-      const destPath = path.join(publicDir, p.dest);
-      if (fs.existsSync(srcPath)) {
-        try {
-          fs.copyFileSync(srcPath, destPath);
-        } catch {}
-      }
-    }
-    return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.message };
-  }
-}
