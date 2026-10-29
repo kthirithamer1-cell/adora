@@ -45,7 +45,47 @@ export async function generateBackgroundWithGPTImageFlare25(
   productImageBase64: string,
   size: ImageSize = "1024x1536"
 ): Promise<string> {
-  const image = await resolveImageFile(productImageBase64);
+  if (!productImageBase64) {
+    throw new Error("Product image is required");
+  }
+
+  let buffer: Buffer;
+  let mimeType = "image/png";
+
+  if (
+    productImageBase64.startsWith("/") ||
+    productImageBase64.startsWith("images/") ||
+    productImageBase64.startsWith("./")
+  ) {
+    const cleanPath = productImageBase64.replace(/^\.?\//, "");
+    const localPath = path.join(process.cwd(), "public", cleanPath);
+    if (fs.existsSync(localPath)) {
+      buffer = fs.readFileSync(localPath);
+      if (localPath.toLowerCase().endsWith(".jpg") || localPath.toLowerCase().endsWith(".jpeg")) {
+        mimeType = "image/jpeg";
+      } else if (localPath.toLowerCase().endsWith(".webp")) {
+        mimeType = "image/webp";
+      }
+    } else {
+      throw new Error(`File not found: ${localPath}`);
+    }
+  } else {
+    const match = productImageBase64.match(
+      /^data:image\/(png|jpeg|jpg|webp);base64,([\s\S]+)$/i
+    );
+
+    buffer = match
+      ? Buffer.from(match[2], "base64")
+      : Buffer.from(productImageBase64, "base64");
+
+    mimeType = match
+      ? `image/${match[1].toLowerCase().replace("jpg", "jpeg")}`
+      : "image/png";
+  }
+
+  const image = new File([new Uint8Array(buffer)], "product.png", {
+    type: mimeType,
+  });
 
   const result = await openai.images.edit({
     model: "gpt-image-2.5-flare",

@@ -1734,7 +1734,7 @@ ${frenchText}
       let generatedFormats: Record<string, string> = {};
       try {
         // Envoi STRICT des deux seules images nécessaires : l'image importée du produit et le logo de la marque (MarkMosaiq)
-        const importedProduct = cutoutBase64 || (productImage && !productImage.includes('image.png') ? productImage : undefined);
+        const importedProduct = cutoutBase64 || productImage || '/images/image.png';
         const importedLogo = brandLogoUrl && !brandLogoUrl.includes('logo.png') ? brandLogoUrl : (brandLogoUrl || undefined);
 
         const briefs = productAnalysis?.data?.strategyBriefs || productAnalysis?.strategyBriefs;
@@ -2096,7 +2096,7 @@ ${frenchText}
           ? '1.91:1'
           : '1:1';
 
-      const importedProduct = cutoutBase64 || (productImage && !productImage.includes('image.png') ? productImage : undefined);
+      const importedProduct = cutoutBase64 || productImage || '/images/image.png';
       const importedLogo = brandLogoUrl && !brandLogoUrl.includes('logo.png') ? brandLogoUrl : (brandLogoUrl || undefined);
 
       const finalPrompt = (promptOverride || cardEditPrompt || editablePrompt).trim();
