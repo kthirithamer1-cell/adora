@@ -41,6 +41,7 @@ export default async function RootLayout({
         <link rel="shortcut icon" href="/images/logo.png" type="image/png" />
         <link rel="apple-touch-icon" href="/images/logo.png" />
         <meta name="google-site-verification" content="NPoTVmfYmh4ysR8nlEkdJcWzPMjNnPI_dmtIo5mvwUQ" />
+        <script src="/public-tracker.js" defer></script>
       </head>
       <body>
         <LanguageProvider initialLocale={initialLocale}>
