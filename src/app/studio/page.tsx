@@ -898,7 +898,7 @@ export default function StudioCreativePage() {
   const [likedVisuals, setLikedVisuals] = useState<Record<string, boolean>>({ 'vis-1': true, 'vis-4': false });
 
   // Rendu des créations & Génération
-  const [visuals, setVisuals] = useState<VisualCardData[]>(INITIAL_VISUALS);
+  const [visuals, setVisuals] = useState<VisualCardData[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [generationProgress, setGenerationProgress] = useState<number>(100);
   const [isZipping, setIsZipping] = useState<boolean>(false);
@@ -937,7 +937,7 @@ export default function StudioCreativePage() {
 
   // État du menu déroulant de téléchargement & sélection personnalisée des formats (Top Right)
   const [isDownloadDropdownOpen, setIsDownloadDropdownOpen] = useState<boolean>(false);
-  const [selectedVisualIdsForDownload, setSelectedVisualIdsForDownload] = useState<string[]>(['vis-1', 'vis-2', 'vis-3', 'vis-4']);
+  const [selectedVisualIdsForDownload, setSelectedVisualIdsForDownload] = useState<string[]>([]);
   const downloadDropdownRef = useRef<HTMLDivElement>(null);
 
   // Fermeture automatique du dropdown lors d'un clic extérieur
@@ -1821,44 +1821,47 @@ ${frenchText}
 
         if (generatedFormats.instagram || returnedUrl) {
           customAiBg = generatedFormats.instagram || returnedUrl;
-          setVisuals((prev) => [
-            {
-              ...prev[0],
-              bgImage: genData.formats?.feed || returnedUrl,
-              headline: genData.selectedIntent?.hookFr || prev[0].headline,
-              subheadline: genData.selectedIntent?.subtitle || prev[0].subheadline,
-              badgeText: genData.selectedIntent?.badgeText || prev[0].badgeText,
-              ctaText: genData.selectedIntent?.ctaText || prev[0].ctaText,
-              styleName: `${genData.selectedIntent?.titleFr || 'Master Shot'} (Feed 1:1)`,
-            },
-            {
-              ...prev[1],
-              bgImage: genData.formats?.story || returnedUrl,
-              headline: genData.selectedIntent?.hookDarija || prev[1].headline,
-              subheadline: genData.selectedIntent?.subtitle || prev[1].subheadline,
-              badgeText: genData.selectedIntent?.badgeText || prev[1].badgeText,
-              ctaText: genData.selectedIntent?.ctaText || prev[1].ctaText,
-              styleName: `${genData.selectedIntent?.titleFr || 'Master Shot'} (Story 9:16)`,
-            },
-            {
-              ...prev[2],
-              bgImage: genData.formats?.banner || returnedUrl,
-              headline: genData.selectedIntent?.hookFr || prev[2].headline,
-              subheadline: genData.selectedIntent?.subtitle || prev[2].subheadline,
-              badgeText: '🔥 Offre Limitée',
-              ctaText: 'Commander',
-              styleName: `${genData.selectedIntent?.titleFr || 'Master Shot'} (Ads 1.91:1)`,
-            },
-            {
-              ...prev[3],
-              bgImage: genData.formats?.feed || returnedUrl,
-              headline: genData.selectedIntent?.hookDarija || prev[3].headline,
-              subheadline: genData.selectedIntent?.subtitle || prev[3].subheadline,
-              badgeText: '✨ Édition Prestige',
-              ctaText: 'Voir la Collection',
-              styleName: 'Master Shot Studio',
-            },
-          ]);
+          setVisuals((prev) => {
+            const base = prev.length >= 4 ? prev : INITIAL_VISUALS;
+            return [
+              {
+                ...base[0],
+                bgImage: genData.formats?.feed || returnedUrl,
+                headline: genData.selectedIntent?.hookFr || base[0].headline,
+                subheadline: genData.selectedIntent?.subtitle || base[0].subheadline,
+                badgeText: genData.selectedIntent?.badgeText || base[0].badgeText,
+                ctaText: genData.selectedIntent?.ctaText || base[0].ctaText,
+                styleName: `${genData.selectedIntent?.titleFr || 'Master Shot'} (Feed 1:1)`,
+              },
+              {
+                ...base[1],
+                bgImage: genData.formats?.story || returnedUrl,
+                headline: genData.selectedIntent?.hookDarija || base[1].headline,
+                subheadline: genData.selectedIntent?.subtitle || base[1].subheadline,
+                badgeText: genData.selectedIntent?.badgeText || base[1].badgeText,
+                ctaText: genData.selectedIntent?.ctaText || base[1].ctaText,
+                styleName: `${genData.selectedIntent?.titleFr || 'Master Shot'} (Story 9:16)`,
+              },
+              {
+                ...base[2],
+                bgImage: genData.formats?.banner || returnedUrl,
+                headline: genData.selectedIntent?.hookFr || base[2].headline,
+                subheadline: genData.selectedIntent?.subtitle || base[2].subheadline,
+                badgeText: '🔥 Offre Limitée',
+                ctaText: 'Commander',
+                styleName: `${genData.selectedIntent?.titleFr || 'Master Shot'} (Ads 1.91:1)`,
+              },
+              {
+                ...base[3],
+                bgImage: genData.formats?.feed || returnedUrl,
+                headline: genData.selectedIntent?.hookDarija || base[3].headline,
+                subheadline: genData.selectedIntent?.subtitle || base[3].subheadline,
+                badgeText: '✨ Édition Prestige',
+                ctaText: 'Voir la Collection',
+                styleName: 'Master Shot Studio',
+              },
+            ];
+          });
 
           if (enableConsoleLogs) {
             console.log('🎨 Master Shot Dirigé & Déclinaisons multi-formats prêts !');
@@ -3215,6 +3218,32 @@ ${frenchText}
             </div>
 
             {/* GRILLE 2x2 DES CRÉATIONS GÉNÉRÉES (MarkMosaiq-55) */}
+            {visuals.length === 0 && isGenerating && (
+              <div style={{
+                background: 'rgba(15, 23, 42, 0.78)',
+                backdropFilter: 'blur(8px)',
+                borderRadius: '16px',
+                padding: '48px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px',
+                color: '#FFFFFF',
+                textAlign: 'center',
+                marginTop: '16px',
+              }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(0, 229, 255, 0.15)', border: '2px solid #00E5FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Sparkles size={22} color="#00E5FF" className="animate-spin" />
+                </div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800 }}>Génération en cours...</div>
+                <div style={{ width: '180px', height: '6px', background: 'rgba(255,255,255,0.2)', borderRadius: '3px', overflow: 'hidden', marginTop: '4px' }}>
+                  <div style={{ width: `${generationProgress}%`, height: '100%', background: 'linear-gradient(90deg, #00E5FF, #7C3AED)', transition: 'width 0.3s ease' }} />
+                </div>
+              </div>
+            )}
+
+            {visuals.length > 0 && (
             <div className={s.resultsGrid}>
               {visuals.map((card) => (
                 <div key={card.id} className={s.adVisualCard} style={{ overflow: 'hidden', position: 'relative' }}>
@@ -3556,10 +3585,10 @@ ${frenchText}
                 </div>
               ))}
             </div>
-
-
+            )}
 
             {/* BANNIÈRE DE STATUT & TÉLÉCHARGEMENT GROUPÉ (MarkMosaiq-56) */}
+            {visuals.length > 0 && (
             <div className={s.statusBanner}>
               <div className={s.statusLeft}>
                 <div className={s.statusCheckIcon}>
@@ -3631,6 +3660,7 @@ ${frenchText}
                 </button>
               </div>
             </div>
+            )}
           </section>
         </div>
       </main>
