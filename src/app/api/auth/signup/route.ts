@@ -124,15 +124,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let devCode: string | undefined;
-
-    // 4. Générer le code OTP à 6 chiffres pour validation de l'adresse email
+    // 4. Générer le code OTP à 6 chiffres pour validation de l'adresse email (envoyé uniquement par email)
     const code = generateEmailVerificationCode(cleanEmail);
-    if (process.env.NODE_ENV !== 'production') {
-      devCode = code;
-    }
 
-    sendMarketingEmail({
+    await sendMarketingEmail({
       trigger: 'VERIFICATION_CODE',
       recipientEmail: cleanEmail,
       recipientName: name || cleanEmail.split('@')[0],
@@ -143,7 +138,6 @@ export async function POST(req: NextRequest) {
       success: true,
       status: 'OTP_SENT',
       message: 'Un code de vérification à 6 chiffres a été transmis à votre adresse email.',
-      ...(devCode ? { devCode } : {}),
       email: cleanEmail,
     });
   } catch (err: any) {

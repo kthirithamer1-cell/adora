@@ -15,6 +15,7 @@ import SmartQuestionsModal, { SmartQuestionsPayload } from '@/components/SmartQu
 import WorkspaceSelector from '@/components/WorkspaceSelector';
 import OnboardingChecklist from '@/components/OnboardingChecklist';
 import AuthRedirectScreen from '@/components/AuthRedirectScreen';
+import TrialAuthModal from '@/components/beauty/TrialAuthModal';
 import { CatalogProduct, BrandKit, getBrandKitByWorkspace } from '@/lib/brandkit';
 import { getAdBenchmarksForProduct } from '@/lib/adBenchmarks';
 import {
@@ -814,12 +815,12 @@ export default function StudioCreativePage() {
   const { t, locale } = useLanguage();
   const searchParams = useSearchParams();
 
-  // Accès réservé aux comptes connectés
-  useEffect(() => {
-    if (!isAuthLoading && !user) {
-      router.replace('/login?redirect=/studio');
-    }
-  }, [isAuthLoading, user, router]);
+  // Mode Essai Invité (Guest Trial Mode) : permet de tester l'interface Studio sans connexion,
+  // puis affiche la popup d'inscription/connexion après le 1er design pour débloquer 5 crédits gratuits
+  const [hasUsedGuestFreeDesign, setHasUsedGuestFreeDesign] = useState<boolean>(false);
+  const [isGuestAuthModalOpen, setIsGuestAuthModalOpen] = useState<boolean>(false);
+  const [guestAuthTrigger, setGuestAuthTrigger] = useState<'first_design' | 'download' | 'save' | 'create_more'>('first_design');
+
   const [hasGeneratedFirstVisual, setHasGeneratedFirstVisual] = useState<boolean>(false);
   const [hasExportedVisual, setHasExportedVisual] = useState<boolean>(false);
   const [showFirstVisualCelebration, setShowFirstVisualCelebration] = useState<boolean>(false);
@@ -831,6 +832,9 @@ export default function StudioCreativePage() {
       }
       if (localStorage.getItem('markmosaiq_has_exported_visual') === 'true') {
         setHasExportedVisual(true);
+      }
+      if (localStorage.getItem('markmosaiq_guest_first_design_done') === 'true') {
+        setHasUsedGuestFreeDesign(true);
       }
     } catch {
       // ignore
@@ -1077,6 +1081,63 @@ ${frenchText}
       if (rec) setSelectedIntentId(rec.id);
     });
   }, [workspace?.id]);
+
+  // Pré-remplissage depuis la landing page /beauty (Guest Trial Flow)
+  useEffect(() => {
+    try {
+      const urlBrand = searchParams?.get('brand');
+      const urlCategory = searchParams?.get('category');
+      const urlStyle = searchParams?.get('style');
+
+      let stored: any = null;
+      if (typeof window !== 'undefined') {
+        const raw = sessionStorage.getItem('markmosaiq_beauty_outreach');
+        if (raw) stored = JSON.parse(raw);
+      }
+
+      const finalBrand = urlBrand || stored?.brandName;
+      const finalCategory = urlCategory || stored?.category;
+      const finalStyle = urlStyle || stored?.style;
+
+      if (finalBrand) {
+        setBrandName(finalBrand);
+        const catLabel =
+          finalCategory === 'Perfume'
+            ? 'Haute Parfumerie'
+            : finalCategory === 'Cosmetics'
+              ? 'Clean Beauty Collection'
+              : 'Botanical Skincare Serum';
+        setProductName(`${finalBrand} — ${catLabel}`);
+      }
+
+      if (finalCategory) {
+        const beautyImgMap: Record<string, string> = {
+          Skincare:
+            finalStyle === 'Natural & organic'
+              ? '/images/beauty/skincare_natural.jpg'
+              : finalStyle === 'Bold & modern'
+                ? '/images/beauty/skincare_bold.jpg'
+                : '/images/beauty/hero_phone_post.jpg',
+          Cosmetics:
+            finalStyle === 'Natural & organic'
+              ? '/images/beauty/cosmetics_natural.jpg'
+              : finalStyle === 'Bold & modern'
+                ? '/images/beauty/cosmetics_bold.jpg'
+                : '/images/beauty/cosmetics_minimal.jpg',
+          Perfume:
+            finalStyle === 'Natural & organic'
+              ? '/images/beauty/perfume_natural.jpg'
+              : finalStyle === 'Bold & modern'
+                ? '/images/beauty/perfume_bold.jpg'
+                : '/images/beauty/perfume_minimal.jpg',
+        };
+        const selectedImg = beautyImgMap[finalCategory] || '/images/beauty/hero_phone_post.jpg';
+        setProductImage(selectedImg);
+      }
+    } catch {
+      // ignore
+    }
+  }, [searchParams]);
 
   // Option d'affichage des résultats IA dans la console du navigateur (MarkMosaiq-74 & Debug)
   const [enableConsoleLogs, setEnableConsoleLogs] = useState<boolean>(true);
@@ -1474,7 +1535,13 @@ ${frenchText}
 
   // PARCOURS 1 (EXPRESS) : Génération immédiate en 1 clic (Paramètres mémorisés ou recommandés)
   const handleExpressGenerate = async () => {
-    if (workspace && workspace.creditsRemaining <= 0) {
+    if (!user && hasUsedGuestFreeDesign) {
+      showToast('✨ Sign up or log in to claim your 5 Free Credits and keep creating!');
+      setGuestAuthTrigger('create_more');
+      setIsGuestAuthModalOpen(true);
+      return;
+    }
+    if (user && workspace && workspace.creditsRemaining <= 0) {
       showToast('⚠️ Zero credits remaining. Upgrade via Whop from $19 to stage unlimited products.');
       setIsCheckoutOpen(true);
       return;
@@ -1486,7 +1553,13 @@ ${frenchText}
 
   // PARCOURS 2 (PERSONNALISÉ) : Ouvre le modal interactif guidé à 3 étapes courtes
   const handleOpenCustomizeModal = async () => {
-    if (workspace && workspace.creditsRemaining <= 0) {
+    if (!user && hasUsedGuestFreeDesign) {
+      showToast('✨ Sign up or log in to claim your 5 Free Credits and keep creating!');
+      setGuestAuthTrigger('create_more');
+      setIsGuestAuthModalOpen(true);
+      return;
+    }
+    if (user && workspace && workspace.creditsRemaining <= 0) {
       showToast('⚠️ Zero credits remaining. Upgrade via Whop from $19 to stage unlimited products.');
       setIsCheckoutOpen(true);
       return;
@@ -1551,8 +1624,16 @@ ${frenchText}
 
   // LOGIQUE DE GÉNÉRATION DES CRÉATIONS PUBLICITAIRES (handleGenerate)
   const handleGenerate = async (overrideIntent?: CreativeIntentType, overrideStylePrompt?: string) => {
+    // Mode Invité (Guest Trial) : 1er design gratuit sans login, puis popup d'inscription pour 5 crédits gratuits
+    if (!user && hasUsedGuestFreeDesign) {
+      showToast('✨ Sign up or log in to claim your 5 Free Credits and keep creating!');
+      setGuestAuthTrigger('create_more');
+      setIsGuestAuthModalOpen(true);
+      return;
+    }
+
     // Garde-fou crédits (MarkMosaiq-73) : Vérification préalable avant tout calcul
-    if (workspace && workspace.creditsRemaining <= 0) {
+    if (user && workspace && workspace.creditsRemaining <= 0) {
       showToast('⚠️ Zero credits remaining. Upgrade via Whop from $19 to stage unlimited products.');
       setIsCheckoutOpen(true);
       return;
@@ -1928,7 +2009,19 @@ ${frenchText}
       ]);
 
       showToast('Vos 4 visuels publicitaires stratégiques sont prêts !');
-      if (!hasGeneratedFirstVisual) {
+      if (!user) {
+        setHasUsedGuestFreeDesign(true);
+        try {
+          localStorage.setItem('markmosaiq_guest_first_design_done', 'true');
+        } catch {
+          // ignore
+        }
+        // Afficher la popup de connexion/inscription après le 1er design pour débloquer 5 crédits gratuits
+        setTimeout(() => {
+          setGuestAuthTrigger('first_design');
+          setIsGuestAuthModalOpen(true);
+        }, 650);
+      } else if (!hasGeneratedFirstVisual) {
         setHasGeneratedFirstVisual(true);
         setShowFirstVisualCelebration(true);
         try {
@@ -2174,6 +2267,11 @@ ${frenchText}
 
   // Téléchargement unitaire d'un visuel
   const handleDownloadSingle = async (card: VisualCardData) => {
+    if (!user) {
+      setGuestAuthTrigger('download');
+      setIsGuestAuthModalOpen(true);
+      return;
+    }
     try {
       showToast('Génération du visuel HD...');
       const blob = await renderCardToCanvasBlob(card);
@@ -2193,6 +2291,11 @@ ${frenchText}
 
   // TÉLÉCHARGEMENT GROUPÉ EN ARCHIVE ZIP OU SÉLECTION PERSONNALISÉE (handleDownloadAllZip)
   const handleDownloadAllZip = async (selectedIds?: string[] | unknown) => {
+    if (!user) {
+      setGuestAuthTrigger('download');
+      setIsGuestAuthModalOpen(true);
+      return;
+    }
     const isIdList = Array.isArray(selectedIds) && selectedIds.every((id) => typeof id === 'string');
     const targetCards = isIdList && (selectedIds as string[]).length > 0
       ? visuals.filter((v) => (selectedIds as string[]).includes(v.id))
@@ -2293,12 +2396,60 @@ ${frenchText}
     }
   };
 
-  if (!user) {
-    return <AuthRedirectScreen />;
-  }
-
   return (
     <div className={s.studioContainer}>
+      {/* Guest Mode Top Banner (Test Studio without login -> Claim 5 Free Credits) */}
+      {!user && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 9990,
+            background: 'linear-gradient(90deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%)',
+            borderBottom: '1px solid rgba(99, 102, 241, 0.35)',
+            color: '#F8FAFC',
+            padding: '7px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '14px',
+            fontSize: '12.5px',
+            fontWeight: 600,
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Sparkles size={14} color="#34D399" />
+            <span>
+              <strong>Guest Studio Mode:</strong>{' '}
+              {hasUsedGuestFreeDesign
+                ? 'Your first design is ready! Create your free account to save it and unlock 5 Free Credits.'
+                : 'Test the Studio interface freely — generate your first design with no login required, then claim 5 Free Credits.'}
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setGuestAuthTrigger('first_design');
+              setIsGuestAuthModalOpen(true);
+            }}
+            style={{
+              background: '#10B981',
+              color: '#064E3B',
+              border: 'none',
+              borderRadius: '999px',
+              padding: '4px 12px',
+              fontSize: '11.5px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Claim 5 Free Credits →
+          </button>
+        </div>
+      )}
       {/* Toast de confirmation en haut à droite */}
       {toastMessage && (
         <div
@@ -4227,6 +4378,26 @@ ${frenchText}
           </div>
         </div>
       )}
+
+      {/* Popup d'inscription / connexion après le 1er design en Mode Invité pour débloquer 5 crédits gratuits */}
+      <TrialAuthModal
+        isOpen={isGuestAuthModalOpen}
+        onClose={() => setIsGuestAuthModalOpen(false)}
+        triggerAction={guestAuthTrigger}
+        previewImageUrl={visuals[0]?.bgImage || productImage}
+        previewTitle={visuals[0]?.headline || productName}
+        brandName={brandName}
+        onClaimSuccess={(_claimedPost, creditsRemaining, action) => {
+          setIsGuestAuthModalOpen(false);
+          updateCredits(creditsRemaining);
+          showToast(`🎉 Welcome! ${creditsRemaining} Free Credits added to your Studio account.`);
+          if (action === 'download' && visuals[0]) {
+            setTimeout(() => {
+              handleDownloadSingle(visuals[0]);
+            }, 400);
+          }
+        }}
+      />
     </div>
   );
 }

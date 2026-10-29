@@ -21,11 +21,10 @@ export function proxy(request: NextRequest) {
   }
 
   // 0. Pages applicatives réservées aux utilisateurs connectés → redirection vers /login
+  // Note: /studio et /generate sont accessibles en mode test invité (1er design gratuit puis popup 5 crédits)
   const PROTECTED_PREFIXES = [
-    '/studio',
     '/cutout',
     '/dashboard',
-    '/generate',
     '/brand-kit',
     '/social',
     '/billing',
