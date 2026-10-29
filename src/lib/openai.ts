@@ -88,28 +88,92 @@ export async function generateBackgroundWithGPTImageFlare25(
   });
 
   const result = await openai.images.edit({
-    model: "gpt-image-2.5-flare",
-    image,
-    prompt: `Create a premium photorealistic product advertisement.
+  model: "gpt-image-2.5-flare",
+  image,
+  prompt: `
+You are a world-class creative director, advertising photographer,
+and visual marketing strategist.
 
-CONCEPT:
+YOUR TASK:
+Transform the supplied product photograph into a COMPLETE,
+READY-TO-PUBLISH COMMERCIAL ADVERTISEMENT.
+
+CAMPAIGN CONCEPT:
 ${prompt}
 
-FIDELITY: Preserve the reference product's exact design, shape,
-proportions, packaging, logo, label, text, colors, and materials.
-Do not redesign, replace, or duplicate it.
+1. PRODUCT PRESERVATION:
+- Preserve the exact original product.
+- Maintain its packaging, shape, proportions, logo,
+  label, colors and readable existing text.
+- Never invent or replace brand identity.
+- The product must remain the main visual focus.
 
-SCENE: Create a complete, immersive commercial photoshoot.
-Ground the product naturally with consistent perspective, lighting,
-contact shadows, and realistic reflections.
+2. CREATE A COMPLETE ENVIRONMENT:
+- Build an immersive scene specifically designed
+  around this product and its category.
+- Generate appropriate props, ingredients,
+  surfaces and environmental details.
+- Use professional art direction.
+- Create realistic shadows, reflections,
+  depth, perspective and cinematic lighting.
+- Do not simply replace the background.
+- Make the product feel naturally integrated
+  into the environment.
 
-COMPOSITION: Product prominent and recognizable, refined cinematic
-lighting, realistic materials, uncluttered composition.
-No invented text or logos. No ad copy unless requested.`,
-    size,
-    quality: "medium",
-    output_format: "png",
-  });
+3. ADVERTISING COPY:
+Generate original marketing copy adapted to the product.
+
+Include:
+- ONE powerful, attention-grabbing headline.
+- ONE engaging supporting sentence.
+- ONE short CTA.
+
+The headline must:
+- Capture attention immediately.
+- Connect with the target customer's desire,
+  problem or aspiration.
+- Be specific to the supplied product.
+- Feel natural, persuasive and memorable.
+
+Supporting text:
+- Explain the value of the product.
+- Use emotionally engaging language.
+- Never invent scientific or medical claims.
+
+CTA:
+- Short, clear and relevant.
+
+4. VISUAL TYPOGRAPHY:
+- Integrate the headline directly into the composition.
+- Use professional advertising typography.
+- Establish strong visual hierarchy.
+- Keep text readable and correctly spelled.
+- Place text where it does not cover the product.
+- Use intentional spacing and premium layouts.
+
+5. FINAL ART DIRECTION:
+Create an advertisement that looks like it was
+produced by a professional creative agency.
+
+The result must contain:
+A complete product scene,
+a recognizable original product,
+a compelling headline,
+supporting marketing copy,
+and a CTA.
+
+IMPORTANT:
+This is NOT a background replacement.
+This is NOT a simple product photograph.
+This is a COMPLETE PRODUCT ADVERTISEMENT.
+
+No generic templates, random decorations,
+fake logos, gibberish or unsupported claims.
+  `,
+  size,
+  quality: "medium",
+  output_format: "png",
+});
   console.log("🖼️ Image generation completed");
   console.log("Model:", "gpt-image-2.5-flare");
   console.log("Size:", size);
