@@ -273,7 +273,6 @@ export type CarouselOptions = {
   productName?: string;
   // Optional legacy parameters for compatibility
   style?: string;
-  language?: string;
   benefits?: string[];
   cta?: string;
   brandName?: string;
@@ -295,7 +294,6 @@ export async function generateCarouselWithGPTImageFlare25(
     quality = "medium",
     productName = "the supplied product",
     style = "premium editorial advertising",
-    language = "French",
     benefits = [],
     cta = "Discover it now",
     brandName = "",
@@ -341,20 +339,20 @@ CANVAS:
 PANEL 1 — HOOK:
 - Show the customer's problem, desire, or aspiration.
 - Do not show the product.
-- Include a short, powerful headline in ${language}.
+- Include a short, powerful headline .
 - Include a supporting line that creates curiosity.
 - Leave sufficient negative space around the text.
 
 PANEL 2 — SOLUTION:
 - Feature the supplied product prominently.
 - Preserve the original packaging, logo, proportions, and colors.
-- Include a concise benefit-led headline in ${language}.
+- Include a concise benefit-led headline in .
 - Add a short supporting line using only verified benefits.
 - Keep the text separate from the product label.
 
 PANEL 3 — RESULT:
 - Show an aspirational lifestyle featuring the product.
-- Include a compelling result-oriented headline in ${language}.
+- Include a compelling result-oriented headline in .
 - Add a short supporting line and the CTA "${cta}".
 - Keep the CTA readable and visually prominent.
 
