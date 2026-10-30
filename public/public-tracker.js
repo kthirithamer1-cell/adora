@@ -20,6 +20,7 @@
   }
 
   let isDirectEmailClick = false;
+  let isRedirectedFromClickEndpoint = false;
 
   function resolveToken() {
     try {
@@ -42,10 +43,11 @@
         }
       }
 
-      // 2. Check Query Parameter (?_ct=<token>)
+      // 2. Check Query Parameter (?_ct=<token>) added by /api/v1/t/click/<token> redirect
       const params = new URLSearchParams(window.location.search);
       const urlToken = params.get('_ct');
       if (urlToken) {
+        isRedirectedFromClickEndpoint = true;
         localStorage.setItem(STORAGE_KEY, urlToken);
         // Clean ?_ct= from address bar without reloading
         params.delete('_ct');
@@ -81,18 +83,18 @@
         headers: { 'Content-Type': 'application/json' },
         body: payload,
         keepalive: true,
-      }).catch(() => { });
+      }).catch(() => {});
     }
   }
 
   const token = resolveToken();
   if (!token) return;
 
-  // 1. If the user just clicked a direct #t=<token> link from the email, record the email 'click' event
+  // 1. If the user came via /api/v1/t/click/<token> (?_ct=<token>), the click was ALREADY recorded by the redirect endpoint,
+  //    so do NOT fire a duplicate page_view on initial landing!
   if (isDirectEmailClick) {
     sendEvent(token, 'click', window.location.href, 'email_link');
-  } else {
-    // Otherwise record a website page_view
+  } else if (!isRedirectedFromClickEndpoint) {
     sendEvent(token, 'page_view', window.location.href, null);
   }
 
