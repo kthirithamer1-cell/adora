@@ -19,8 +19,30 @@
     return match ? decodeURIComponent(match[2]) : null;
   }
 
+  let isDirectEmailClick = false;
+
   function resolveToken() {
     try {
+      // 1. Check Stealth Hash Fragment (#t=<token>) from direct email link
+      if (window.location.hash && window.location.hash.includes('t=')) {
+        const hashRaw = window.location.hash.replace(/^#/, '');
+        const hashParams = new URLSearchParams(hashRaw);
+        const hashToken = hashParams.get('t');
+        if (hashToken) {
+          isDirectEmailClick = true;
+          localStorage.setItem(STORAGE_KEY, hashToken);
+          hashParams.delete('t');
+          const remainingHash = hashParams.toString();
+          const cleanUrl =
+            window.location.pathname +
+            window.location.search +
+            (remainingHash ? '#' + remainingHash : '');
+          window.history.replaceState({}, document.title, cleanUrl);
+          return hashToken;
+        }
+      }
+
+      // 2. Check Query Parameter (?_ct=<token>)
       const params = new URLSearchParams(window.location.search);
       const urlToken = params.get('_ct');
       if (urlToken) {
@@ -59,15 +81,20 @@
         headers: { 'Content-Type': 'application/json' },
         body: payload,
         keepalive: true,
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }
 
   const token = resolveToken();
   if (!token) return;
 
-  // 1. Track initial page view on website
-  sendEvent(token, 'page_view', window.location.href, null);
+  // 1. If the user just clicked a direct #t=<token> link from the email, record the email 'click' event
+  if (isDirectEmailClick) {
+    sendEvent(token, 'click', window.location.href, 'email_link');
+  } else {
+    // Otherwise record a website page_view
+    sendEvent(token, 'page_view', window.location.href, null);
+  }
 
   // 2. Track clicks on important buttons and links on the website
   document.addEventListener(
