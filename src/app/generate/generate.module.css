@@ -1256,3 +1256,24 @@
     display: none;
   }
 }
+
+@media (max-width: 640px) {
+  .fields,
+  .inline2 {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 48px;
+    gap: 8px;
+  }
+
+  .placementBar {
+    border-radius: 16px;
+    padding: 10px 12px;
+    gap: 10px;
+  }
+}

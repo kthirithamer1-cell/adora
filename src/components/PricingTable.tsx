@@ -74,9 +74,9 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
             type="button"
             onClick={() => setBillingCycle('month')}
             style={{
-              padding: '10px 24px',
+              padding: '10px 18px',
               borderRadius: '999px',
-              fontSize: '0.88rem',
+              fontSize: '0.84rem',
               fontWeight: 800,
               background: billingCycle === 'month' ? 'linear-gradient(135deg, #00E5FF, #3B82F6)' : 'transparent',
               color: billingCycle === 'month' ? '#07090E' : '#94A3B8',
@@ -91,9 +91,9 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
             type="button"
             onClick={() => setBillingCycle('year')}
             style={{
-              padding: '10px 24px',
+              padding: '10px 18px',
               borderRadius: '999px',
-              fontSize: '0.88rem',
+              fontSize: '0.84rem',
               fontWeight: 800,
               background: billingCycle === 'year' ? 'linear-gradient(135deg, #00E5FF, #3B82F6)' : 'transparent',
               color: billingCycle === 'year' ? '#07090E' : '#94A3B8',
@@ -102,6 +102,8 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
               transition: 'all 0.2s ease',
               display: 'flex',
               alignItems: 'center',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
               gap: '6px',
             }}
           >
@@ -126,7 +128,7 @@ export default function PricingTable({ countryCode, customerEmail }: PricingTabl
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
           gap: '24px',
           maxWidth: '1160px',
           margin: '0 auto',

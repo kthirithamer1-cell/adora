@@ -199,6 +199,7 @@ export default function CheckoutModal({
       }}
     >
       <div
+        className="responsive-modal-card"
         style={{
           background: '#FFFFFF',
           border: '1px solid #E2E8F0',
@@ -480,7 +481,7 @@ export default function CheckoutModal({
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
                   Accepted Global Payment Methods :
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="responsive-2col-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div
                     style={{
                       background: '#F0FDF4',

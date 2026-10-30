@@ -86,22 +86,23 @@ export default async function PricingPage() {
                 MarkMosaiq
               </span>
             </Link>
-            <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>/</span>
-            <span style={{ fontSize: '0.88rem', color: '#00E5FF', fontWeight: 800 }}>Tarifs & Abonnements</span>
+            <span className="nav-breadcrumb-slash" style={{ color: 'rgba(255, 255, 255, 0.2)' }}>/</span>
+            <span className="nav-breadcrumb-subtitle" style={{ fontSize: '0.88rem', color: '#00E5FF', fontWeight: 800 }}>Tarifs & Abonnements</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <WorkspaceSelector />
             <Link
               href="/studio"
               style={{
                 color: '#FFFFFF',
                 background: 'linear-gradient(135deg, #00E5FF, #3B82F6)',
-                padding: '8px 18px',
+                padding: '8px 14px',
                 borderRadius: '10px',
                 textDecoration: 'none',
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 fontWeight: 800,
+                whiteSpace: 'nowrap',
                 boxShadow: '0 4px 14px rgba(0, 229, 255, 0.3)',
               }}
             >
@@ -112,31 +113,32 @@ export default async function PricingPage() {
       </header>
 
       {/* HEADER SECTION */}
-      <section style={{ padding: '60px 24px 30px', textAlign: 'center' }}>
+      <section style={{ padding: '44px 16px 24px', textAlign: 'center' }}>
         <div style={{ maxWidth: '840px', margin: '0 auto' }}>
           <span
             style={{
-              fontSize: '0.74rem',
+              fontSize: '0.72rem',
               fontWeight: 900,
               color: '#00E5FF',
               background: 'rgba(0, 229, 255, 0.08)',
               border: '1px solid rgba(0, 229, 255, 0.25)',
-              padding: '6px 16px',
+              padding: '6px 14px',
               borderRadius: '9999px',
               textTransform: 'uppercase',
-              letterSpacing: '0.08em',
+              letterSpacing: '0.06em',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
+              maxWidth: '100%',
             }}
           >
-            <Sparkles size={14} color="#00E5FF" />
-            <span>Paiement International Sécurisé par Whop (Merchant of Record)</span>
+            <Sparkles size={14} color="#00E5FF" style={{ flexShrink: 0 }} />
+            <span>Paiement International Sécurisé par Whop</span>
           </span>
 
           <h1
             style={{
-              fontSize: '3.1rem',
+              fontSize: 'clamp(1.85rem, 6vw, 3.1rem)',
               fontWeight: 900,
               margin: '20px 0 14px',
               lineHeight: 1.15,
@@ -149,7 +151,7 @@ export default async function PricingPage() {
 
           <p
             style={{
-              fontSize: '1.05rem',
+              fontSize: 'clamp(0.92rem, 2.5vw, 1.05rem)',
               color: '#94A3B8',
               lineHeight: 1.6,
               margin: '0 auto',
@@ -162,7 +164,7 @@ export default async function PricingPage() {
       </section>
 
       {/* CONTENU PRINCIPAL : TABLE DE TARIFICATION AVEC WHOP */}
-      <main style={{ flex: 1, padding: '0 24px 80px', maxWidth: '1240px', margin: '0 auto', width: '100%' }}>
+      <main style={{ flex: 1, padding: '0 16px 64px', maxWidth: '1240px', margin: '0 auto', width: '100%' }}>
         <PricingTable countryCode={countryCode} customerEmail={customerEmail} />
       </main>
 

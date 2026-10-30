@@ -1297,6 +1297,15 @@
 }
 
 @media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .navContainer {
+    padding: 0 16px;
+    height: 64px;
+  }
+
   .navLinks {
     display: none;
   }
@@ -1305,8 +1314,94 @@
     display: block;
   }
 
+  .navActions {
+    gap: 8px;
+  }
+
+  .navActions .loginBtn {
+    display: none;
+  }
+
+  .navActions .primaryPillBtn {
+    padding: 8px 14px;
+    font-size: 0.78rem;
+  }
+
+  .heroSection {
+    padding: 36px 0 48px;
+  }
+
+  .heroTitle {
+    font-size: 2rem;
+    line-height: 1.15;
+  }
+
+  .heroSubtitle {
+    font-size: 0.94rem;
+  }
+
+  .heroVisualRight {
+    min-height: 360px;
+    overflow: hidden;
+    padding: 16px 0;
+  }
+
+  .mockupBackdropStack {
+    max-width: 100%;
+  }
+
+  .mainInstagramCard {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .angledCardLeft {
+    left: -12px;
+    width: 130px;
+    height: 180px;
+  }
+
+  .angledCardRight {
+    right: -10px;
+    width: 120px;
+    height: 170px;
+  }
+
+  .floatingAnnotation {
+    right: 4px;
+    top: -16px;
+    padding: 6px 10px;
+    font-size: 0.68rem;
+  }
+
+  .floatingStatBadge {
+    right: 4px;
+    bottom: 8px;
+    padding: 6px 12px;
+    font-size: 0.72rem;
+  }
+
+  .marketingSection,
+  .sectorsSection,
+  .appPreviewSection,
+  .lightWorkflowSection,
+  .pricingSection,
+  .testimonialsSection,
+  .faqSection {
+    padding: 48px 0;
+  }
+
   .marketingWhiteCard {
-    padding: 32px 20px;
+    padding: 28px 18px;
+    border-radius: 20px;
+  }
+
+  .marketingTitle,
+  .sectorsTitle,
+  .lightWorkflowTitle,
+  .testimonialsTitle,
+  .faqTitle {
+    font-size: 1.75rem;
   }
 
   .marketingFeaturesGrid {
@@ -1315,14 +1410,92 @@
 
   .sectorsCardsGrid {
     grid-template-columns: 1fr 1fr;
+    gap: 12px;
   }
 
-  .heroTitle {
-    font-size: 2.2rem;
+  .studioMockupSidebar,
+  .whiteDashboardSidebar {
+    display: none !important;
   }
 
   .pricingBannerCard {
     padding: 24px 16px;
+    border-radius: 20px;
+  }
+
+  .proPlanBox {
+    transform: none;
+  }
+
+  .footerContainer {
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .footerLinks {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .brandText {
+    font-size: 1.05rem;
+  }
+
+  .navActions .primaryPillBtn {
+    display: none;
+  }
+
+  .heroTitle {
+    font-size: 1.72rem;
+  }
+
+  .heroCtas {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .heroCtas .primaryPillBtn,
+  .heroCtas .secondaryOutlineBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .angledCardLeft,
+  .angledCardRight {
+    display: none;
+  }
+
+  .sectorsCardsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .studioMockupTopRow,
+  .whiteDashboardTopGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pricingControlsRow {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .cycleToggleBtn {
+    padding: 6px 10px;
+    font-size: 0.72rem;
+  }
+
+  .faqQuestionBtn {
+    padding: 14px 16px;
+    font-size: 0.86rem;
+  }
+
+  .faqAnswerText {
+    padding: 0 16px 14px;
+    font-size: 0.82rem;
   }
 }
 

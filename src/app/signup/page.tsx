@@ -237,6 +237,7 @@ function SignupWizardContent() {
         left: '50%',
         transform: 'translateX(-50%)',
         width: '650px',
+        maxWidth: '100vw',
         height: '420px',
         background: 'radial-gradient(ellipse at center, rgba(99, 102, 241, 0.12) 0%, rgba(236, 72, 153, 0.08) 45%, transparent 70%)',
         pointerEvents: 'none',
@@ -324,17 +325,20 @@ function SignupWizardContent() {
       </div>
 
       {/* Main Container Card (White with Logo Accent Border) */}
-      <div style={{
-        width: '100%',
-        maxWidth: '480px',
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
-        borderRadius: '16px',
-        padding: '34px 30px',
-        boxShadow: '0 20px 40px -15px rgba(99, 102, 241, 0.08)',
-        zIndex: 1,
-        transition: 'max-width 0.25s ease',
-      }}>
+      <div
+        className="responsive-modal-card"
+        style={{
+          width: '100%',
+          maxWidth: '480px',
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '16px',
+          padding: '34px 30px',
+          boxShadow: '0 20px 40px -15px rgba(99, 102, 241, 0.08)',
+          zIndex: 1,
+          transition: 'max-width 0.25s ease',
+        }}
+      >
 
         {/* Pinned Plan Chip (MM-106) */}
         {selectedPack && (

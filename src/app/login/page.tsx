@@ -102,6 +102,7 @@ function LoginFormContent() {
         left: '50%',
         transform: 'translateX(-50%)',
         width: '650px',
+        maxWidth: '100vw',
         height: '420px',
         background: 'radial-gradient(ellipse at center, rgba(99, 102, 241, 0.12) 0%, rgba(236, 72, 153, 0.08) 45%, transparent 70%)',
         pointerEvents: 'none',
@@ -137,16 +138,19 @@ function LoginFormContent() {
       </div>
 
       {/* Main Container Card */}
-      <div style={{
-        width: '100%',
-        maxWidth: '480px',
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
-        borderRadius: '16px',
-        padding: '36px 30px',
-        boxShadow: '0 20px 40px -15px rgba(99, 102, 241, 0.08)',
-        zIndex: 1,
-      }}>
+      <div
+        className="responsive-modal-card"
+        style={{
+          width: '100%',
+          maxWidth: '480px',
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '16px',
+          padding: '36px 30px',
+          boxShadow: '0 20px 40px -15px rgba(99, 102, 241, 0.08)',
+          zIndex: 1,
+        }}
+      >
         {/* Card Header */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{

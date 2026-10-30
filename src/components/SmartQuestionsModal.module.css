@@ -866,17 +866,39 @@
 }
 
 @media (max-width: 640px) {
+  .overlay {
+    padding: 10px;
+  }
+
   .modalCard {
-    max-height: 96vh;
+    max-height: 94dvh;
     border-radius: 18px;
   }
 
   .header {
-    padding: 16px 20px;
+    padding: 14px 16px;
+  }
+
+  .stepLabel {
+    display: none;
+  }
+
+  .stepConnector {
+    width: 12px;
+    margin-top: 0;
   }
 
   .bodyContent {
-    padding: 18px 20px;
+    padding: 16px;
+  }
+
+  .introTitle {
+    font-size: 1.35rem;
+  }
+
+  .introFeaturesRow {
+    flex-direction: column;
+    gap: 10px;
   }
 
   .goalsGrid {
@@ -885,9 +907,32 @@
 
   .stylesGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 
   .reviewSplitGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+    gap: 8px;
+  }
+
+  .backBtn {
+    padding: 10px 14px;
+    font-size: 0.78rem;
+  }
+
+  .nextBtn,
+  .generateBtn {
+    padding: 11px 18px;
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .stylesGrid {
     grid-template-columns: 1fr;
   }
 }

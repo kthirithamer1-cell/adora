@@ -340,7 +340,7 @@ export default function BrandKitPage() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <button
               onClick={() => setShowAddProductModal(true)}
               style={{
@@ -473,7 +473,7 @@ export default function BrandKitPage() {
                   Identité Officielle de la Boutique
                 </h3>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="responsive-2col-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '13px', color: '#334155', marginBottom: '8px', fontWeight: 600 }}>
                       Nom de la Marque / Shop
@@ -554,7 +554,7 @@ export default function BrandKitPage() {
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
                     {/* Aperçu du logo sur fond sombre contrasté */}
                     <div style={{
                       width: '56px',
@@ -827,7 +827,7 @@ export default function BrandKitPage() {
                 </div>
 
                 {/* Pickers manuels */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                <div className="responsive-3col-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
                   {[
                     { key: 'primaryColor', label: 'Couleur Primaire (Call-to-Action)' },
                     { key: 'secondaryColor', label: 'Couleur Secondaire (Badges & Tags)' },
@@ -904,6 +904,8 @@ export default function BrandKitPage() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px',
                 marginBottom: '20px',
               }}>
                 <div>
@@ -1234,15 +1236,18 @@ export default function BrandKitPage() {
             zIndex: 1000,
             padding: '20px',
           }}>
-            <div style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              border: '1px solid #E2E8F0',
-              width: '100%',
-              maxWidth: '520px',
-              padding: '28px',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)',
-            }}>
+            <div
+              className="responsive-modal-card"
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                border: '1px solid #E2E8F0',
+                width: '100%',
+                maxWidth: '520px',
+                padding: '28px',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)',
+              }}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
                   Ajouter un Produit au Catalogue
@@ -1292,7 +1297,7 @@ export default function BrandKitPage() {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="responsive-2col-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', color: '#334155', marginBottom: '6px', fontWeight: 600 }}>
                       Marque / Fabricant
@@ -1336,7 +1341,7 @@ export default function BrandKitPage() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="responsive-2col-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', color: '#334155', marginBottom: '6px', fontWeight: 600 }}>
                       Catégorie E-commerce

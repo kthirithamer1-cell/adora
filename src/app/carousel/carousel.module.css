@@ -1288,3 +1288,61 @@
   border-radius: 10px;
   padding: 12px;
 }
+
+/* ================= MOBILE RESPONSIVE ENHANCEMENTS (iOS & ANDROID) ================= */
+@media (max-width: 640px) {
+  .headerBanner {
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+
+  .headerBannerTitle {
+    font-size: 1.25rem;
+  }
+
+  .headerBadgeCard {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .configCard,
+  .previewCard {
+    padding: 16px 14px;
+    border-radius: 16px;
+  }
+
+  .previewHeader {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .previewActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .iphoneFrame {
+    width: 100%;
+    max-width: 300px;
+    min-height: 560px;
+    border-radius: 36px;
+  }
+
+  .reelThumbStrip {
+    max-width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .reelThumbCard {
+    width: 74px;
+    flex-shrink: 0;
+  }
+
+  .settingModal {
+    padding: 18px 16px;
+  }
+}
+

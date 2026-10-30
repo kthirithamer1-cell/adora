@@ -438,10 +438,11 @@ export default function CutoutStudioPage() {
             background: '#F5F3FF',
             border: '1px solid #EDE9FE',
             borderRadius: '16px',
-            padding: '10px 22px',
+            padding: '10px 18px',
             display: 'flex',
             alignItems: 'center',
-            gap: '24px',
+            flexWrap: 'wrap',
+            gap: '16px',
             boxShadow: '0 2px 8px rgba(124, 58, 237, 0.04)',
           }}>
             {/* Item 1 */}
@@ -507,12 +508,15 @@ export default function CutoutStudioPage() {
         {/* ============================================================== */}
         {/* GRILLE PRINCIPALE À DEUX COLONNES                              */}
         {/* ============================================================== */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '380px 1fr',
-          gap: '24px',
-          alignItems: 'start',
-        }}>
+        <div
+          className="responsive-2col-sidebar"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '380px 1fr',
+            gap: '24px',
+            alignItems: 'start',
+          }}
+        >
 
           {/* ============================================================ */}
           {/* COLONNE GAUCHE : TÉLÉVERSEMENT & EXEMPLES                    */}
@@ -869,10 +873,11 @@ export default function CutoutStudioPage() {
                 position: 'relative',
                 borderRadius: '14px',
                 overflow: 'hidden',
-                height: '420px',
+                height: 'clamp(280px, 55vw, 420px)',
                 background: '#F8FAFC',
                 border: '1px solid #E2E8F0',
                 userSelect: 'none',
+                touchAction: 'pan-y',
                 cursor: isCompareMode ? 'ew-resize' : 'default',
               }}
             >

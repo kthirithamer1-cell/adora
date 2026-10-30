@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { headers } from 'next/headers';
 import './globals.css';
 import { WorkspaceProvider } from '@/lib/WorkspaceContext';
@@ -6,6 +6,14 @@ import { LanguageProvider } from '@/lib/LanguageContext';
 import { Locale, isValidLocale, DEFAULT_LOCALE } from '@/locales';
 
 import { getCurrentSession } from '@/lib/auth';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
+  themeColor: '#07090E',
+};
 
 export const metadata: Metadata = {
   title: 'MarkMosaiq — AI Product Staging & Commercial Creative Studio',

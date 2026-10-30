@@ -113,18 +113,21 @@ export default function ProductCatalogModal({
       zIndex: 1000,
       padding: '20px',
     }}>
-      <div style={{
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
-        borderRadius: '16px',
-        maxWidth: '680px',
-        width: '100%',
-        padding: '28px',
-        boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.15)',
-        color: '#0F172A',
-        maxHeight: '90vh',
-        overflowY: 'auto',
-      }}>
+      <div
+        className="responsive-modal-card"
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '16px',
+          maxWidth: '680px',
+          width: '100%',
+          padding: '28px',
+          boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.15)',
+          color: '#0F172A',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+        }}
+      >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
           <div>
@@ -147,7 +150,7 @@ export default function ProductCatalogModal({
         </div>
 
         {/* Onglets */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
           <button
             type="button"
             onClick={() => setActiveTab('list')}
@@ -201,6 +204,7 @@ export default function ProductCatalogModal({
                 {products.map((p) => (
                   <div
                     key={p.id}
+                    className="stack-on-mobile"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -281,7 +285,7 @@ export default function ProductCatalogModal({
           </div>
         ) : (
           <form onSubmit={handleAddProduct}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+            <div className="responsive-2col-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', color: '#475569', marginBottom: '4px' }}>Nom du Produit *</label>
                 <input
@@ -305,7 +309,7 @@ export default function ProductCatalogModal({
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+            <div className="responsive-3col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '14px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', color: '#475569', marginBottom: '4px' }}>Prix de Vente (DT)</label>
                 <input

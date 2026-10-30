@@ -135,18 +135,21 @@ export default function BrandKitModal({ isOpen, onClose, onSaved }: BrandKitModa
       zIndex: 1000,
       padding: '20px',
     }}>
-      <div style={{
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
-        borderRadius: '16px',
-        maxWidth: '640px',
-        width: '100%',
-        padding: '28px',
-        boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.15)',
-        color: '#0F172A',
-        maxHeight: '90vh',
-        overflowY: 'auto',
-      }}>
+      <div
+        className="responsive-modal-card"
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '16px',
+          maxWidth: '640px',
+          width: '100%',
+          padding: '28px',
+          boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.15)',
+          color: '#0F172A',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+        }}
+      >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
@@ -358,7 +361,7 @@ export default function BrandKitModal({ isOpen, onClose, onSaved }: BrandKitModa
                   </button>
                 )}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+              <div className="responsive-3col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <div>
                   <span style={{ fontSize: '0.72rem', color: '#64748B', display: 'block', marginBottom: '4px' }}>Primaire (Boutons/Accents)</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -436,7 +439,7 @@ export default function BrandKitModal({ isOpen, onClose, onSaved }: BrandKitModa
             </div>
 
             {/* Typographie & Slogan */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+            <div className="responsive-2col-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', color: '#475569', marginBottom: '4px' }}>Police Typographique</label>
                 <select
@@ -464,7 +467,7 @@ export default function BrandKitModal({ isOpen, onClose, onSaved }: BrandKitModa
             </div>
 
             {/* Accroches & Coordonnées Tunisiennes */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+            <div className="responsive-2col-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', color: '#475569', marginBottom: '4px' }}>WhatsApp Ventes (Tunisie)</label>
                 <input

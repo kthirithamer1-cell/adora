@@ -129,14 +129,14 @@ function CheckoutContent() {
               />
               <span style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em' }}>MarkMosaiq</span>
             </Link>
-            <span style={{ color: '#CBD5E1' }}>/</span>
-            <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 700 }}>Passerelle Sécurisée</span>
+            <span className="nav-breadcrumb-slash" style={{ color: '#CBD5E1' }}>/</span>
+            <span className="nav-breadcrumb-subtitle" style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 700 }}>Passerelle Sécurisée</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '6px 14px', borderRadius: '20px' }}>
-            <ShieldCheck size={16} color="#059669" />
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#065F46' }}>
-              Paiement Certifié 256-bit SSL
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '6px 12px', borderRadius: '20px' }}>
+            <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#065F46', whiteSpace: 'nowrap' }}>
+              SSL 256-bit
             </span>
           </div>
         </div>
@@ -191,7 +191,7 @@ function CheckoutContent() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', width: '100%' }}>
                 <Link
                   href={buildLoginUrl(currentCheckoutUrl)}
                   style={{
@@ -241,6 +241,7 @@ function CheckoutContent() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              flexWrap: 'wrap',
               gap: '12px',
               boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
             }}>
@@ -273,14 +274,14 @@ function CheckoutContent() {
             </div>
           )}
 
-          <h1 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.02em', marginBottom: '6px', color: '#0F172A' }}>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 900, letterSpacing: '-0.02em', marginBottom: '6px', color: '#0F172A' }}>
             Finaliser Votre Commande de Visuels
           </h1>
-          <p style={{ color: '#64748B', fontSize: '0.95rem', marginBottom: '32px' }}>
+          <p style={{ color: '#64748B', fontSize: '0.92rem', marginBottom: '28px' }}>
             Activez vos crédits instantanément avec notre passerelle internationale certifiée <strong>Whop Commerce (Merchant of Record)</strong>.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '28px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '28px', alignItems: 'start' }}>
             {/* COLONNE GAUCHE : CHOIX DU PACK CANONIQUE (MM-102) */}
             <div>
               <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '14px', color: '#0F172A' }}>

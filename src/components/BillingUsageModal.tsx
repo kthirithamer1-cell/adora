@@ -56,18 +56,21 @@ export default function BillingUsageModal({ isOpen, onClose }: BillingUsageModal
       zIndex: 1000,
       padding: '20px',
     }}>
-      <div style={{
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
-        borderRadius: '16px',
-        maxWidth: '720px',
-        width: '100%',
-        padding: '28px',
-        boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.15)',
-        color: '#0F172A',
-        maxHeight: '90vh',
-        overflowY: 'auto',
-      }}>
+      <div
+        className="responsive-modal-card"
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '16px',
+          maxWidth: '720px',
+          width: '100%',
+          padding: '28px',
+          boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.15)',
+          color: '#0F172A',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+        }}
+      >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
@@ -94,7 +97,7 @@ export default function BillingUsageModal({ isOpen, onClose }: BillingUsageModal
         ) : (
           <div>
             {/* KPI Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '24px' }}>
+            <div className="responsive-3col-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '24px' }}>
               <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: '12px', padding: '16px' }}>
                 <div style={{ fontSize: '0.75rem', color: '#9A3412', textTransform: 'uppercase', fontWeight: 700 }}>Crédits Disponibles</div>
                 <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#EA580C', marginTop: '4px' }}>
@@ -125,7 +128,7 @@ export default function BillingUsageModal({ isOpen, onClose }: BillingUsageModal
               <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#334155', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 ⚡ Forfaits & Recharges Studio 4K
               </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+              <div className="responsive-3col-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {/* Pack Starter $19 */}
                 <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                   <div>

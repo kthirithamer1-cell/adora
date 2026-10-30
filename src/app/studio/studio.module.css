@@ -2362,3 +2362,78 @@
   padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+
+/* ================= MOBILE RESPONSIVE ENHANCEMENTS (iOS & ANDROID) ================= */
+@media (max-width: 640px) {
+  .wizardCard {
+    padding: 18px 14px;
+    border-radius: 16px;
+  }
+
+  .wizardFooter {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .wizardFooter > button,
+  .generateActionBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .logoRow,
+  .objectiveVisionHeader {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .resultTopBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .formatTabsRow {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .downloadDropdownMenu {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    top: auto;
+    width: auto;
+    max-width: none;
+    z-index: 2000;
+    box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.25), 0 20px 50px rgba(15, 23, 42, 0.3);
+  }
+
+  .decisionModalOverlay {
+    padding: 12px;
+  }
+
+  .decisionModalCard {
+    padding: 22px 16px;
+    border-radius: 16px;
+    max-height: 90dvh;
+    overflow-y: auto;
+  }
+
+  .decisionQuestionTitle {
+    font-size: 1.12rem;
+  }
+
+  .decisionOptionItem {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .decisionNavRow {
+    flex-wrap: wrap;
+  }
+}

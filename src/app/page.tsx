@@ -856,6 +856,7 @@ export default function HomePage() {
             >
               {/* Sidebar */}
               <div
+                className={s.whiteDashboardSidebar}
                 style={{
                   width: '140px',
                   background: '#F8FAFC',
@@ -882,7 +883,7 @@ export default function HomePage() {
 
               {/* Main Workspace */}
               <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className={s.whiteDashboardTopGrid} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0F172A' }}>
                       {t.appPreview.studioMockup.createVisual}
