@@ -66,9 +66,10 @@
   const token = resolveToken();
   if (!token) return;
 
-  // --- Active Dwell Time & Scroll Depth State ---
-  let activeSeconds = 0;
-  let lastReportedSeconds = 0;
+  // --- Active Dwell Time & Scroll Depth State (Shared across tabs & pages) ---
+  const DWELL_KEY = 'coldmail_dwell_' + token;
+  let activeSeconds = parseInt(localStorage.getItem(DWELL_KEY) || '0', 10) || 0;
+  let lastReportedSeconds = activeSeconds;
   let maxScrollDepth = 0;
   let isTabActive = !document.hidden;
 
@@ -126,10 +127,15 @@
     sendEvent('page_view', window.location.href, null);
   }
 
-  // 2. Count active seconds on website and send milestone dwell_time updates (15s, 45s, 120s)
+  // 2. Count active seconds on website across all open tabs and send milestone dwell_time updates (15s, 45s, 120s)
   setInterval(function () {
     if (!document.hidden && isTabActive) {
-      activeSeconds += 1;
+      const stored = parseInt(localStorage.getItem(DWELL_KEY) || '0', 10) || 0;
+      activeSeconds = Math.max(activeSeconds, stored) + 1;
+      try {
+        localStorage.setItem(DWELL_KEY, String(activeSeconds));
+      } catch {}
+
       if (activeSeconds === 15 || activeSeconds === 45 || activeSeconds === 120) {
         lastReportedSeconds = activeSeconds;
         sendEvent('dwell_time', window.location.href, null, {
