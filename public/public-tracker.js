@@ -1,14 +1,13 @@
 /**
- * ColdMail Website Visitor Behavior Tracker
+ * ColdMail Website Visitor Behavior, Dwell-Time & CTA Button Tracker
  *
  * Include this script in your website's <head> or before </body>:
  *   <script src="/public-tracker.js" defer></script>
  *
- * What it does:
- * 1. Captures ?_ct=<tracking_token> when a prospect clicks a link from your email
- * 2. Persists the token in localStorage & cookie for 30 days
- * 3. Automatically queues every page view (e.g. /pricing, /demo) and CTA button/link click
- *    to /api/v1/t/web-event so your local ColdMail Engine scores & tracks the prospect!
+ * Tracks:
+ * 1. Email click-through token (?_ct=<token> or #t=<token>)
+ * 2. Exact active time spent on website (dwell_time in seconds) + scroll depth %
+ * 3. Every button, CTA, and link clicked on your website (web_click + button text)
  */
 (function () {
   const STORAGE_KEY = 'coldmail_tracking_token';
@@ -24,7 +23,7 @@
 
   function resolveToken() {
     try {
-      // 1. Check Stealth Hash Fragment (#t=<token>) from direct email link
+      // 1. Check Stealth Hash Fragment (#t=<token>)
       if (window.location.hash && window.location.hash.includes('t=')) {
         const hashRaw = window.location.hash.replace(/^#/, '');
         const hashParams = new URLSearchParams(hashRaw);
@@ -43,13 +42,12 @@
         }
       }
 
-      // 2. Check Query Parameter (?_ct=<token>) added by /api/v1/t/click/<token> redirect
+      // 2. Check Query Parameter (?_ct=<token>) from /api/v1/t/click/<token>
       const params = new URLSearchParams(window.location.search);
       const urlToken = params.get('_ct');
       if (urlToken) {
         isRedirectedFromClickEndpoint = true;
         localStorage.setItem(STORAGE_KEY, urlToken);
-        // Clean ?_ct= from address bar without reloading
         params.delete('_ct');
         const cleanQuery = params.toString();
         const cleanUrl =
@@ -65,13 +63,47 @@
     }
   }
 
-  function sendEvent(token, eventType, url, elementText) {
+  const token = resolveToken();
+  if (!token) return;
+
+  // --- Active Dwell Time & Scroll Depth State ---
+  let activeSeconds = 0;
+  let lastReportedSeconds = 0;
+  let maxScrollDepth = 0;
+  let isTabActive = !document.hidden;
+
+  function updateScrollDepth() {
+    try {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+      const docHeight =
+        Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight,
+          document.body.offsetHeight,
+          document.documentElement.offsetHeight
+        ) - window.innerHeight;
+      if (docHeight > 0) {
+        const pct = Math.min(100, Math.round((scrollTop / docHeight) * 100));
+        if (pct > maxScrollDepth) maxScrollDepth = pct;
+      } else {
+        maxScrollDepth = 100;
+      }
+    } catch {}
+  }
+
+  window.addEventListener('scroll', updateScrollDepth, { passive: true });
+  updateScrollDepth();
+
+  function sendEvent(eventType, url, elementText, extra = {}) {
     const payload = JSON.stringify({
       token,
       event_type: eventType,
       url: url || window.location.href,
       element_text: elementText || null,
-      page_title: document.title || null,
+      page_title: document.title || window.location.pathname,
+      duration_seconds: activeSeconds,
+      scroll_depth: maxScrollDepth,
+      ...extra,
     });
 
     if (navigator.sendBeacon) {
@@ -87,37 +119,71 @@
     }
   }
 
-  const token = resolveToken();
-  if (!token) return;
-
-  // 1. If the user came via /api/v1/t/click/<token> (?_ct=<token>), the click was ALREADY recorded by the redirect endpoint,
-  //    so do NOT fire a duplicate page_view on initial landing!
+  // 1. Initial landing event (skip duplicate page_view if redirected from /api/v1/t/click)
   if (isDirectEmailClick) {
-    sendEvent(token, 'click', window.location.href, 'email_link');
+    sendEvent('click', window.location.href, 'email_link');
   } else if (!isRedirectedFromClickEndpoint) {
-    sendEvent(token, 'page_view', window.location.href, null);
+    sendEvent('page_view', window.location.href, null);
   }
 
-  // 2. Track clicks on important buttons and links on the website
+  // 2. Count active seconds on website and send milestone dwell_time updates (15s, 45s, 120s)
+  setInterval(function () {
+    if (!document.hidden && isTabActive) {
+      activeSeconds += 1;
+      if (activeSeconds === 15 || activeSeconds === 45 || activeSeconds === 120) {
+        lastReportedSeconds = activeSeconds;
+        sendEvent('dwell_time', window.location.href, null, {
+          milestone: `${activeSeconds}s`,
+        });
+      }
+    }
+  }, 1000);
+
+  window.addEventListener('focus', function () {
+    isTabActive = true;
+  });
+  window.addEventListener('blur', function () {
+    isTabActive = false;
+  });
+
+  // 3. Report final time spent when visitor leaves page or switches tab (if >= 5s new activity)
+  function flushDwellTime() {
+    if (activeSeconds >= 5 && activeSeconds - lastReportedSeconds >= 5) {
+      lastReportedSeconds = activeSeconds;
+      sendEvent('dwell_time', window.location.href, null);
+    }
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      flushDwellTime();
+    }
+  });
+  window.addEventListener('pagehide', flushDwellTime);
+
+  // 4. Track clicks on ANY button, CTA, or link on the website
   document.addEventListener(
     'click',
     function (e) {
-      const target = e.target.closest('a, button, [role="button"], input[type="submit"]');
+      const target = e.target.closest('a, button, [role="button"], input[type="submit"], [data-track]');
       if (!target) return;
 
       const label = (
+        target.getAttribute('data-track') ||
         target.innerText ||
         target.value ||
         target.getAttribute('aria-label') ||
-        ''
+        target.getAttribute('title') ||
+        target.id ||
+        'Button'
       )
+        .replace(/\s+/g, ' ')
         .trim()
         .slice(0, 120);
-      const href = target.href || window.location.href;
 
-      sendEvent(token, 'web_click', href, label);
+      const href = target.href || window.location.href;
+      sendEvent('web_click', href, label);
     },
     { capture: true, passive: true }
   );
 })();
-
