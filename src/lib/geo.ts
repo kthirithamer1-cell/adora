@@ -1,8 +1,9 @@
 import { Locale } from '@/locales/types';
+import { DEFAULT_LOCALE } from '@/locales';
 
 /**
  * ISO 3166-1 alpha-2 country codes where French is an official or widely used commercial language.
- * Visitors from these countries automatically default to French ('fr') unless they manually override it.
+ * Maintained for reference.
  */
 export const FRANCOPHONE_COUNTRIES = new Set([
   'TN', // Tunisia
@@ -38,39 +39,12 @@ export const FRANCOPHONE_COUNTRIES = new Set([
 
 /**
  * Resolves the initial locale based on geo-location country code and Accept-Language header.
- *
- * Logic:
- * 1. If country code is known and francophone -> 'fr'
- * 2. If country code is known and not francophone -> 'en'
- * 3. If country code is unknown (e.g. localhost, local proxies, private IPs):
- *    - Check Accept-Language header
- *    - If acceptLanguage starts with or includes 'fr' -> 'fr'
- *    - Otherwise fallback to 'fr' (MarkMosaiq primary domestic market is Tunisia)
+ * By default, English ('en') is the global default for all places unless explicitly selected by the user.
  */
 export function resolveGeoLocale(
   countryCode?: string | null,
   acceptLanguage?: string | null
 ): Locale {
-  if (countryCode && countryCode.length === 2 && countryCode !== 'XX') {
-    const upperCountry = countryCode.toUpperCase();
-    if (FRANCOPHONE_COUNTRIES.has(upperCountry)) {
-      return 'fr';
-    }
-    return 'en';
-  }
-
-  // Fallback to browser Accept-Language header
-  if (acceptLanguage) {
-    const lowerHeader = acceptLanguage.toLowerCase();
-    const firstLanguage = lowerHeader.split(',')[0]?.trim();
-    if (firstLanguage?.startsWith('fr')) {
-      return 'fr';
-    }
-    if (firstLanguage?.startsWith('en')) {
-      return 'en';
-    }
-  }
-
-  // Final domestic default for MarkMosaiq
-  return 'fr';
+  // English ('en') is the default language for all places
+  return DEFAULT_LOCALE;
 }

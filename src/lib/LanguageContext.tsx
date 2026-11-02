@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Locale, TranslationDictionary, DEFAULT_LOCALE, getDictionary, isValidLocale } from '@/locales';
-export const LOCALE_COOKIE_NAME = 'mm_locale';
-export const LOCALE_STORAGE_KEY = 'mm_locale';
+export const LOCALE_COOKIE_NAME = 'mm_locale_v2';
+export const LOCALE_STORAGE_KEY = 'mm_locale_v2';
 
 interface LanguageContextType {
   locale: Locale;
@@ -35,8 +35,16 @@ export function LanguageProvider({
 }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
-  // Sync client-side saved locale on mount
+  // Sync client-side saved locale on mount & clear legacy cookies
   useEffect(() => {
+    if (typeof document !== 'undefined' && document.cookie.includes('mm_locale=')) {
+      document.cookie = 'mm_locale=;path=/;max-age=0';
+      try {
+        localStorage.removeItem('mm_locale');
+      } catch {
+        // ignore
+      }
+    }
     const saved = getSavedLocale();
     if (saved && saved !== locale) {
       setLocaleState(saved);

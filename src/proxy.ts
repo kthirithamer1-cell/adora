@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { resolveGeoLocale } from '@/lib/geo';
 import { isValidLocale, DEFAULT_LOCALE, Locale } from '@/locales';
 
-export const LOCALE_COOKIE_NAME = 'mm_locale';
+export const LOCALE_COOKIE_NAME = 'mm_locale_v2';
 // Doit rester identique à SESSION_COOKIE_NAME dans src/lib/auth.ts
 const SESSION_COOKIE = 'MarkMosaiq_session';
 
@@ -92,6 +92,16 @@ export function proxy(request: NextRequest) {
       path: '/',
       maxAge: 60 * 60 * 24 * 365, // 1 year persistence
       sameSite: 'lax',
+    });
+  }
+
+  // Clear legacy mm_locale cookie if present to ensure clean English default
+  if (request.cookies.has('mm_locale')) {
+    response.cookies.set({
+      name: 'mm_locale',
+      value: '',
+      path: '/',
+      maxAge: 0,
     });
   }
 

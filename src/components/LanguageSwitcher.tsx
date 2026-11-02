@@ -10,8 +10,8 @@ interface LanguageSwitcherProps {
 }
 
 const LANGUAGES: { code: Locale; label: string; flag: string; nativeName: string }[] = [
-  { code: 'fr', label: 'Français', flag: '🇫🇷', nativeName: 'FR' },
   { code: 'en', label: 'English', flag: '🇬🇧', nativeName: 'EN' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷', nativeName: 'FR' },
 ];
 
 export default function LanguageSwitcher({ variant = 'navbar' }: LanguageSwitcherProps) {

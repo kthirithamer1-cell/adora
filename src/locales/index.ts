@@ -6,12 +6,12 @@ export * from './types';
 export { fr } from './fr';
 export { en } from './en';
 
-export const DEFAULT_LOCALE: Locale = 'fr';
-export const SUPPORTED_LOCALES: Locale[] = ['fr', 'en'];
+export const DEFAULT_LOCALE: Locale = 'en';
+export const SUPPORTED_LOCALES: Locale[] = ['en', 'fr'];
 
 export const dictionaries: Record<Locale, TranslationDictionary> = {
-  fr,
   en,
+  fr,
 };
 
 export function getDictionary(locale: Locale): TranslationDictionary {
