@@ -898,7 +898,8 @@ export default function StudioCreativePage() {
   const [likedVisuals, setLikedVisuals] = useState<Record<string, boolean>>({ 'vis-1': true, 'vis-4': false });
 
   // Rendu des créations & Génération
-  const [visuals, setVisuals] = useState<VisualCardData[]>([]);
+  const [visuals, setVisuals] = useState<VisualCardData[]>(INITIAL_VISUALS);
+  const [previewCutoutTab, setPreviewCutoutTab] = useState<'cutout' | 'original'>('cutout');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [generationProgress, setGenerationProgress] = useState<number>(100);
   const [isZipping, setIsZipping] = useState<boolean>(false);
@@ -1477,12 +1478,14 @@ ${frenchText}
         setTailoredProductStyles(benchmarks);
 
         // Mettre à jour immédiatement la prévisualisation dans les templates avec le produit téléversé
-        setVisuals((prev) =>
-          prev.map((v) => ({
+        setVisuals((prev) => {
+          const source = (prev && prev.length > 0) ? prev : INITIAL_VISUALS;
+          return source.map((v) => ({
             ...v,
             bgImage: base64,
-          }))
-        );
+            headline: v.headline.replace(/Eau de Rose( — Haute Parfumerie)?/gi, cleanName),
+          }));
+        });
 
         // 1. Appel automatique du détourage adaptatif
         try {
@@ -1494,6 +1497,13 @@ ${frenchText}
           const cutData = await cutRes.json();
           if (cutData.success && cutData.transparentBase64) {
             setCutoutBase64(cutData.transparentBase64);
+            setVisuals((prev) => {
+              const source = (prev && prev.length > 0) ? prev : INITIAL_VISUALS;
+              return source.map((v) => ({
+                ...v,
+                bgImage: cutData.transparentBase64,
+              }));
+            });
           }
         } catch {
           // ignore
@@ -1519,12 +1529,14 @@ ${frenchText}
 
     // Mettre à jour immédiatement la prévisualisation des templates avec le produit sélectionné
     const activeImg = p.cutoutImageUrl || p.originalImageUrl;
-    setVisuals((prev) =>
-      prev.map((v) => ({
+    setVisuals((prev) => {
+      const source = (prev && prev.length > 0) ? prev : INITIAL_VISUALS;
+      return source.map((v) => ({
         ...v,
         bgImage: activeImg,
-      }))
-    );
+        headline: p.name,
+      }));
+    });
 
     // Analyse GPT-4o-mini pour styles sur-mesure
     if (activeImg) {
@@ -2624,94 +2636,367 @@ ${frenchText}
                 </div>
               </div>
 
-              {/* Zone Drag & Drop ou aperçu produit */}
-              <div
-                id="studio-product-dropzone"
-                className={s.dropzone}
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const file = e.dataTransfer.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = async (event) => {
-                      const base64 = event.target?.result as string;
-                      setProductImage(base64);
-                      const cleanName = file.name
-                        .replace(/\.[^/.]+$/, '')
-                        .replace(/^MarkMosaiq_/i, '')
-                        .replace(/[_\-+]+/g, ' ')
-                        .replace(/\(\d+\)/g, '')
-                        .replace(/\s+/g, ' ')
-                        .trim();
-                      setProductName(cleanName);
-                      setVisuals((prev) =>
-                        prev.map((v) => ({
-                          ...v,
-                          bgImage: base64,
-                        }))
-                      );
-                      try {
-                        const cutRes = await fetch('/api/cutout', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ imageBase64: base64, threshold: 240 }),
+              {/* Zone Drag & Drop ou aperçu produit complet (Full Display) */}
+              {productImage ? (
+                <div
+                  id="studio-product-dropzone"
+                  style={{
+                    borderRadius: '14px',
+                    border: '1.5px solid #E2E8F0',
+                    background: '#FFFFFF',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 18px rgba(15, 23, 42, 0.05)',
+                    marginBottom: '16px',
+                    transition: 'all 0.25s ease',
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = async (event) => {
+                        const base64 = event.target?.result as string;
+                        setProductImage(base64);
+                        const cleanName = file.name
+                          .replace(/\.[^/.]+$/, '')
+                          .replace(/^MarkMosaiq_/i, '')
+                          .replace(/[_\-+]+/g, ' ')
+                          .replace(/\(\d+\)/g, '')
+                          .replace(/\s+/g, ' ')
+                          .trim();
+                        setProductName(cleanName);
+                        setVisuals((prev) => {
+                          const source = (prev && prev.length > 0) ? prev : INITIAL_VISUALS;
+                          return source.map((v) => ({
+                            ...v,
+                            bgImage: base64,
+                            headline: v.headline.replace(/Eau de Rose( — Haute Parfumerie)?/gi, cleanName),
+                          }));
                         });
-                        const cutData = await cutRes.json();
-                        if (cutData.success && cutData.transparentBase64) {
-                          setCutoutBase64(cutData.transparentBase64);
+                        try {
+                          const cutRes = await fetch('/api/cutout', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ imageBase64: base64, threshold: 240 }),
+                          });
+                          const cutData = await cutRes.json();
+                          if (cutData.success && cutData.transparentBase64) {
+                            setCutoutBase64(cutData.transparentBase64);
+                            setVisuals((prev) => {
+                              const source = (prev && prev.length > 0) ? prev : INITIAL_VISUALS;
+                              return source.map((v) => ({
+                                ...v,
+                                bgImage: cutData.transparentBase64,
+                              }));
+                            });
+                          }
+                        } catch {
+                          // ignore
                         }
-                      } catch {
-                        // ignore
-                      }
-                      showToast(`Photo importée : ${cleanName}`);
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-                style={{
-                  minHeight: '100px',
-                  padding: '12px 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '12px',
-                  cursor: 'pointer',
-                  borderRadius: '10px',
-                  border: '2px dashed #CBD5E1',
-                  background: '#F8FAFC',
-                  marginBottom: '14px',
-                }}
-              >
-                {productImage ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '100%' }}>
-                    <div style={{
-                      width: '64px',
-                      height: '64px',
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      background: '#FFF',
-                      border: '1px solid #E2E8F0',
+                        showToast(`Photo importée : ${cleanName}`);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                >
+                  {/* Barre supérieure : Statut & actions rapides */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    background: '#F8FAFC',
+                    borderBottom: '1px solid #E2E8F0',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        fontSize: '0.74rem',
+                        fontWeight: 800,
+                        color: '#059669',
+                        background: '#ECFDF5',
+                        border: '1px solid rgba(16, 185, 129, 0.25)',
+                        padding: '3px 9px',
+                        borderRadius: '9999px',
+                      }}>
+                        <Check size={12} strokeWidth={3} />
+                        <span>{cutoutBase64 ? (locale === 'en' ? 'Auto Cutout Applied' : 'Détourage auto HD appliqué') : (locale === 'en' ? 'Original photo ready' : 'Photo originale prête')}</span>
+                      </span>
+
+                      {/* Sélecteur Vue détourée vs Vue originale si détourage disponible */}
+                      {cutoutBase64 && (
+                        <div style={{ display: 'flex', background: '#E2E8F0', padding: '2px', borderRadius: '7px', gap: '2px' }}>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setPreviewCutoutTab('cutout'); }}
+                            style={{
+                              padding: '2px 8px',
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              borderRadius: '5px',
+                              border: 'none',
+                              background: previewCutoutTab === 'cutout' ? '#FFFFFF' : 'transparent',
+                              color: previewCutoutTab === 'cutout' ? '#7C3AED' : '#64748B',
+                              boxShadow: previewCutoutTab === 'cutout' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            ✨ {locale === 'en' ? 'Cutout' : 'Détouré'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setPreviewCutoutTab('original'); }}
+                            style={{
+                              padding: '2px 8px',
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              borderRadius: '5px',
+                              border: 'none',
+                              background: previewCutoutTab === 'original' ? '#FFFFFF' : 'transparent',
+                              color: previewCutoutTab === 'original' ? '#7C3AED' : '#64748B',
+                              boxShadow: previewCutoutTab === 'original' ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            📷 {locale === 'en' ? 'Original' : 'Original'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsCatalogOpen(true);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '5px 10px',
+                          background: '#FFFFFF',
+                          color: '#475569',
+                          border: '1px solid #CBD5E1',
+                          borderRadius: '6px',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <ShoppingBag size={12} color="#7C3AED" />
+                        <span>{t.studio.sidebar.navCatalog}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '5px 10px',
+                          background: '#F3E8FF',
+                          color: '#7E22CE',
+                          border: '1px solid #D8B4FE',
+                          borderRadius: '6px',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <UploadCloud size={12} color="#7E22CE" />
+                        <span>{locale === 'en' ? 'Replace' : 'Changer'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Scène de visualisation produit en plein affichage (Full Display) */}
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '240px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      flexShrink: 0,
+                      padding: '16px',
+                      background: 'radial-gradient(circle at 50% 50%, rgba(248, 245, 255, 0.9) 0%, rgba(241, 245, 249, 0.8) 100%)',
+                      cursor: 'pointer',
+                    }}
+                    title={locale === 'en' ? "Click or drag to replace product photo" : "Cliquez ou glissez pour remplacer la photo"}
+                  >
+                    {/* Motif de fond pour visualiser la transparence */}
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      opacity: 0.35,
+                      backgroundImage: 'radial-gradient(#CBD5E1 1px, transparent 1px)',
+                      backgroundSize: '16px 16px',
+                      pointerEvents: 'none',
+                    }} />
+
+                    <img
+                      src={(previewCutoutTab === 'cutout' && cutoutBase64) ? cutoutBase64 : (productImage || '/images/image.png')}
+                      alt={productName}
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        width: 'auto',
+                        height: 'auto',
+                        objectFit: 'contain',
+                        display: 'block',
+                        filter: 'drop-shadow(0 14px 28px rgba(15, 23, 42, 0.12))',
+                        position: 'relative',
+                        zIndex: 1,
+                        transition: 'transform 0.25s ease',
+                      }}
+                    />
+
+                    {/* Pill discret invitant au remplacement */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '10px',
+                      right: '12px',
+                      background: 'rgba(15, 23, 42, 0.75)',
+                      backdropFilter: 'blur(6px)',
+                      color: '#FFFFFF',
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      borderRadius: '9999px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      zIndex: 2,
                     }}>
-                      <img
-                        src={cutoutBase64 || productImage}
-                        alt={productName}
-                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                      />
+                      <UploadCloud size={11} />
+                      <span>{locale === 'en' ? 'Click to replace' : 'Cliquer pour remplacer'}</span>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {productName || (locale === 'en' ? 'Imported product' : 'Produit importé')}
-                      </div>
-                      <div style={{ fontSize: '0.72rem', color: '#10B981', fontWeight: 700, marginTop: '2px' }}>
-                        ✓ {cutoutBase64 ? t.studio.page.cutoutSuccess : (locale === 'en' ? 'Photo ready' : 'Photo prête')} · {t.studio.page.changePhoto}
-                      </div>
-                    </div>
+                  </div>
+
+                  {/* Barre inférieure : Nom du produit et informations */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 14px',
+                    background: '#FFFFFF',
+                    borderTop: '1px solid #F1F5F9',
+                    fontSize: '0.74rem',
+                    color: '#64748B',
+                  }}>
+                    <span style={{ fontWeight: 800, color: '#0F172A' }}>
+                      {productName || (locale === 'en' ? 'Imported product' : 'Produit importé')}
+                    </span>
+                    <span style={{ color: '#7C3AED', fontWeight: 700 }}>
+                      ✓ {locale === 'en' ? 'Ready for staging' : 'Prêt pour mise en scène'}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  id="studio-product-dropzone"
+                  className={s.dropzone}
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = async (event) => {
+                        const base64 = event.target?.result as string;
+                        setProductImage(base64);
+                        const cleanName = file.name
+                          .replace(/\.[^/.]+$/, '')
+                          .replace(/^MarkMosaiq_/i, '')
+                          .replace(/[_\-+]+/g, ' ')
+                          .replace(/\(\d+\)/g, '')
+                          .replace(/\s+/g, ' ')
+                          .trim();
+                        setProductName(cleanName);
+                        setVisuals((prev) => {
+                          const source = (prev && prev.length > 0) ? prev : INITIAL_VISUALS;
+                          return source.map((v) => ({
+                            ...v,
+                            bgImage: base64,
+                            headline: v.headline.replace(/Eau de Rose( — Haute Parfumerie)?/gi, cleanName),
+                          }));
+                        });
+                        try {
+                          const cutRes = await fetch('/api/cutout', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ imageBase64: base64, threshold: 240 }),
+                          });
+                          const cutData = await cutRes.json();
+                          if (cutData.success && cutData.transparentBase64) {
+                            setCutoutBase64(cutData.transparentBase64);
+                            setVisuals((prev) => {
+                              const source = (prev && prev.length > 0) ? prev : INITIAL_VISUALS;
+                              return source.map((v) => ({
+                                ...v,
+                                bgImage: cutData.transparentBase64,
+                              }));
+                            });
+                          }
+                        } catch {
+                          // ignore
+                        }
+                        showToast(`Photo importée : ${cleanName}`);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  style={{
+                    minHeight: '160px',
+                    padding: '24px 16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    cursor: 'pointer',
+                    borderRadius: '12px',
+                    border: '2px dashed #CBD5E1',
+                    background: '#F8FAFC',
+                    marginBottom: '16px',
+                  }}
+                >
+                  <UploadCloud size={32} className={s.uploadCloudIcon} />
+                  <div style={{ textAlign: 'center' }}>
+                    <span className={s.dropzonePrompt} style={{ fontSize: '0.88rem', fontWeight: 800, color: '#1E293B' }}>
+                      {t.studio.page.uploadDropzone}
+                    </span>
+                    <span style={{ display: 'block', fontSize: '0.74rem', color: '#64748B', marginTop: '3px' }}>
+                      {t.studio.page.uploadFormats}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                      className={s.uploadBtn}
+                      style={{ padding: '6px 14px', fontSize: '0.78rem' }}
+                    >
+                      {locale === 'en' ? 'Browse photo' : 'Importer une photo'}
+                    </button>
                     <button
                       type="button"
                       onClick={(e) => {
@@ -2719,30 +3004,21 @@ ${frenchText}
                         setIsCatalogOpen(true);
                       }}
                       style={{
-                        padding: '6px 10px',
+                        padding: '6px 14px',
                         background: '#EDE9FE',
                         color: '#6D28D9',
                         border: '1px solid #DDD6FE',
-                        borderRadius: '6px',
-                        fontSize: '0.72rem',
+                        borderRadius: '8px',
+                        fontSize: '0.78rem',
                         fontWeight: 700,
                         cursor: 'pointer',
-                        whiteSpace: 'nowrap',
                       }}
                     >
                       {t.studio.sidebar.navCatalog}
                     </button>
                   </div>
-                ) : (
-                  <>
-                    <UploadCloud size={28} className={s.uploadCloudIcon} />
-                    <div style={{ textAlign: 'left' }}>
-                      <span className={s.dropzonePrompt} style={{ fontSize: '0.84rem' }}>{t.studio.page.uploadDropzone}</span>
-                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#94A3B8' }}>{t.studio.page.uploadFormats}</span>
-                    </div>
-                  </>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* 3 champs compacts : Nom, Prix en DT, Badge commercial */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -3305,11 +3581,32 @@ ${frenchText}
                         </div>
 
                         {/* Image Story avec Stickers */}
-                        <div style={{ position: 'relative', width: '100%', aspectRatio: '9 / 16', maxHeight: '420px', overflow: 'hidden', background: '#0F172A' }}>
+                        <div style={{
+                          position: 'relative',
+                          width: '100%',
+                          aspectRatio: '9 / 16',
+                          maxHeight: '420px',
+                          overflow: 'hidden',
+                          background: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage) && activeStyleObj?.previewImg)
+                            ? `url(${activeStyleObj.previewImg}) center/cover no-repeat, #0F172A`
+                            : '#0F172A',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
                           <img
                             src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
                             alt={card.headline}
-                            style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              display: 'block',
+                              objectFit: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'contain' : 'cover',
+                              padding: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? '28px 16px' : 0,
+                              filter: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'drop-shadow(0 14px 28px rgba(0, 0, 0, 0.45))' : 'none',
+                              position: 'relative',
+                              zIndex: 1,
+                            }}
                             onError={(e) => {
                               const el = e.currentTarget;
                               if (!el.src.includes('image.png')) el.src = '/images/image.png';
@@ -3417,11 +3714,31 @@ ${frenchText}
                         </div>
 
                         {/* Image Facebook */}
-                        <div style={{ position: 'relative', width: '100%', background: '#F8FAFC', overflow: 'hidden', aspectRatio: '1.91 / 1' }}>
+                        <div style={{
+                          position: 'relative',
+                          width: '100%',
+                          background: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage) && activeStyleObj?.previewImg)
+                            ? `url(${activeStyleObj.previewImg}) center/cover no-repeat, #F8FAFC`
+                            : '#F8FAFC',
+                          overflow: 'hidden',
+                          aspectRatio: '1.91 / 1',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
                           <img
                             src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
                             alt={card.headline}
-                            style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              display: 'block',
+                              objectFit: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'contain' : 'cover',
+                              padding: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? '16px' : 0,
+                              filter: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'drop-shadow(0 10px 22px rgba(0, 0, 0, 0.2))' : 'none',
+                              position: 'relative',
+                              zIndex: 1,
+                            }}
                             onError={(e) => {
                               const el = e.currentTarget;
                               if (!el.src.includes('image.png')) el.src = '/images/image.png';
@@ -3486,11 +3803,31 @@ ${frenchText}
                         </div>
 
                         {/* Image Instagram Post */}
-                        <div style={{ position: 'relative', width: '100%', background: '#F8FAFC', overflow: 'hidden', aspectRatio: '1 / 1' }}>
+                        <div style={{
+                          position: 'relative',
+                          width: '100%',
+                          background: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage) && activeStyleObj?.previewImg)
+                            ? `url(${activeStyleObj.previewImg}) center/cover no-repeat, #F8FAFC`
+                            : '#F8FAFC',
+                          overflow: 'hidden',
+                          aspectRatio: '1 / 1',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
                           <img
                             src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
                             alt={card.headline}
-                            style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              display: 'block',
+                              objectFit: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'contain' : 'cover',
+                              padding: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? '22px' : 0,
+                              filter: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'drop-shadow(0 14px 28px rgba(0, 0, 0, 0.22))' : 'none',
+                              position: 'relative',
+                              zIndex: 1,
+                            }}
                             onError={(e) => {
                               const el = e.currentTarget;
                               if (!el.src.includes('image.png')) el.src = '/images/image.png';

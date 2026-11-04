@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { headers } from 'next/headers';
+import Script from 'next/script';
 import './globals.css';
 import { WorkspaceProvider } from '@/lib/WorkspaceContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
@@ -45,13 +46,16 @@ export default async function RootLayout({
   return (
     <html lang={initialLocale}>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet" />
         <link rel="icon" href="/images/logo.png" type="image/png" />
         <link rel="shortcut icon" href="/images/logo.png" type="image/png" />
         <link rel="apple-touch-icon" href="/images/logo.png" />
         <meta name="google-site-verification" content="NPoTVmfYmh4ysR8nlEkdJcWzPMjNnPI_dmtIo5mvwUQ" />
-        <script src="/public-tracker.js" defer></script>
       </head>
       <body>
+        <Script src="/public-tracker.js" strategy="afterInteractive" />
         <LanguageProvider initialLocale={initialLocale}>
           <WorkspaceProvider initialSession={initialSession}>
             <div className="min-h-screen flex flex-col relative overflow-hidden">
