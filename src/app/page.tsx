@@ -1036,63 +1036,7 @@ export default function HomePage() {
           </div>
 
           {/* Testimonial & Purple CTA Banner from Mockup */}
-          <div className={s.ctaTestimonialGrid} style={{ marginTop: '36px' }}>
-            {/* Left: Testimonial & Brand Logos Stack */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-              <div className={s.testimonialCard}>
-                <div className={s.testimonialAvatarWrap}>
-                  <img
-                    src="/api/assets-crop?asset=sarah"
-                    alt="Sarah M."
-                    className={s.testimonialAvatarImg}
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
-                  />
-                  <div className={s.avatarInitials} style={{ background: 'linear-gradient(135deg, #EC4899, #8B5CF6)' }}>
-                    SM
-                  </div>
-                </div>
-                <div className={s.testimonialQuoteArea}>
-                  <p className={s.testimonialQuoteText}>
-                    &ldquo;MarkMosaiq changed the way we create content. It&apos;s simple, fast and the results are amazing!&rdquo;
-                  </p>
-                  <div className={s.starsRow}>
-                    ★★★★★
-                  </div>
-                  <div className={s.testimonialAuthor}>&mdash; Sarah M., Skincare Brand</div>
-                </div>
-              </div>
-
-              {/* Trusted Brands Card */}
-              <div className={s.brandsProofCard}>
-                <span className={s.brandsProofLabel}>Trusted by forward-thinking brands</span>
-                <div className={s.brandsLogosRow}>
-                  <div className={s.brandLogoItem}><LorealLogo /></div>
-                  <div className={s.brandLogoItem}><SamsungLogo /></div>
-                  <div className={s.brandLogoItem}><NikeLogo /></div>
-                  <div className={s.brandLogoItem}><AdidasLogo /></div>
-                  <div className={s.brandLogoItem}><HmLogo /></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Purple CTA Banner */}
-            <div className={s.purpleCtaBanner}>
-              <Sparkles size={28} color="#F3E8FF" />
-              <h3 className={s.purpleBannerTitle}>Ready to transform your product marketing?</h3>
-              <p className={s.purpleBannerSub}>
-                Join 140+ early store owners creating stunning content with MarkMosaiq.
-              </p>
-              <Link href={user ? '/studio' : '/signup?pack=free'} className={s.whiteBannerBtn}>
-                <span>Create my first visuals</span>
-                <ArrowRight size={18} />
-              </Link>
-              <div className={s.bannerGuaranteeNote}>
-                No credit card required &bull; 5 free credits
-              </div>
-            </div>
-          </div>
+          
         </div>
       </section>
 
@@ -1725,20 +1669,7 @@ export default function HomePage() {
 
       {/* Right Socials & Button */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <div className={s.footerSocialRow}>
-          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className={s.footerSocialIcon} aria-label="Instagram">
-            <InstagramIcon />
-          </a>
-          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className={s.footerSocialIcon} aria-label="TikTok">
-            <TikTokIcon />
-          </a>
-          <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className={s.footerSocialIcon} aria-label="YouTube">
-            <YouTubeIcon />
-          </a>
-          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className={s.footerSocialIcon} aria-label="LinkedIn">
-            <LinkedInIcon />
-          </a>
-        </div>
+      
 
         <Link href={user ? '/studio' : '/signup?pack=free'} className={s.darkPillBtn}>
           <span>Try for Free</span>
