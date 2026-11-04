@@ -6,6 +6,8 @@
 .landingWrapper {
   position: relative;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   background-color: #F8F5FE;
@@ -2378,17 +2380,28 @@
 }
 
 /* =========================================================================
-   RESPONSIVE DESIGN (Media Queries)
+   RESPONSIVE DESIGN (Tablets, iPads, Android & iOS Phones)
    ========================================================================= */
+
+/* 1. TABLET LANDSCAPE & COMPACT DESKTOPS (<= 1024px) */
 @media (max-width: 1024px) {
   .heroGrid {
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 36px;
     text-align: center;
   }
   .heroLeft {
     max-width: 100%;
     align-items: center;
+    text-align: center;
+  }
+  .heroTitle {
+    font-size: 2.85rem;
+    line-height: 1.18;
+  }
+  .heroSubtitle {
+    max-width: 620px;
+    margin: 0 auto;
   }
   .heroCtas {
     justify-content: center;
@@ -2396,147 +2409,497 @@
   .heroTrustRow {
     justify-content: center;
   }
-  .industryDisplayCard {
-    grid-template-columns: 1fr;
-    gap: 30px;
+  .heroRight {
+    justify-content: center;
+    width: 100%;
+  }
+  .heroStagingStage {
+    justify-content: center;
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .heroMainVisualImg {
+    width: 100%;
+    max-width: 640px;
+    margin-right: 0;
+  }
+  .statsTractionGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
   }
   .contentPackageGrid {
     grid-template-columns: 1fr;
     gap: 36px;
-  }
-  .painCompareGrid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  .painVsBadge {
-    justify-self: center;
-  }
-  .loopGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-  .loopArrow {
-    display: none;
-  }
-  .trustGrid {
-    grid-template-columns: 1fr 1fr;
   }
   .contentPackageLeft {
     align-items: center;
     text-align: center;
   }
   .contentPackageSubtitle {
-    max-width: 540px;
+    max-width: 580px;
+  }
+  .contentPackageChecklist {
+    align-items: flex-start;
+    max-width: 440px;
+    margin: 6px auto 0;
   }
   .creativeHandwrittenWrap {
     justify-content: center;
+  }
+  .packageVisualShowcase {
+    max-width: 100%;
+  }
+  .industryDisplayCard {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .industryShowcaseGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .painCompareGrid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .painVsBadge {
+    justify-self: center;
+  }
+  .loopGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .loopArrow {
+    display: none;
   }
   .howItWorksContainer {
     grid-template-columns: 1fr;
     gap: 36px;
   }
+  .laptopMockupFrame {
+    max-width: 580px;
+    margin: 0 auto;
+  }
   .fourCardsGrid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
   }
   .ctaTestimonialGrid {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
-  .pricingCardsGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .statsTractionGrid {
+  .trustGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
+  .pricingCardsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
   .reviewsShowcaseGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
+  }
+  .faqListGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
   }
 }
 
+/* 2. TABLET PORTRAIT & MOBILE PHONES (<= 768px) */
 @media (max-width: 768px) {
-  .statsTractionGrid {
-    grid-template-columns: 1fr;
-  }
   .navLinks {
     display: none;
   }
   .mobileMenuBtn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .headerContainer {
+    padding: 0 16px;
+  }
+  .heroSection {
+    padding: 24px 0 44px;
   }
   .heroTitle {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+  }
+  .heroSubtitle {
+    font-size: 0.96rem;
+    line-height: 1.55;
+  }
+  .heroMainVisualImg {
+    width: 100%;
+    max-width: 100%;
+    margin-right: 0;
+  }
+  .sectionTitle {
+    font-size: 1.95rem;
+    line-height: 1.22;
+  }
+  .socialProofSubtitle {
+    font-size: 0.94rem;
+    line-height: 1.55;
+  }
+  .socialProofSection,
+  .contentPackageSection,
+  .industrySection,
+  .painSection,
+  .howItWorksSection,
+  .whyChooseSection,
+  .trustSection,
+  .pricingSection,
+  .reviewsShowcaseSection,
+  .faqSection {
+    padding: 55px 0 65px;
+  }
+  .statsTractionGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-top: 32px;
+    margin-bottom: 36px;
+  }
+  .statTractionCard {
+    padding: 20px 16px;
+  }
+  .statBigNumber {
+    font-size: 1.95rem;
   }
   .contentPackageTitle {
-    font-size: 2.1rem;
+    font-size: 1.95rem;
+  }
+  .industryTabsRow {
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+  .industryTabBtn {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+  .industryDisplayCard {
+    padding: 26px 20px;
+    border-radius: 22px;
+  }
+  .industryTitle {
+    font-size: 1.55rem;
+  }
+  .industryShowcaseGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .industryShowcaseItem {
+    min-height: 220px;
+    aspect-ratio: 3 / 4;
+  }
+  .loopWrap {
+    padding: 24px 18px;
+    border-radius: 20px;
+  }
+  .loopTitle {
+    font-size: 1.35rem;
   }
   .loopGrid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .loopStep {
+    padding: 18px 16px;
+  }
+  .loopStepDesc {
+    max-width: 100%;
   }
   .painCard {
     padding: 24px 20px;
   }
-  .trustGrid {
-    grid-template-columns: 1fr;
-  }
-  .trustStrip {
-    border-radius: 20px;
-  }
-  .trustStripDivider {
-    display: none;
-  }
-  .sectionTitle {
-    font-size: 2rem;
-  }
   .fourCardsGrid {
     grid-template-columns: 1fr;
-  }
-  .pricingCardsGrid {
-    grid-template-columns: 1fr;
+    gap: 14px;
   }
   .stepsListCard {
     flex-direction: column;
     gap: 20px;
+    padding: 24px 18px;
   }
   .stepConnectorArrow {
     transform: rotate(90deg);
+    margin: -4px 0;
   }
-  .industryShowcaseGrid {
+  .testimonialCard {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    padding: 24px 20px;
+    gap: 16px;
+  }
+  .testimonialAvatarWrap {
+    width: 78px;
+    height: 78px;
+  }
+  .purpleQuoteMark {
+    display: none;
+  }
+  .starsRow {
+    justify-content: center;
+  }
+  .brandsProofCard {
+    padding: 18px 16px;
+  }
+  .brandsLogosRow {
+    gap: 18px 24px;
+  }
+  .purpleCtaBanner {
+    padding: 32px 22px;
+    border-radius: 20px;
+  }
+  .purpleBannerTitle {
+    font-size: 1.5rem;
+  }
+  .purpleBannerSub {
+    font-size: 0.88rem;
+  }
+  .whiteBannerBtn {
+    padding: 12px 24px;
+    font-size: 0.88rem;
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+  .trustGrid {
     grid-template-columns: 1fr;
+    gap: 14px;
   }
-  .faqAnswerInner {
-    padding: 0 18px 20px 18px;
+  .trustStrip {
+    border-radius: 18px;
+    padding: 16px;
+    gap: 12px;
+  }
+  .trustStripDivider {
+    display: none;
+  }
+  .pricingCardsGrid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .pricingCard {
+    padding: 26px 20px;
+  }
+  .reviewsShowcaseGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .reviewCard {
+    padding: 22px 18px;
+    border-radius: 18px;
+  }
+  .faqListGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .faqCategoryTabs {
+    gap: 8px;
+    margin: 24px auto 28px;
+  }
+  .faqCategoryTab {
+    padding: 8px 14px;
+    font-size: 0.8rem;
   }
   .faqQuestionBtn {
     padding: 16px 18px;
   }
+  .faqQuestionText {
+    font-size: 0.95rem;
+  }
+  .faqAnswerInner {
+    padding: 0 18px 18px 18px;
+    font-size: 0.88rem;
+  }
   .faqSupportBanner {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    text-align: center;
+    padding: 22px 20px;
+    gap: 16px;
   }
-  .faqListGrid {
-    grid-template-columns: 1fr;
-  }
-  .footerContainer {
+  .faqSupportLeft {
     flex-direction: column;
     align-items: center;
     text-align: center;
-  }
-  .ctaTestimonialGrid {
-    grid-template-columns: 1fr;
   }
   .sectionCtaRow {
     flex-direction: column;
     text-align: center;
     align-items: stretch;
+    padding: 22px 20px;
+    gap: 16px;
   }
   .reviewsCtaBanner {
     flex-direction: column;
     text-align: center;
     align-items: stretch;
+    padding: 24px 20px;
+    gap: 18px;
   }
   .reviewsCtaContent {
     flex-direction: column;
     text-align: center;
+  }
+  .reviewsCtaAvatars {
+    justify-content: center;
+    margin-bottom: 6px;
+  }
+  .footerContainer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+  }
+  .footerNavRow {
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .footerSocialRow {
+    justify-content: center;
+  }
+}
+
+/* 3. SMARTPHONES & COMPACT SCREENS (<= 480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+  .heroContainer {
+    padding: 0 16px;
+  }
+  .heroTitle {
+    font-size: 1.85rem;
+    line-height: 1.22;
+  }
+  .heroSubtitle {
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  .heroCtas {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .purplePrimaryBtn {
+    width: 100%;
+    justify-content: center;
+    padding: 13px 20px;
+    font-size: 0.9rem;
+  }
+  .heroPlayLink {
+    width: 100%;
+    justify-content: center;
+    padding: 6px 0;
+  }
+  .heroTrustRow {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .sectionTitle {
+    font-size: 1.6rem;
+    line-height: 1.22;
+  }
+  .statsTractionGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .statTractionCard {
+    padding: 20px 16px;
+  }
+  .statBigNumber {
+    font-size: 1.9rem;
+  }
+  .contentPackageTitle {
+    font-size: 1.65rem;
+  }
+  .creativeHandwrittenText {
+    font-size: 1.25rem;
+  }
+  .industryShowcaseGrid {
+    grid-template-columns: 1fr;
+  }
+  .industryShowcaseItem {
+    min-height: 250px;
+    aspect-ratio: 1 / 1;
+  }
+  .industryDisplayCard {
+    padding: 20px 14px;
+  }
+  .fourCardsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .featureWhiteCard {
+    padding: 20px 16px;
+  }
+  .painCard {
+    padding: 20px 16px;
+  }
+  .painCardTitle {
+    font-size: 1.15rem;
+  }
+  .painListItem {
+    font-size: 0.88rem;
+  }
+  .stepsListCard {
+    padding: 20px 14px;
+  }
+  .testimonialCard {
+    padding: 20px 14px;
+  }
+  .testimonialQuoteText {
+    font-size: 0.9rem;
+  }
+  .purpleCtaBanner {
+    padding: 26px 16px;
+  }
+  .purpleBannerTitle {
+    font-size: 1.35rem;
+  }
+  .pricingCard {
+    padding: 22px 16px;
+  }
+  .planPriceAmount {
+    font-size: 1.95rem;
+  }
+  .reviewCard {
+    padding: 18px 14px;
+  }
+  .reviewQuote {
+    font-size: 0.88rem;
+  }
+  .faqQuestionBtn {
+    padding: 14px 14px;
+    gap: 10px;
+  }
+  .faqQuestionText {
+    font-size: 0.9rem;
+  }
+  .faqNumberBadge {
+    width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+  }
+  .sectionCtaText strong,
+  .reviewsCtaTitle {
+    font-size: 1rem;
+  }
+  .sectionCtaText span,
+  .reviewsCtaSub {
+    font-size: 0.84rem;
+  }
+  .footer {
+    padding-bottom: max(35px, env(safe-area-inset-bottom));
   }
 }
