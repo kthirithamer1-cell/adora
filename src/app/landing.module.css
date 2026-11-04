@@ -316,23 +316,170 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-.mobileMenuBtn {
-  display: none;
-  background: none;
-  border: none;
-  color: #111827;
-  cursor: pointer;
-  padding: 6px;
+.desktopNavLanguage {
+  display: flex;
+  align-items: center;
 }
 
+.desktopNavCta {
+  display: inline-flex;
+}
+
+/* Mobile Menu Button */
+.mobileMenuBtn {
+  display: none;
+  background: #F3E8FF;
+  border: 1px solid #EDE9FE;
+  color: #7C3AED;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  flex-shrink: 0;
+}
+
+.mobileMenuBtn:active {
+  background: #E9D5FF;
+  transform: scale(0.95);
+}
+
+/* Mobile Backdrop Overlay */
+.mobileBackdrop {
+  position: fixed;
+  top: 76px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 998;
+  animation: mobileFadeIn 0.2s ease;
+}
+
+@keyframes mobileFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Mobile Dropdown Drawer */
 .mobileDropdown {
+  position: absolute;
+  top: 76px;
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border-bottom: 1.5px solid #E2E8F0;
+  padding: 16px 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: #FFFFFF;
-  border-bottom: 1px solid #E2E8F0;
-  padding: 16px 24px 24px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  gap: 14px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.15);
+  z-index: 999;
+  max-height: calc(100vh - 85px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  animation: mobileDrawerSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mobileDrawerSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobileNavHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.mobileNavTitle {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.01em;
+}
+
+.mobileCloseBtn {
+  background: #F1F5F9;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobileNavList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobileNavLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  background: #FAF8FE;
+  border: 1px solid #EDE9FE;
+  border-radius: 14px;
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: #111827;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobileNavLink svg {
+  color: #7C3AED;
+  transition: transform 0.2s ease;
+}
+
+.mobileNavLink:active {
+  background: #F3E8FF;
+  border-color: #DDD6FE;
+  transform: scale(0.99);
+}
+
+.mobileNavFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.mobileLanguageRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobileLanguageLabel {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #64748B;
 }
 
 /* =========================================================================
@@ -2512,13 +2659,27 @@
   .navLinks {
     display: none;
   }
+  .desktopNavLanguage {
+    display: none;
+  }
+  .desktopNavCta {
+    display: none;
+  }
   .mobileMenuBtn {
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .headerContainer {
+  .navContainer {
     padding: 0 16px;
+    height: 68px;
+  }
+  .mobileBackdrop {
+    top: 68px;
+  }
+  .mobileDropdown {
+    top: 68px;
+    max-height: calc(100vh - 72px);
   }
   .heroSection {
     padding: 24px 0 44px;

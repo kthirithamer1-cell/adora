@@ -396,15 +396,17 @@ export default function HomePage() {
 
           {/* Right Actions */}
           <div className={s.navActions}>
-            <LanguageSwitcher variant="light" />
+            <div className={s.desktopNavLanguage}>
+              <LanguageSwitcher variant="light" />
+            </div>
 
             {user ? (
-              <Link href="/studio" className={s.darkPillBtn}>
+              <Link href="/studio" className={`${s.darkPillBtn} ${s.desktopNavCta}`}>
                 <span>Studio IA</span>
                 <ArrowRight size={15} />
               </Link>
             ) : (
-              <Link href="/signup?pack=free" className={s.darkPillBtn}>
+              <Link href="/signup?pack=free" className={`${s.darkPillBtn} ${s.desktopNavCta}`}>
                 <span>Try for Free</span>
                 <ArrowRight size={15} />
               </Link>
@@ -414,36 +416,75 @@ export default function HomePage() {
               type="button"
               className={s.mobileMenuBtn}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Menu"
+              aria-label="Toggle navigation menu"
+              aria-expanded={mobileMenuOpen}
             >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile dropdown */}
+        {/* Mobile drawer with backdrop for iOS & Android */}
         {mobileMenuOpen && (
-          <div className={s.mobileDropdown}>
-            <a href="#features" className={s.navLink} onClick={() => setMobileMenuOpen(false)}>Features</a>
-            <a href="#examples" className={s.navLink} onClick={() => setMobileMenuOpen(false)}>Examples</a>
-            <a href="#pricing" className={s.navLink} onClick={() => setMobileMenuOpen(false)}>Pricing</a>
-            <a href="#faq" className={s.navLink} onClick={() => setMobileMenuOpen(false)}>FAQ</a>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px', borderTop: '1px solid #E2E8F0', paddingTop: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.84rem', color: '#64748B' }}>Language:</span>
-                <LanguageSwitcher variant="light" />
+          <>
+            <div
+              className={s.mobileBackdrop}
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+            <div className={s.mobileDropdown}>
+              <div className={s.mobileNavHeader}>
+                <span className={s.mobileNavTitle}>Navigation</span>
+                <button
+                  type="button"
+                  className={s.mobileCloseBtn}
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Close menu"
+                >
+                  <X size={16} />
+                </button>
               </div>
-              <Link
-                href={user ? '/studio' : '/signup?pack=free'}
-                className={s.purplePrimaryBtn}
-                style={{ textAlign: 'center', justifyContent: 'center' }}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <span>{user ? 'Studio IA' : 'Try for Free'}</span>
-                <ArrowRight size={16} />
-              </Link>
+
+              <div className={s.mobileNavList}>
+                <a href="#features" className={s.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+                  <span>Features</span>
+                  <ArrowRight size={16} />
+                </a>
+                <a href="#examples" className={s.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+                  <span>Examples</span>
+                  <ArrowRight size={16} />
+                </a>
+                <a href="#how-it-works" className={s.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+                  <span>How It Works</span>
+                  <ArrowRight size={16} />
+                </a>
+                <a href="#pricing" className={s.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+                  <span>Pricing</span>
+                  <ArrowRight size={16} />
+                </a>
+                <a href="#faq" className={s.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+                  <span>FAQ</span>
+                  <ArrowRight size={16} />
+                </a>
+              </div>
+
+              <div className={s.mobileNavFooter}>
+                <div className={s.mobileLanguageRow}>
+                  <span className={s.mobileLanguageLabel}>Language:</span>
+                  <LanguageSwitcher variant="light" />
+                </div>
+                <Link
+                  href={user ? '/studio' : '/signup?pack=free'}
+                  className={s.purplePrimaryBtn}
+                  style={{ textAlign: 'center', justifyContent: 'center', width: '100%' }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span>{user ? 'Open Studio IA' : 'Try for Free (5 Credits)'}</span>
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </header>
 
