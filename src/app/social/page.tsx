@@ -1,886 +1,1325 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AppShell from '@/components/AppShell';
 import { useWorkspace } from '@/lib/WorkspaceContext';
-import { SocialAccount, ScheduledPost } from '@/lib/social';
+import { useLanguage } from '@/lib/LanguageContext';
+import {
+  BrandIndustryId,
+  RegionClusterId,
+  SocialPlatformId,
+  TimeBlockId,
+  HeatmapSlotCell,
+  CalendarRecommendationResult,
+  AudienceTimezoneShare,
+} from '@/lib/postingCalendarEngine';
+import {
+  Store,
+  ShoppingBag,
+  Globe,
+  MapPin,
+  Calendar,
+  Download,
+  Clock,
+  Sunrise,
+  Car,
+  Utensils,
+  Dumbbell,
+  Star,
+  Moon,
+  Check,
+  Smartphone,
+  Zap,
+  Lightbulb,
+  TrendingUp,
+  ChevronDown,
+} from 'lucide-react';
 
-export default function SocialHubPage() {
-  const { workspace } = useWorkspace();
-  const [activeTab, setActiveTab] = useState<'calendar' | 'feed-grid' | 'accounts'>('calendar');
-  const [accounts, setAccounts] = useState<SocialAccount[]>([]);
-  const [posts, setPosts] = useState<ScheduledPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showScheduleModal, setShowScheduleModal] = useState(false);
+const COMMON_IANA_TIMEZONES = [
+  { value: 'Europe/Paris', label: 'Europe/Paris', sub: 'CET / CEST' },
+  { value: 'Europe/London', label: 'Europe/London', sub: 'GMT / BST' },
+  { value: 'UTC', label: 'UTC', sub: 'Universal' },
+  { value: 'Africa/Tunis', label: 'Africa/Tunis', sub: 'CET (UTC+1)' },
+  { value: 'Africa/Casablanca', label: 'Africa/Casablanca', sub: 'Morocco' },
+  { value: 'Africa/Cairo', label: 'Africa/Cairo', sub: 'EET / EEST' },
+  { value: 'Asia/Riyadh', label: 'Asia/Riyadh', sub: 'Saudi AST' },
+  { value: 'Asia/Dubai', label: 'Asia/Dubai', sub: 'UAE GST' },
+  { value: 'America/New_York', label: 'America/New_York', sub: 'US Eastern' },
+  { value: 'America/Chicago', label: 'America/Chicago', sub: 'US Central' },
+  { value: 'America/Los_Angeles', label: 'America/Los_Angeles', sub: 'US Pacific' },
+  { value: 'America/Sao_Paulo', label: 'America/Sao_Paulo', sub: 'Brazil BRT' },
+  { value: 'Asia/Kolkata', label: 'Asia/Kolkata', sub: 'India IST' },
+  { value: 'Asia/Singapore', label: 'Asia/Singapore', sub: 'SGT' },
+  { value: 'Asia/Tokyo', label: 'Asia/Tokyo', sub: 'Japan JST' },
+  { value: 'Africa/Lagos', label: 'Africa/Lagos', sub: 'WAT' },
+];
 
-  // Formulaire de programmation
-  const [selectedImage, setSelectedImage] = useState('/images/bottle_nutrex.png');
-  const [platform, setPlatform] = useState<'instagram' | 'facebook' | 'both'>('both');
-  const [postType, setPostType] = useState<'feed' | 'story'>('feed');
-  const [scheduledDate, setScheduledDate] = useState('2026-10-09T20:30');
-  const [caption, setCaption] = useState(
-    `🔥 Arrivage exclusif chez NutriStore Tunisie !\n\nQualité 100% originale certifiée. Quantités très limitées !\n\n🚚 Livraison express 24-48h sur toute la Tunisie (24 gouvernorats)\n💰 Khlas and el livrison (Paiement à la livraison)\n\n📲 Commandez vite par DM ou WhatsApp au +216 98 123 456 !`
-  );
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{ text: string; error?: boolean } | null>(null);
+interface DropdownOption {
+  value: string;
+  label: string;
+  sub?: string;
+}
 
-  // Heures d'affluence e-commerce tunisien recommandées
-  const tunisianPeakHours = [
-    { label: 'Pause Déjeuner (13h30)', time: '13:30' },
-    { label: 'Sortie Bureaux (18h00)', time: '18:00' },
-    { label: 'Prime Time Soirée (20h30 - Meilleur ROI)', time: '20:30' },
-    { label: 'Late Night Scroll (22h15)', time: '22:15' },
-  ];
+interface CustomPillDropdownProps {
+  id: string;
+  openId: string | null;
+  setOpenId: (id: string | null) => void;
+  icon: React.ReactNode;
+  value: string;
+  options: DropdownOption[];
+  onChange: (val: string) => void;
+  maxWidth?: string;
+  menuMinWidth?: string;
+  ariaLabel?: string;
+}
 
-  // Images disponibles pour planification
-  const sampleVisuals = [
-    { label: 'Nutrex Podium Studio', url: '/images/bottle_nutrex.png' },
-    { label: 'Story Créatine Promo', url: '/images/creatine_story.jpg' },
-    { label: 'Pot GNC Pro Whey', url: '/images/gnc_pro_whey_tub_1791150838901.jpg' },
-    { label: 'Mode Vestiaire Tunis', url: '/images/hero_lifestyle.jpg' },
-  ];
-
-  useEffect(() => {
-    loadSocialData();
-  }, [workspace?.id]);
-
-  const loadSocialData = async () => {
-    setIsLoading(true);
-    try {
-      const [accRes, postRes] = await Promise.all([
-        fetch('/api/social/accounts'),
-        fetch('/api/social/posts'),
-      ]);
-      const accData = await accRes.json();
-      const postData = await postRes.json();
-
-      if (accData.success) setAccounts(accData.data || []);
-      if (postData.success) setPosts(postData.data || []);
-    } catch (err) {
-      console.error('Erreur chargement social hub:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleToggleAccount = async (accountPlatform: 'instagram' | 'facebook') => {
-    try {
-      const res = await fetch('/api/social/accounts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ platform: accountPlatform }),
-      });
-      const data = await res.json();
-      if (data.success && data.data) {
-        setAccounts(data.data);
-        setFeedback({ text: `✓ Connexion ${accountPlatform.toUpperCase()} mise à jour !` });
-        setTimeout(() => setFeedback(null), 3500);
-      }
-    } catch (err) {
-      console.error('Erreur connexion compte:', err);
-    }
-  };
-
-  const handleSchedulePost = async (e: React.FormEvent, publishImmediately = false) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setFeedback(null);
-
-    const endpoint = publishImmediately ? '/api/social/publish-now' : '/api/social/posts';
-    const payload = publishImmediately
-      ? { platform, imageUrl: selectedImage, caption, postType }
-      : { platform, imageUrl: selectedImage, caption, postType, scheduledFor: new Date(scheduledDate).toISOString() };
-
-    try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setFeedback({
-          text: publishImmediately
-            ? '🚀 Publication réussie en direct sur Instagram / Facebook !'
-            : '✓ Post planifié avec succès dans le calendrier !',
-        });
-        setShowScheduleModal(false);
-        loadSocialData();
-        setTimeout(() => setFeedback(null), 4000);
-      } else {
-        setFeedback({ text: data.error || 'Erreur lors de la programmation', error: true });
-      }
-    } catch (err: any) {
-      setFeedback({ text: err.message || 'Erreur serveur', error: true });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeletePost = async (postId: string) => {
-    if (!confirm('Supprimer cette publication planifiée ?')) return;
-    try {
-      const res = await fetch(`/api/social/posts?id=${postId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        setPosts((prev) => prev.filter((p) => p.id !== postId));
-        setFeedback({ text: 'Publication retirée du calendrier.' });
-        setTimeout(() => setFeedback(null), 3000);
-      }
-    } catch (err) {
-      console.error('Erreur suppression post:', err);
-    }
-  };
-
-  // Simuler 9 cases pour la grille Instagram (visuels récents + mock)
-  const instagramGridSlots = [
-    ...posts.filter((p) => p.postType === 'feed'),
-    { id: 'mock_1', imageUrl: '/images/whey_studio_podium.jpg', caption: 'Studio 4K' },
-    { id: 'mock_2', imageUrl: '/images/hero_lifestyle.jpg', caption: 'Lifestyle Gym' },
-    { id: 'mock_3', imageUrl: '/images/creatine_story.jpg', caption: 'Creatine Boost' },
-    { id: 'mock_4', imageUrl: '/images/bottle_nutrex.png', caption: 'IsoFit Pure' },
-    { id: 'mock_5', imageUrl: '/images/gnc_pro_whey_tub_1791150838901.jpg', caption: 'GNC Whey' },
-    { id: 'mock_6', imageUrl: '/images/logo.png', caption: 'MarkMosaiq Official' },
-  ].slice(0, 9);
+function CustomPillDropdown({
+  id,
+  openId,
+  setOpenId,
+  icon,
+  value,
+  options,
+  onChange,
+  maxWidth = '210px',
+  menuMinWidth = '240px',
+  ariaLabel,
+}: CustomPillDropdownProps) {
+  const isOpen = openId === id;
+  const selectedOption = options.find((o) => o.value === value) || options[0];
 
   return (
-    <AppShell activeNav="social" pageTitle="Calendrier Social Media Hub">
-      <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
-
-        {/* En-tête du Hub */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        aria-expanded={isOpen}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpenId(isOpen ? null : id);
+        }}
+        style={{
+          display: 'inline-flex',
           alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-          marginBottom: '28px',
-        }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-              <span style={{
-                fontSize: '11px',
-                fontWeight: 800,
-                color: '#EA580C',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                background: '#FFF7ED',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                border: '1px solid #FED7AA',
-              }}>
-                Meta Graph API v20.0
-              </span>
-              <span style={{ fontSize: '13px', color: '#64748B' }}>
-                Diffusion multi-plateforme : Instagram Pro & Facebook Pages
-              </span>
-            </div>
-            <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
-              Hub Social Media & Calendrier E-commerce
-            </h1>
-            <p style={{ color: '#64748B', fontSize: '14px', marginTop: '6px' }}>
-              Planifiez vos lancements de visuels IA aux heures de pointe tunisiennes et prévisualisez votre feed Instagram en 9 cases.
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={() => setShowScheduleModal(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '11px 20px',
-                background: '#4F46E5',
-                borderRadius: '8px',
-                border: 'none',
-                color: '#FFF',
-                fontSize: '13px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
-              }}
-            >
-              Programmer un Post
-            </button>
-            <Link
-              href="/studio"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '11px 18px',
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                borderRadius: '8px',
-                color: '#0F172A',
-                fontSize: '13px',
-                fontWeight: 700,
-                textDecoration: 'none',
-              }}
-            >
-              Créer un Nouveau Visuel
-            </Link>
-          </div>
-        </div>
-
-        {/* Feedback message */}
-        {feedback && (
-          <div style={{
-            padding: '12px 20px',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            fontSize: '14px',
-            fontWeight: 700,
-            background: feedback.error ? '#FEF2F2' : '#ECFDF5',
-            border: `1px solid ${feedback.error ? '#FECACA' : '#A7F3D0'}`,
-            color: feedback.error ? '#DC2626' : '#059669',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-            <span>{feedback.text}</span>
-            <button
-              onClick={() => setFeedback(null)}
-              style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: '16px' }}
-            >
-              ×
-            </button>
-          </div>
-        )}
-
-        {/* Barre d'onglets */}
-        <div style={{
-          display: 'flex',
           gap: '8px',
-          background: '#FFFFFF',
-          padding: '6px',
-          borderRadius: '12px',
-          border: '1px solid #E2E8F0',
-          marginBottom: '28px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-        }}>
-          {[
-            { id: 'calendar', label: `Calendrier de Publication (${posts.length} posts)` },
-            { id: 'feed-grid', label: 'Simulateur Grille Instagram (9 Cases)' },
-            { id: 'accounts', label: `Comptes Connectés (${accounts.filter((a) => a.isConnected).length}/${accounts.length})` },
-          ].map((tab) => {
-            const isActive = activeTab === tab.id;
+          padding: '7px 13px',
+          borderRadius: '999px',
+          background: isOpen
+            ? 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)'
+            : '#FFFFFF',
+          border: isOpen ? '1.5px solid #7C3AED' : '1px solid #E2E8F0',
+          boxShadow: isOpen
+            ? '0 0 0 3px rgba(124, 58, 237, 0.14), 0 4px 12px rgba(15, 23, 42, 0.06)'
+            : '0 1px 3px rgba(15, 23, 42, 0.04)',
+          cursor: 'pointer',
+          transition: 'all 0.18s ease',
+          maxWidth,
+        }}
+      >
+        <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+          {icon}
+        </span>
+        <span
+          style={{
+            fontSize: '12.5px',
+            fontWeight: 700,
+            color: isOpen ? '#4C1D95' : '#0F172A',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            lineHeight: 1.2,
+          }}
+        >
+          {selectedOption?.label || value}
+        </span>
+        <ChevronDown
+          size={14}
+          color={isOpen ? '#7C3AED' : '#64748B'}
+          style={{
+            flexShrink: 0,
+            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s ease',
+          }}
+        />
+      </button>
+
+      {isOpen && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            left: 0,
+            minWidth: menuMinWidth,
+            maxHeight: '290px',
+            overflowY: 'auto',
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            border: '1px solid #E2E8F0',
+            boxShadow:
+              '0 20px 40px -12px rgba(15, 23, 42, 0.18), 0 4px 16px rgba(124, 58, 237, 0.08)',
+            padding: '6px',
+            zIndex: 100,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px',
+          }}
+        >
+          {options.map((opt) => {
+            const isSelected = opt.value === value;
             return (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpenId(null);
+                }}
                 style={{
-                  flex: 1,
-                  padding: '12px 16px',
-                  borderRadius: '8px',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                  padding: '9px 12px',
+                  borderRadius: '10px',
                   border: 'none',
-                  background: isActive ? '#EEF2FF' : 'transparent',
-                  color: isActive ? '#4F46E5' : '#64748B',
-                  fontWeight: isActive ? 800 : 600,
-                  fontSize: '14px',
+                  background: isSelected
+                    ? 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)'
+                    : 'transparent',
+                  color: isSelected ? '#5B21B6' : '#1E293B',
+                  fontSize: '12.5px',
+                  fontWeight: isSelected ? 800 : 600,
                   cursor: 'pointer',
-                  borderBottom: isActive ? '2px solid #4F46E5' : '2px solid transparent',
-                  transition: 'all 0.2s ease',
+                  textAlign: 'left',
+                  transition: 'background 0.12s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = '#F8FAFC';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = 'transparent';
+                  }
                 }}
               >
-                {tab.label}
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                  <span
+                    style={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {opt.label}
+                  </span>
+                  {opt.sub && (
+                    <span
+                      style={{
+                        fontSize: '10.5px',
+                        fontWeight: 600,
+                        color: isSelected ? '#7C3AED' : '#64748B',
+                        marginTop: '1px',
+                      }}
+                    >
+                      {opt.sub}
+                    </span>
+                  )}
+                </div>
+
+                {isSelected && (
+                  <span
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: '#7C3AED',
+                      color: '#FFFFFF',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Check size={12} />
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
+      )}
+    </div>
+  );
+}
 
-        {/* CONTENU ONGLET 1 : CALENDRIER & POSTS PLANIFIÉS */}
-        {activeTab === 'calendar' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '28px', alignItems: 'start' }}>
+export default function SocialHubPage() {
+  const { workspace } = useWorkspace();
+  const { t, locale } = useLanguage();
+  const sh = t.studio.socialHub;
 
-            {/* Liste des publications chronologiques */}
-            <div>
-              <div style={{
+  const [calendarData, setCalendarData] = useState<CalendarRecommendationResult | null>(null);
+  const [brandShopName, setBrandShopName] = useState<string>('Ma Boutique E-commerce');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Filters
+  const [industry, setIndustry] = useState<BrandIndustryId>('general');
+  const [regionCluster, setRegionCluster] = useState<RegionClusterId>('western_europe');
+  const [merchantTimezone, setMerchantTimezone] = useState<string>('Europe/Paris');
+  const [primaryAudienceTimezone, setPrimaryAudienceTimezone] = useState<string>('Europe/Paris');
+  const [targetPlatform, setTargetPlatform] = useState<SocialPlatformId>('both');
+  const [timeFormat, setTimeFormat] = useState<'12h' | '24h'>('24h');
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Selected slot on the heatmap for the right-hand strategy inspector
+  const [selectedSlot, setSelectedSlot] = useState<HeatmapSlotCell | null>(null);
+
+  // Close custom dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setOpenDropdownId(null);
+    };
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  const fetchRecommendations = useCallback(
+    async (overrides?: {
+      ind?: BrandIndustryId;
+      reg?: RegionClusterId;
+      mTz?: string;
+      audTz?: string;
+      plat?: SocialPlatformId;
+      tf?: '12h' | '24h';
+    }) => {
+      const ind = overrides?.ind ?? industry;
+      const reg = overrides?.reg ?? regionCluster;
+      const mTz = overrides?.mTz ?? merchantTimezone;
+      const audTz = overrides?.audTz ?? primaryAudienceTimezone;
+      const plat = overrides?.plat ?? targetPlatform;
+      const tf = overrides?.tf ?? timeFormat;
+
+      const audArray: AudienceTimezoneShare[] = [{ timezone: audTz, weight: 100 }];
+      const params = new URLSearchParams({
+        industry: ind,
+        regionCluster: reg,
+        merchantTimezone: mTz,
+        audienceTimezones: JSON.stringify(audArray),
+        platform: plat,
+        timeFormat: tf,
+        locale,
+      });
+
+      const res = await fetch(`/api/social/recommendations?${params.toString()}`);
+      const data = await res.json();
+      if (data.success && data.data?.calendar) {
+        const cal: CalendarRecommendationResult = data.data.calendar;
+        setCalendarData(cal);
+        const shop = data.data.brandKit?.shopName || brandShopName;
+        setBrandShopName(shop);
+
+        const defaultPrimeSlot = cal.days[0]?.blocks[4] || cal.topSlots[0] || null;
+        if (defaultPrimeSlot) {
+          setSelectedSlot(defaultPrimeSlot);
+        }
+      }
+    },
+    [
+      industry,
+      regionCluster,
+      merchantTimezone,
+      primaryAudienceTimezone,
+      targetPlatform,
+      timeFormat,
+      locale,
+      brandShopName,
+    ]
+  );
+
+  const loadInitialData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/social/recommendations?locale=${locale}`);
+      const data = await res.json();
+      if (data.success && data.data?.calendar) {
+        const cal: CalendarRecommendationResult = data.data.calendar;
+        setCalendarData(cal);
+        setIndustry(cal.industry);
+        setRegionCluster(cal.regionCluster);
+        setMerchantTimezone(cal.merchantTimezone);
+        if (cal.audienceTimezones?.length > 0) {
+          setPrimaryAudienceTimezone(cal.audienceTimezones[0].timezone);
+        }
+        setTimeFormat(cal.timeFormat);
+
+        const shop = data.data.brandKit?.shopName || 'Ma Boutique E-commerce';
+        setBrandShopName(shop);
+
+        const firstDayPrimeSlot = cal.days[0]?.blocks[4] || cal.topSlots[0] || null;
+        if (firstDayPrimeSlot) {
+          setSelectedSlot(firstDayPrimeSlot);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load best time heatmap:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [locale]);
+
+  useEffect(() => {
+    loadInitialData();
+  }, [workspace?.id, loadInitialData]);
+
+  const handleSelectSlot = (slot: HeatmapSlotCell) => {
+    setSelectedSlot(slot);
+  };
+
+  const formatWeekdayHeader = (dateIso: string, dayOfWeek: number) => {
+    try {
+      const [y, m, d] = dateIso.split('-').map(Number);
+      const utcNoon = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+      const dayName = new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' }).format(utcNoon);
+      const monthDay = new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(utcNoon);
+      return { dayName, monthDay };
+    } catch {
+      return { dayName: `D${dayOfWeek}`, monthDay: dateIso };
+    }
+  };
+
+  // Determine the Peak Day column index (0..6) to highlight with the golden column frame & "👑 Peak Day" badge
+  const peakDayColIndex = useMemo(() => {
+    if (!calendarData || calendarData.days.length === 0) return 2;
+    let bestIdx = 0;
+    let bestSum = -1;
+    calendarData.days.forEach((d, idx) => {
+      const sum = d.blocks.reduce((acc, b) => acc + b.score, 0) + (d.dayOfWeek === 6 ? 5 : 0);
+      if (sum > bestSum) {
+        bestSum = sum;
+        bestIdx = idx;
+      }
+    });
+    return bestIdx;
+  }, [calendarData]);
+
+  const industryOptions: DropdownOption[] = useMemo(
+    () =>
+      (Object.keys(sh.industries) as BrandIndustryId[]).map((indKey) => ({
+        value: indKey,
+        label: sh.industries[indKey],
+      })),
+    [sh.industries]
+  );
+
+  const regionOptions: DropdownOption[] = useMemo(
+    () =>
+      (Object.keys(sh.regions) as RegionClusterId[]).map((regKey) => {
+        const full = sh.regions[regKey];
+        const match = full.match(/^([^(]+)\(([^)]+)\)/);
+        return {
+          value: regKey,
+          label: match ? match[1].trim() : full,
+          sub: match ? match[2].trim() : undefined,
+        };
+      }),
+    [sh.regions]
+  );
+
+  const platformOptions: DropdownOption[] = useMemo(
+    () => [
+      { value: 'both', label: 'IG + FB', sub: 'Instagram & Facebook' },
+      { value: 'instagram', label: 'Instagram', sub: 'Feed, Stories & Reels' },
+      { value: 'facebook', label: 'Facebook', sub: 'Pages & Feed Ads' },
+      { value: 'tiktok', label: 'TikTok', sub: 'Short-Form Video 9:16' },
+    ],
+    []
+  );
+
+  const timeFormatOptions: DropdownOption[] = useMemo(
+    () => [
+      { value: '24h', label: '24h', sub: '20:30' },
+      { value: '12h', label: '12h', sub: '08:30 PM' },
+    ],
+    []
+  );
+
+  const blockOrder: TimeBlockId[] = [
+    'early_morning',
+    'morning_commute',
+    'midday_lunch',
+    'afterwork',
+    'prime_evening',
+    'late_scroll',
+  ];
+
+  const renderBlockIcon = (blockId: TimeBlockId) => {
+    switch (blockId) {
+      case 'early_morning':
+        return <Sunrise size={16} color="#F59E0B" />;
+      case 'morning_commute':
+        return <Car size={16} color="#475569" />;
+      case 'midday_lunch':
+        return <Utensils size={16} color="#475569" />;
+      case 'afterwork':
+        return <Dumbbell size={16} color="#475569" />;
+      case 'prime_evening':
+        return <Star size={16} color="#7C3AED" />;
+      case 'late_scroll':
+      default:
+        return <Moon size={16} color="#475569" />;
+    }
+  };
+
+  const exportIcsUrl = `/api/social/export-ics?industry=${industry}&platform=${targetPlatform}&regionCluster=${regionCluster}&includeGolden=true`;
+
+  return (
+    <AppShell activeNav="social" pageTitle={sh.tabHeatmap}>
+      <div
+        ref={containerRef}
+        style={{
+          maxWidth: '1340px',
+          margin: '0 auto',
+          fontFamily: 'Outfit, Plus Jakarta Sans, sans-serif',
+        }}
+      >
+        {/* =========================================================================
+            TOP ROW: FILTER CARD (LEFT) + ENGAGEMENT TIP CARD (RIGHT)
+            ========================================================================= */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 340px',
+            gap: '16px',
+            marginBottom: '16px',
+            alignItems: 'stretch',
+          }}
+        >
+          {/* Left Filter & Brand Card */}
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '18px',
+              border: '1px solid #E8ECF4',
+              padding: '14px 20px',
+              boxShadow: '0 4px 20px rgba(15, 23, 42, 0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              gap: '12px',
+            }}
+          >
+            {/* Sub-row 1: Active Tab Header + Store Pill */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '18px',
+                borderBottom: '1px solid #F1F5F9',
+                paddingBottom: '10px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '7px',
+                  fontSize: '14px',
+                  fontWeight: 900,
+                  color: '#1E1B4B',
+                  position: 'relative',
+                  paddingBottom: '10px',
+                  marginBottom: '-11px',
+                  borderBottom: '3px solid #5B21B6',
+                }}
+              >
+                <span>🔥</span>
+                <span>{sh.tabHeatmap}</span>
+              </div>
+
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '7px',
+                  padding: '5px 12px',
+                  borderRadius: '10px',
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#1E293B',
+                }}
+              >
+                <Store size={14} color="#7C3AED" />
+                <span>{brandShopName}</span>
+              </div>
+            </div>
+
+            {/* Sub-row 2: Custom Styled Pill Dropdowns + .ICS Button */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flexWrap: 'wrap',
+              }}
+            >
+              {/* 1. Industry Custom Pill Dropdown */}
+              <CustomPillDropdown
+                id="industry"
+                openId={openDropdownId}
+                setOpenId={setOpenDropdownId}
+                ariaLabel={sh.industryLabel}
+                icon={<ShoppingBag size={14} color="#4F46E5" />}
+                value={industry}
+                options={industryOptions}
+                maxWidth="215px"
+                menuMinWidth="240px"
+                onChange={(val) => {
+                  const nextInd = val as BrandIndustryId;
+                  setIndustry(nextInd);
+                  fetchRecommendations({ ind: nextInd });
+                }}
+              />
+
+              {/* 2. Region Cluster Custom Pill Dropdown */}
+              <CustomPillDropdown
+                id="region"
+                openId={openDropdownId}
+                setOpenId={setOpenDropdownId}
+                ariaLabel={sh.regionClusterLabel}
+                icon={<Globe size={14} color="#4F46E5" />}
+                value={regionCluster}
+                options={regionOptions}
+                maxWidth="235px"
+                menuMinWidth="290px"
+                onChange={(val) => {
+                  const nextReg = val as RegionClusterId;
+                  setRegionCluster(nextReg);
+                  fetchRecommendations({ reg: nextReg });
+                }}
+              />
+
+              {/* 3. Timezone Custom Pill Dropdown */}
+              <CustomPillDropdown
+                id="timezone"
+                openId={openDropdownId}
+                setOpenId={setOpenDropdownId}
+                ariaLabel={sh.audienceTzLabel}
+                icon={<MapPin size={14} color="#E11D48" />}
+                value={primaryAudienceTimezone}
+                options={COMMON_IANA_TIMEZONES}
+                maxWidth="185px"
+                menuMinWidth="230px"
+                onChange={(val) => {
+                  setPrimaryAudienceTimezone(val);
+                  setMerchantTimezone(val);
+                  fetchRecommendations({ audTz: val, mTz: val });
+                }}
+              />
+
+              {/* 4. Platform Custom Pill Dropdown */}
+              <CustomPillDropdown
+                id="platform"
+                openId={openDropdownId}
+                setOpenId={setOpenDropdownId}
+                ariaLabel={sh.platformLabel}
+                icon={
+                  <span
+                    style={{
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '4px',
+                      background: 'linear-gradient(45deg, #F58529, #DD2A7B, #8134AF)',
+                      display: 'inline-block',
+                    }}
+                  />
+                }
+                value={targetPlatform}
+                options={platformOptions}
+                maxWidth="140px"
+                menuMinWidth="210px"
+                onChange={(val) => {
+                  const nextPlat = val as SocialPlatformId;
+                  setTargetPlatform(nextPlat);
+                  fetchRecommendations({ plat: nextPlat });
+                }}
+              />
+
+              {/* 5. Clock Format Custom Pill Dropdown */}
+              <CustomPillDropdown
+                id="timeformat"
+                openId={openDropdownId}
+                setOpenId={setOpenDropdownId}
+                ariaLabel={sh.timeFormatLabel}
+                icon={<Calendar size={13} color="#4F46E5" />}
+                value={timeFormat}
+                options={timeFormatOptions}
+                maxWidth="105px"
+                menuMinWidth="150px"
+                onChange={(val) => {
+                  const nextTf = val as '12h' | '24h';
+                  setTimeFormat(nextTf);
+                  fetchRecommendations({ tf: nextTf });
+                }}
+              />
+
+              {/* 6. Dark Navy .ICS Button */}
+              <a
+                href={exportIcsUrl}
+                download="markmosaiq-best-times.ics"
+                title={sh.icsStaticNotice}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 16px',
+                  borderRadius: '999px',
+                  background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)',
+                  color: '#FFFFFF',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 12px rgba(30, 27, 75, 0.25)',
+                }}
+              >
+                <Calendar size={13} />
+                <span>.ICS</span>
+                <Download size={13} />
+              </a>
+            </div>
+          </div>
+
+          {/* Right Engagement Tip Card */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 60%, #E0E7FF 100%)',
+              borderRadius: '18px',
+              border: '1px solid #DDD6FE',
+              padding: '16px 18px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0 4px 20px rgba(124, 58, 237, 0.06)',
+            }}
+          >
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
                 background: '#FFFFFF',
-                borderRadius: '14px',
-                border: '1px solid #E2E8F0',
-                padding: '24px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                    File d'Attente des Publications
-                  </h3>
-                  <span style={{ fontSize: '12px', color: '#059669', fontWeight: 700 }}>
-                    ● Synchronisation automatique Meta active
+                border: '1px solid #DDD6FE',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 4px 12px rgba(124, 58, 237, 0.12)',
+              }}
+            >
+              <Lightbulb size={20} color="#7C3AED" />
+            </div>
+
+            <div style={{ flex: 1, fontSize: '12.5px', fontWeight: 700, color: '#1E1B4B', lineHeight: 1.4 }}>
+              {locale === 'fr'
+                ? 'Trouvez les meilleurs jours et heures pour publier avec un engagement maximal !'
+                : 'Find the best days & times to post for maximum engagement!'}
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-end',
+                gap: '3px',
+                flexShrink: 0,
+                paddingTop: '10px',
+              }}
+            >
+              <TrendingUp size={28} color="#7C3AED" />
+            </div>
+          </div>
+        </div>
+
+        {/* =========================================================================
+            MAIN CONTENT ROW: 7-DAY HEATMAP CARD (LEFT) + INSPECTOR COLUMN (RIGHT)
+            ========================================================================= */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 340px',
+            gap: '16px',
+            alignItems: 'start',
+          }}
+        >
+          {/* LEFT: HEATMAP MATRIX CARD */}
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              border: '1px solid #E8ECF4',
+              padding: '20px 22px',
+              boxShadow: '0 8px 30px rgba(15, 23, 42, 0.04)',
+              overflowX: 'auto',
+            }}
+          >
+            {/* Header Row: Bullseye Prompt + Legend */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px',
+                marginBottom: '20px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #EC4899 0%, #7C3AED 100%)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FFFFFF',
+                    fontSize: '14px',
+                    boxShadow: '0 3px 10px rgba(124, 58, 237, 0.25)',
+                  }}
+                >
+                  🎯
+                </span>
+                <span style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.01em' }}>
+                  {locale === 'fr'
+                    ? 'Cliquez sur un créneau pour inspecter le format et la stratégie recommandés :'
+                    : 'Click any time slot to inspect the recommended format & strategy:'}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  color: '#334155',
+                }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <span
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #FBBF24 0%, #EA580C 100%)',
+                      boxShadow: '0 0 6px rgba(245, 158, 11, 0.55)',
+                    }}
+                  />
+                  {sh.legendGolden}
+                </span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <span
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #8B5CF6 0%, #4F46E5 100%)',
+                      boxShadow: '0 0 6px rgba(124, 58, 237, 0.45)',
+                    }}
+                  />
+                  {sh.legendHigh}
+                </span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <span
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: '#CBD5E1',
+                    }}
+                  />
+                  {sh.legendModerate}
+                </span>
+              </div>
+            </div>
+
+            {/* 7-Day CSS Grid with Peak Day Column Highlight */}
+            {isLoading || !calendarData ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: '#64748B', fontSize: '13px' }}>
+                Loading heatmap...
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '156px repeat(7, minmax(86px, 1fr))',
+                  gap: '8px',
+                  position: 'relative',
+                  paddingTop: '10px',
+                }}
+              >
+                {/* Continuous Golden Frame around the Peak Day Column */}
+                <div
+                  style={{
+                    gridColumn: peakDayColIndex + 2,
+                    gridRow: '1 / span 7',
+                    borderRadius: '16px',
+                    border: '2px solid #F59E0B',
+                    background:
+                      'linear-gradient(180deg, rgba(254, 243, 199, 0.55) 0%, rgba(255, 247, 237, 0.3) 100%)',
+                    boxShadow: '0 6px 20px rgba(245, 158, 11, 0.14)',
+                    pointerEvents: 'none',
+                    position: 'relative',
+                    zIndex: 1,
+                    margin: '-5px -4px',
+                  }}
+                >
+                  {/* Floating Crown "Peak Day" Badge */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-13px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: 'linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)',
+                      color: '#FFFFFF',
+                      fontSize: '10px',
+                      fontWeight: 900,
+                      padding: '2px 10px',
+                      borderRadius: '999px',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 4px 10px rgba(245, 158, 11, 0.35)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <span>👑</span>
+                    <span>{locale === 'fr' ? 'Jour Pic' : 'Peak Day'}</span>
+                  </div>
+                </div>
+
+                {/* ROW 0, COL 0: Timezone Box */}
+                <div
+                  style={{
+                    gridColumn: 1,
+                    gridRow: 1,
+                    zIndex: 2,
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    padding: '10px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#334155',
+                  }}
+                >
+                  <Clock size={15} color="#64748B" />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {calendarData.merchantTimezone}
                   </span>
                 </div>
 
-                {isLoading ? (
-                  <div style={{ padding: '40px', textAlign: 'center', color: '#64748B' }}>
-                    Chargement des publications...
-                  </div>
-                ) : posts.length === 0 ? (
-                  <div style={{ padding: '40px 20px', textAlign: 'center', border: '1px dashed #E2E8F0', borderRadius: '10px' }}>
-                    <p style={{ color: '#64748B', marginBottom: '14px' }}>Aucune publication planifiée pour le moment.</p>
-                    <button
-                      onClick={() => setShowScheduleModal(true)}
+                {/* ROW 0, COLS 1..7: Day Headers */}
+                {calendarData.days.map((dayCol, dIdx) => {
+                  const { dayName, monthDay } = formatWeekdayHeader(dayCol.dateIso, dayCol.dayOfWeek);
+                  const isPeakCol = dIdx === peakDayColIndex;
+                  return (
+                    <div
+                      key={dayCol.dateIso}
                       style={{
-                        padding: '10px 18px',
-                        background: '#4F46E5',
-                        border: 'none',
-                        borderRadius: '6px',
-                        color: '#FFF',
-                        fontWeight: 800,
-                        cursor: 'pointer',
+                        gridColumn: dIdx + 2,
+                        gridRow: 1,
+                        zIndex: 2,
+                        padding: '8px 6px',
+                        borderRadius: '12px',
+                        background: isPeakCol
+                          ? 'linear-gradient(180deg, #FEF3C7 0%, #FFFBEB 100%)'
+                          : '#F8FAFC',
+                        border: `1px solid ${isPeakCol ? '#FCD34D' : '#E2E8F0'}`,
+                        textAlign: 'center',
                       }}
                     >
-                      Planifier une première publication
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {posts.map((post) => (
+                      <div style={{ fontSize: '13.5px', fontWeight: 900, color: '#0F172A' }}>{dayName}</div>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748B', marginTop: '1px' }}>
+                        {monthDay}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* ROWS 1..6: Time Block Header + 7 Day Slot Cells */}
+                {blockOrder.map((blockId, bIdx) => {
+                  const sampleCell = calendarData.days[0]?.blocks[bIdx];
+                  const rowNum = bIdx + 2;
+
+                  return (
+                    <React.Fragment key={blockId}>
+                      {/* Left Row Header */}
                       <div
-                        key={post.id}
                         style={{
-                          display: 'flex',
-                          gap: '18px',
+                          gridColumn: 1,
+                          gridRow: rowNum,
+                          zIndex: 2,
                           background: '#F8FAFC',
                           border: '1px solid #E2E8F0',
                           borderRadius: '12px',
-                          padding: '16px',
+                          padding: '8px 12px',
+                          display: 'flex',
                           alignItems: 'center',
+                          gap: '10px',
                         }}
                       >
-                        <img
-                          src={post.imageUrl}
-                          alt="Thumbnail"
-                          style={{
-                            width: '80px',
-                            height: '80px',
-                            borderRadius: '8px',
-                            objectFit: 'contain',
-                            background: '#FFFFFF',
-                            border: '1px solid #E2E8F0',
-                          }}
-                        />
-
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                            <span style={{
-                              fontSize: '11px',
+                        <div style={{ flexShrink: 0 }}>{renderBlockIcon(blockId)}</div>
+                        <div style={{ minWidth: 0 }}>
+                          <div
+                            style={{
+                              fontSize: '12px',
                               fontWeight: 800,
-                              textTransform: 'uppercase',
-                              padding: '2px 8px',
-                              borderRadius: '4px',
-                              background: post.status === 'published' ? '#ECFDF5' : '#EEF2FF',
-                              color: post.status === 'published' ? '#059669' : '#4F46E5',
-                              border: `1px solid ${post.status === 'published' ? '#A7F3D0' : '#C7D2FE'}`,
-                            }}>
-                              {post.status === 'published' ? '✓ Publié' : '⏳ Planifié'}
-                            </span>
-                            <span style={{ fontSize: '12px', color: '#64748B' }}>
-                              Format : <strong style={{ color: '#0F172A' }}>{post.postType.toUpperCase()}</strong>
-                            </span>
-                            <span style={{ fontSize: '12px', color: '#64748B' }}>
-                              Plateforme : <strong style={{ color: '#0F172A' }}>{post.platform.toUpperCase()}</strong>
-                            </span>
+                              color: '#0F172A',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {sh.blocks[blockId]}
                           </div>
-
-                          <p style={{
-                            margin: '0 0 6px 0',
-                            fontSize: '13px',
-                            color: '#334155',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}>
-                            {post.caption}
-                          </p>
-
-                          <div style={{ fontSize: '12px', color: '#64748B' }}>
-                            Diffusion prévue le : <span style={{ color: '#EA580C', fontWeight: 700 }}>
-                              {new Date(post.scheduledFor).toLocaleString('fr-FR', {
-                                dateStyle: 'medium',
-                                timeStyle: 'short',
-                              })}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          {post.status === 'published' && post.publishedUrl ? (
-                            <a
-                              href={post.publishedUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              style={{
-                                padding: '6px 12px',
-                                background: '#ECFDF5',
-                                border: '1px solid #A7F3D0',
-                                borderRadius: '6px',
-                                color: '#059669',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                textDecoration: 'none',
-                                textAlign: 'center',
-                              }}
-                            >
-                              Voir sur Instagram ↗
-                            </a>
-                          ) : (
-                            <button
-                              onClick={() => handleDeletePost(post.id)}
-                              style={{
-                                padding: '6px 12px',
-                                background: '#FEF2F2',
-                                border: '1px solid #FECACA',
-                                borderRadius: '6px',
-                                color: '#DC2626',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Annuler
-                            </button>
+                          {sampleCell && (
+                            <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748B', marginTop: '1px' }}>
+                              {sampleCell.merchantTimeLabel}
+                            </div>
                           )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+
+                      {/* 7 Slot Buttons */}
+                      {calendarData.days.map((dayCol, dIdx) => {
+                        const cell = dayCol.blocks[bIdx];
+                        if (!cell) return null;
+                        const isSelected =
+                          selectedSlot?.dateIso === cell.dateIso && selectedSlot?.hour === cell.hour;
+
+                        let bg = '#F8FAFC';
+                        let border = '1px solid #E2E8F0';
+                        let timeColor = '#0F172A';
+                        let subColor = '#475569';
+                        let shadow = 'none';
+
+                        if (isSelected) {
+                          bg = 'linear-gradient(135deg, #312E81 0%, #5B21B6 45%, #7C3AED 100%)';
+                          border = '1.5px solid #4C1D95';
+                          timeColor = '#FFFFFF';
+                          subColor = '#E0E7FF';
+                          shadow = '0 8px 18px rgba(109, 40, 217, 0.42)';
+                        } else if (cell.intensity === 'golden') {
+                          bg = 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 55%, #FDE68A 100%)';
+                          border = '1px solid #FDBA74';
+                          timeColor = '#7C2D12';
+                          subColor = '#9A3412';
+                          shadow = '0 2px 6px rgba(249, 115, 22, 0.1)';
+                        } else if (cell.intensity === 'high') {
+                          bg = 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 60%, #E0E7FF 100%)';
+                          border = '1px solid #C4B5FD';
+                          timeColor = '#1E1B4B';
+                          subColor = '#4338CA';
+                        }
+
+                        return (
+                          <button
+                            key={`${dayCol.dateIso}-${blockId}`}
+                            type="button"
+                            onClick={() => handleSelectSlot(cell)}
+                            style={{
+                              gridColumn: dIdx + 2,
+                              gridRow: rowNum,
+                              zIndex: isSelected ? 3 : 2,
+                              padding: '8px 6px',
+                              borderRadius: '12px',
+                              background: bg,
+                              border,
+                              boxShadow: shadow,
+                              cursor: 'pointer',
+                              textAlign: 'center',
+                              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                              position: 'relative',
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: '13px',
+                                fontWeight: 900,
+                                color: timeColor,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '3px',
+                              }}
+                            >
+                              {isSelected ? (
+                                <span style={{ fontSize: '12px' }}>⭐</span>
+                              ) : cell.intensity === 'golden' ? (
+                                <span style={{ fontSize: '12px' }}>🔥</span>
+                              ) : null}
+                              <span>{cell.merchantTimeLabel}</span>
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '9.5px',
+                                fontWeight: 800,
+                                color: subColor,
+                                textTransform: 'uppercase',
+                                marginTop: '2px',
+                                letterSpacing: '0.01em',
+                              }}
+                            >
+                              {cell.recommendedFormat} • {cell.score}%
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </React.Fragment>
+                  );
+                })}
               </div>
-            </div>
+            )}
 
-            {/* Barre latérale : Horaires d'or Tunisie & Recommandations */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{
-                background: '#FFFFFF',
-                borderRadius: '14px',
-                border: '1px solid #E2E8F0',
-                padding: '20px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-              }}>
-                <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: '0 0 10px 0' }}>
-                  Heures d'Or E-Commerce Tunisie
-                </h4>
-                <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.4 }}>
-                  Sur le marché tunisien, les pics d'engagement et de conversion en DM s'observent à ces créneaux précis :
-                </p>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {tunisianPeakHours.map((slot, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: '10px 12px',
-                        background: '#F8FAFC',
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <span style={{ fontSize: '12px', color: '#0F172A', fontWeight: 600 }}>{slot.label}</span>
-                      <span style={{ fontSize: '12px', color: '#EA580C', fontWeight: 800 }}>{slot.time}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{
-                background: '#EEF2FF',
-                borderRadius: '14px',
-                border: '1px solid #C7D2FE',
-                padding: '20px',
-              }}>
-                <h4 style={{ fontSize: '14px', fontWeight: 800, color: '#4F46E5', margin: '0 0 8px 0' }}>
-                  Conseil de Conversion Darija
-                </h4>
-                <p style={{ fontSize: '12px', color: '#475569', margin: 0, lineHeight: 1.5 }}>
-                  Terminez toujours vos légendes par : <em>"Abathna message sur WhatsApp pour commander !"</em>. En Tunisie, plus de 75% des ventes se concluent directement en messagerie instantanée.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* CONTENU ONGLET 2 : SIMULATEUR 9-POST INSTAGRAM FEED */}
-        {activeTab === 'feed-grid' && (
-          <div style={{
-            background: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            padding: '30px',
-            maxWidth: '720px',
-            margin: '0 auto',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-          }}>
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0' }}>
-                Simulateur de Feed Instagram 9 Cases
-              </h3>
-              <p style={{ color: '#64748B', fontSize: '13px', margin: 0 }}>
-                Visualisez la disposition esthétique et l'harmonie des couleurs de votre boutique avant toute diffusion.
-              </p>
-            </div>
-
-            {/* Grille 3x3 */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '6px',
-              background: '#F8FAFC',
-              padding: '8px',
-              borderRadius: '12px',
-              border: '1px solid #E2E8F0',
-            }}>
-              {instagramGridSlots.map((slot, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    aspectRatio: '1/1',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    borderRadius: '6px',
-                    background: '#FFFFFF',
-                  }}
-                >
-                  <img
-                    src={slot.imageUrl}
-                    alt={`Post ${idx}`}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
-                      transition: 'transform 0.3s ease',
-                    }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'rgba(0, 0, 0, 0.4)',
-                    opacity: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#FFF',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    transition: 'opacity 0.2s',
-                  }}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
-                  >
-                    Post #{idx + 1}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ marginTop: '20px', textAlign: 'center' }}>
-              <button
-                onClick={() => setShowScheduleModal(true)}
+            {/* Bottom Strip: 🏆 Top Weekly Peaks */}
+            {calendarData && calendarData.topSlots.length > 0 && (
+              <div
                 style={{
-                  padding: '12px 24px',
-                  background: '#4F46E5',
-                  borderRadius: '8px',
-                  border: 'none',
-                  color: '#FFF',
-                  fontWeight: 800,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
+                  marginTop: '18px',
+                  padding: '10px 14px',
+                  borderRadius: '14px',
+                  background: '#FAFAFA',
+                  border: '1px solid #F1F5F9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  flexWrap: 'wrap',
                 }}
               >
-                + Ajouter une Publication à la Grille
-              </button>
-            </div>
-          </div>
-        )}
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    color: '#B45309',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <span>🏆</span>
+                  <span>{locale === 'fr' ? 'Meilleurs Pics de la Semaine :' : 'Top Weekly Peaks:'}</span>
+                </span>
 
-        {/* CONTENU ONGLET 3 : COMPTES CONNECTÉS */}
-        {activeTab === 'accounts' && (
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <div style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              border: '1px solid #E2E8F0',
-              padding: '28px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-            }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>
-                Connexions Meta API & Pages E-commerce
-              </h3>
-              <p style={{ color: '#64748B', fontSize: '13px', marginBottom: '24px' }}>
-                Connectez vos pages officielles pour activer la publication automatique et le tracking des commentaires en Tunisie.
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {accounts.map((acc) => (
-                  <div
-                    key={acc.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '20px',
-                      background: '#F8FAFC',
-                      border: '1px solid #E2E8F0',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{
-                        width: '46px',
-                        height: '46px',
-                        borderRadius: '50%',
-                        background: acc.platform === 'instagram' ? 'linear-gradient(45deg, #F58529, #DD2A7B, #8134AF)' : '#1877F2',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '22px',
-                        color: '#FFF',
-                      }}>
-                        {acc.platform === 'instagram' ? 'IG' : 'FB'}
-                      </div>
-
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-                            {acc.accountName}
-                          </span>
-                          <span style={{
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            background: acc.isConnected ? '#ECFDF5' : '#FFF7ED',
-                            color: acc.isConnected ? '#059669' : '#C2410C',
-                            border: `1px solid ${acc.isConnected ? '#A7F3D0' : '#FED7AA'}`,
-                          }}>
-                            {acc.isConnected ? 'Connecté' : 'Déconnecté'}
-                          </span>
-                        </div>
-                        <span style={{ fontSize: '13px', color: '#64748B' }}>{acc.username}</span>
-                      </div>
-                    </div>
-
+                {calendarData.topSlots.slice(0, 4).map((slot, i) => {
+                  const { dayName } = formatWeekdayHeader(slot.dateIso, slot.dayIndex);
+                  const isSel = selectedSlot?.dateIso === slot.dateIso && selectedSlot?.hour === slot.hour;
+                  return (
                     <button
-                      onClick={() => handleToggleAccount(acc.platform)}
+                      key={`${slot.dateIso}-${slot.hour}-${i}`}
+                      type="button"
+                      onClick={() => handleSelectSlot(slot)}
                       style={{
-                        padding: '10px 18px',
-                        borderRadius: '8px',
-                        fontSize: '13px',
+                        padding: '6px 14px',
+                        borderRadius: '999px',
+                        border: `1px solid ${isSel ? '#A78BFA' : '#FDBA74'}`,
+                        background: isSel
+                          ? 'linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)'
+                          : 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
+                        color: isSel ? '#1E1B4B' : '#7C2D12',
+                        fontSize: '12px',
                         fontWeight: 800,
                         cursor: 'pointer',
-                        background: acc.isConnected ? '#FEF2F2' : '#4F46E5',
-                        border: acc.isConnected ? '1px solid #FECACA' : 'none',
-                        color: acc.isConnected ? '#DC2626' : '#FFFFFF',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        boxShadow: isSel ? '0 3px 10px rgba(124, 58, 237, 0.15)' : 'none',
                       }}
                     >
-                      {acc.isConnected ? 'Déconnecter' : 'Connecter le Compte'}
+                      <span>🔥</span>
+                      <span>
+                        {dayName} {slot.merchantTimeLabel} ({slot.recommendedFormat.toUpperCase()})
+                      </span>
                     </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            </div>
+            )}
           </div>
-        )}
 
-        {/* MODAL PROGRAMMATION DE POST */}
-        {showScheduleModal && (
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px',
-          }}>
-            <div style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              border: '1px solid #E2E8F0',
-              width: '100%',
-              maxWidth: '560px',
-              padding: '28px',
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
-                  Programmer une Publication Meta
-                </h3>
-                <button
-                  onClick={() => setShowScheduleModal(false)}
-                  style={{ background: 'transparent', border: 'none', color: '#64748B', fontSize: '22px', cursor: 'pointer' }}
+          {/* RIGHT COLUMN: COSMIC ROCKET STRATEGY CARD */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {selectedSlot && (
+              <div
+                style={{
+                  borderRadius: '20px',
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 55%, #3B0764 100%)',
+                  color: '#FFFFFF',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  boxShadow: '0 12px 28px rgba(30, 27, 75, 0.25)',
+                }}
+              >
+                {/* Decorative Rocket SVG in bottom-right */}
+                <svg
+                  width="84"
+                  height="84"
+                  viewBox="0 0 64 64"
+                  fill="none"
+                  style={{
+                    position: 'absolute',
+                    right: '8px',
+                    bottom: '6px',
+                    opacity: 0.92,
+                    pointerEvents: 'none',
+                    transform: 'rotate(12deg)',
+                  }}
                 >
-                  ×
-                </button>
-              </div>
-
-              <form onSubmit={(e) => handleSchedulePost(e, false)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-                {/* Sélection de l'image */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#334155', marginBottom: '6px', fontWeight: 600 }}>
-                    Visuel à Publier
-                  </label>
-                  <select
-                    value={selectedImage}
-                    onChange={(e) => setSelectedImage(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: '#FFFFFF',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '8px',
-                      color: '#0F172A',
-                      fontSize: '13px',
-                    }}
-                  >
-                    {sampleVisuals.map((v, idx) => (
-                      <option key={idx} value={v.url}>{v.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#334155', marginBottom: '6px', fontWeight: 600 }}>
-                      Plateforme
-                    </label>
-                    <select
-                      value={platform}
-                      onChange={(e) => setPlatform(e.target.value as any)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        background: '#FFFFFF',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: '8px',
-                        color: '#0F172A',
-                        fontSize: '13px',
-                      }}
-                    >
-                      <option value="both">Instagram & Facebook</option>
-                      <option value="instagram">Instagram Uniquement</option>
-                      <option value="facebook">Facebook Uniquement</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#334155', marginBottom: '6px', fontWeight: 600 }}>
-                      Format
-                    </label>
-                    <select
-                      value={postType}
-                      onChange={(e) => setPostType(e.target.value as any)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        background: '#FFFFFF',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: '8px',
-                        color: '#0F172A',
-                        fontSize: '13px',
-                      }}
-                    >
-                      <option value="feed">Post Feed (1:1)</option>
-                      <option value="story">Story Éphémère (9:16)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Date et Heure */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#334155', marginBottom: '6px', fontWeight: 600 }}>
-                    Date & Heure de Publication (Heure de Tunis)
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={scheduledDate}
-                    onChange={(e) => setScheduledDate(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: '#FFFFFF',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '8px',
-                      color: '#0F172A',
-                      fontSize: '13px',
-                    }}
+                  <path
+                    d="M36 8C46 8 52 14 52 24C52 34 40 46 28 50L18 40C22 28 34 8 36 8Z"
+                    fill="url(#rocketGrad)"
                   />
-                </div>
+                  <circle cx="38" cy="24" r="5" fill="#E0E7FF" />
+                  <path d="M18 40L10 44L14 52L22 48L18 40Z" fill="#F97316" />
+                  <defs>
+                    <linearGradient id="rocketGrad" x1="18" y1="8" x2="52" y2="50" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#A855F7" />
+                      <stop offset="1" stopColor="#6366F1" />
+                    </linearGradient>
+                  </defs>
+                </svg>
 
-                {/* Légende */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#334155', marginBottom: '6px', fontWeight: 600 }}>
-                    Légende & Accroche Commerciale Darija
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={caption}
-                    onChange={(e) => setCaption(e.target.value)}
+                {/* Top Row: Block Pill + Score Badge */}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    position: 'relative',
+                    zIndex: 1,
+                  }}
+                >
+                  <span
                     style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      background: '#FFFFFF',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '8px',
-                      color: '#0F172A',
-                      fontSize: '13px',
-                      resize: 'none',
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                  <button
-                    type="button"
-                    onClick={(e) => handleSchedulePost(e, true)}
-                    disabled={isSubmitting}
-                    style={{
-                      flex: 1,
-                      padding: '12px',
-                      background: '#EEF2FF',
-                      border: '1px solid #C7D2FE',
-                      borderRadius: '8px',
-                      color: '#4F46E5',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    Publier Maintenant
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    style={{
-                      flex: 1,
-                      padding: '12px',
-                      background: '#4F46E5',
-                      border: 'none',
-                      borderRadius: '8px',
-                      color: '#FFF',
-                      fontSize: '13px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '4px 10px',
+                      borderRadius: '999px',
+                      background: 'rgba(139, 92, 246, 0.28)',
+                      border: '1px solid rgba(167, 139, 250, 0.45)',
+                      fontSize: '10px',
                       fontWeight: 800,
-                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                      boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      color: '#EDE9FE',
                     }}
                   >
-                    {isSubmitting ? 'Programmation...' : 'Planifier'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+                    <span>💡</span>
+                    <span>{sh.blocks[selectedSlot.blockId]}</span>
+                  </span>
 
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '4px 11px',
+                      borderRadius: '999px',
+                      background: 'linear-gradient(135deg, #F59E0B 0%, #EA580C 100%)',
+                      fontSize: '11.5px',
+                      fontWeight: 900,
+                      color: '#FFFFFF',
+                      boxShadow: '0 0 14px rgba(245, 158, 11, 0.5)',
+                    }}
+                  >
+                    <span>🔥</span>
+                    <span>{selectedSlot.score}/100</span>
+                  </span>
+                </div>
+
+                {/* Middle Row: Day, Date & Glowing Time */}
+                <div
+                  style={{
+                    fontSize: '23px',
+                    fontWeight: 900,
+                    marginTop: '14px',
+                    marginBottom: '16px',
+                    letterSpacing: '-0.02em',
+                    position: 'relative',
+                    zIndex: 1,
+                  }}
+                >
+                  {formatWeekdayHeader(selectedSlot.dateIso, selectedSlot.dayIndex).dayName},{' '}
+                  {formatWeekdayHeader(selectedSlot.dateIso, selectedSlot.dayIndex).monthDay} •{' '}
+                  <span style={{ color: '#FB923C' }}>{selectedSlot.merchantTimeLabel}</span>
+                </div>
+
+                {/* Bottom Row: Format + Angle Glass Pills */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    flexWrap: 'wrap',
+                    position: 'relative',
+                    zIndex: 1,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '5px 10px',
+                      borderRadius: '8px',
+                      background: 'rgba(255, 255, 255, 0.12)',
+                      border: '1px solid rgba(255, 255, 255, 0.18)',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      color: '#F8FAFC',
+                    }}
+                  >
+                    <Smartphone size={12} color="#C4B5FD" />
+                    <span>{selectedSlot.recommendedFormat.toUpperCase()}</span>
+                  </span>
+
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '5px 10px',
+                      borderRadius: '8px',
+                      background: 'rgba(255, 255, 255, 0.12)',
+                      border: '1px solid rgba(255, 255, 255, 0.18)',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      color: '#F8FAFC',
+                    }}
+                  >
+                    <Zap size={12} color="#FBBF24" />
+                    <span>{sh.angles[selectedSlot.recommendedAngle]}</span>
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </AppShell>
   );

@@ -28,8 +28,8 @@ const TRANSPARENT_GIF = Buffer.from(
 function readQueue() {
   for (const file of [PRIMARY_QUEUE_FILE, FALLBACK_QUEUE_FILE]) {
     try {
-      if (fs.existsSync(file)) {
-        const parsed = JSON.parse(fs.readFileSync(file, 'utf8') || '[]');
+      if (fs.existsSync(/*turbopackIgnore: true*/ file)) {
+        const parsed = JSON.parse(fs.readFileSync(/*turbopackIgnore: true*/ file, 'utf8') || '[]');
         if (Array.isArray(parsed)) {
           memoryQueue = parsed;
           return parsed;
@@ -48,11 +48,11 @@ function writeQueue(events) {
   const payload = JSON.stringify(sliced, null, 2);
 
   try {
-    fs.writeFileSync(PRIMARY_QUEUE_FILE, payload, 'utf8');
+    fs.writeFileSync(/*turbopackIgnore: true*/ PRIMARY_QUEUE_FILE, payload, 'utf8');
     return;
   } catch {
     try {
-      fs.writeFileSync(FALLBACK_QUEUE_FILE, payload, 'utf8');
+      fs.writeFileSync(/*turbopackIgnore: true*/ FALLBACK_QUEUE_FILE, payload, 'utf8');
     } catch (err) {
       console.error('[ColdMail Queue] Write error:', err.message);
     }

@@ -198,6 +198,14 @@ export default function StudioSidebar({
             <Palette size={18} className={activeNav === 'brand-kit' ? s.navIconActive : undefined} />
             <span>{t.studio.sidebar.navBrandKit}</span>
           </Link>
+          <Link
+            href="/social"
+            className={`${s.navItem} ${activeNav === 'social' ? s.navItemActive : ''}`}
+            onClick={onCloseMobile}
+          >
+            <Calendar size={18} className={activeNav === 'social' ? s.navIconActive : undefined} />
+            <span>{t.studio.sidebar.navSocial}</span>
+          </Link>
 
           {/* 4. Catalogue produits */}
           {onOpenCatalog ? (

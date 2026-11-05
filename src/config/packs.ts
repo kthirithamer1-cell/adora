@@ -1,8 +1,8 @@
 /**
  * Single source of truth for MarkMosaiq subscription packs, pricing, and Whop plans.
  * Minor units:
- * - USD: millimes (1 DT = 1000 millimes)
  * - USD: cents ($1 = 100 cents)
+ * - EUR: cents (€1 = 100 cents)
  */
 
 export const PACK_IDS = ['free', 'flash', 'pro', 'agency_299'] as const;
@@ -19,6 +19,7 @@ export interface PackDef {
   whopPlanEnvVar: string;
   defaultWhopPlanId: string;
   features: string[];
+  featuresFr: string[];
 }
 
 export const PACKS: Record<PackId, PackDef> = {
@@ -40,6 +41,13 @@ export const PACKS: Record<PackId, PackDef> = {
     whopPlanEnvVar: '',
     defaultWhopPlanId: '',
     features: [
+      '5 Free 4K Studio Trial Credits',
+      'Multi-format 1:1 Feed & 9:16 Stories',
+      'Instant watermark-free AI background removal',
+      'High-Definition PNG & JPG exports',
+      'No credit card required',
+    ],
+    featuresFr: [
       '5 Crédits Studio 4K d\'essai offerts',
       'Multi-formats 1:1 Feed & 9:16 Stories',
       'Détourage IA instantané sans filigrane',
@@ -65,6 +73,13 @@ export const PACKS: Record<PackId, PackDef> = {
     whopPlanEnvVar: 'WHOP_PLAN_FLASH',
     defaultWhopPlanId: 'plan_C5UC5OslFfbUI',
     features: [
+      '20 Studio 4K Credits (Commercial Rights)',
+      'Multi-format 1:1 Feed & 9:16 Stories',
+      'Studio Lighting & Physically Accurate Shadows',
+      'High-Definition PNG & JPG Exports',
+      'Standard Email Support',
+    ],
+    featuresFr: [
       '20 Crédits Studio 4K (Droits Commerciaux)',
       'Multi-formats 1:1 Feed & 9:16 Stories',
       'Éclairage Studio & Ombres Portées Physiques',
@@ -90,6 +105,13 @@ export const PACKS: Record<PackId, PackDef> = {
     whopPlanEnvVar: 'WHOP_PLAN_PRO',
     defaultWhopPlanId: 'plan_7I2SQLGuwRwkv',
     features: [
+      '50 Studio 4K Credits / month',
+      'Complete Ad Pack (Feed + Stories + Banners)',
+      'Automated AI Quality Control (Vision Critic)',
+      '1-Click Structured ZIP Download',
+      '24/7 Priority Creator Support',
+    ],
+    featuresFr: [
       '50 Crédits Studio 4K / mois',
       'Pack Publicitaire Complet (Feed + Stories + Bannières)',
       'Contrôle Qualité IA Automatique (Vision Critic)',
@@ -115,6 +137,13 @@ export const PACKS: Record<PackId, PackDef> = {
     whopPlanEnvVar: 'WHOP_PLAN_AGENCY',
     defaultWhopPlanId: 'plan_7wfEWKIfYKb8P',
     features: [
+      '120 Studio 4K Credits / month',
+      '100% White-Label (Zero MarkMosaiq watermark)',
+      'Multi-Brand & Multi-Store Management',
+      'High-Speed Priority GPU Rendering',
+      'Dedicated Account Manager',
+    ],
+    featuresFr: [
       '120 Crédits Studio 4K / mois',
       '100% Marque Blanche (Zéro logo MarkMosaiq)',
       'Gestion Multi-Marques & Multi-Boutiques',

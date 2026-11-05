@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useWorkspace } from '@/lib/WorkspaceContext';
+import { useLanguage } from '@/lib/LanguageContext';
 import { PACKS, PACK_IDS, PackId, Cycle, Currency, formatPrice } from '@/config/packs';
 import { normalizeCheckoutParams, buildCheckoutUrl } from '@/lib/checkout/params';
 import { buildLoginUrl } from '@/lib/security/redirect';
@@ -13,19 +14,16 @@ import {
   CreditCard,
   Lock,
   ArrowLeft,
-  Zap,
-  Sparkles,
-  CheckCircle2,
   LogIn,
-  UserPlus,
   Loader2,
   Building2,
-  Check,
 } from 'lucide-react';
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
   const { currentWorkspace, currentUser, isLoading: isAuthLoading } = useWorkspace();
+  const { locale, setLocale } = useLanguage();
+  const isFr = locale === 'fr';
 
   // 1. Normalization of query parameters per MM-102
   const normResult = normalizeCheckoutParams(searchParams, { country: null, annualEnabled: false });
@@ -88,14 +86,26 @@ function CheckoutContent() {
       if (data.success && data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else if (data.code === 'ALREADY_SUBSCRIBED') {
-        setError(`Votre espace possède déjà un forfait ${selectedPack.name} actif.`);
+        setError(
+          isFr
+            ? `Votre espace possède déjà un forfait ${selectedPack.name} actif.`
+            : `Your workspace already has an active ${selectedPack.name} plan.`
+        );
       } else if (data.code === 'UNAUTHENTICATED') {
         window.location.href = buildLoginUrl(currentCheckoutUrl);
       } else {
-        throw new Error(data.error || 'Erreur lors de la redirection vers Whop.');
+        throw new Error(
+          data.error ||
+            (isFr ? 'Erreur lors de la redirection vers Whop.' : 'Error redirecting to Whop checkout.')
+        );
       }
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de l’ouverture du paiement sécurisé Whop.');
+      setError(
+        err.message ||
+          (isFr
+            ? 'Erreur lors de l’ouverture du paiement sécurisé Whop.'
+            : 'Error opening secure Whop checkout.')
+      );
     } finally {
       setIsLoading(false);
     }
@@ -108,16 +118,23 @@ function CheckoutContent() {
     agency_299: '#A855F7',
   };
 
-  const packBadgeMap: Record<PackId, string> = {
-    free: 'GRATUIT',
-    flash: 'STARTER LAUNCH',
-    pro: 'PLUS POPULAIRE ⚡',
-    agency_299: 'AGENCE & SCALE 🏆',
-  };
+  const packBadgeMap: Record<PackId, string> = isFr
+    ? {
+        free: 'GRATUIT',
+        flash: 'STARTER LAUNCH',
+        pro: 'PLUS POPULAIRE ⚡',
+        agency_299: 'AGENCE & SCALE 🏆',
+      }
+    : {
+        free: 'FREE TIER',
+        flash: 'STARTER LAUNCH',
+        pro: 'MOST POPULAR ⚡',
+        agency_299: 'AGENCY & SCALE 🏆',
+      };
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC', color: '#0F172A' }}>
-      {/* DISTRACTION-FREE SECURE CHECKOUT HEADER (NO CREDITS, NO PLAN BADGE, NO WORKSPACE DROPDOWN) */}
+      {/* DISTRACTION-FREE SECURE CHECKOUT HEADER */}
       <header style={{ borderBottom: '1px solid #E2E8F0', background: 'rgba(255, 255, 255, 0.98)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 100 }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px', padding: '0 20px', maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -130,14 +147,56 @@ function CheckoutContent() {
               <span style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em' }}>MarkMosaiq</span>
             </Link>
             <span className="nav-breadcrumb-slash" style={{ color: '#CBD5E1' }}>/</span>
-            <span className="nav-breadcrumb-subtitle" style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 700 }}>Passerelle Sécurisée</span>
+            <span className="nav-breadcrumb-subtitle" style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 700 }}>
+              {isFr ? 'Passerelle Sécurisée' : 'Secure Checkout'}
+            </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '6px 12px', borderRadius: '20px' }}>
-            <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#065F46', whiteSpace: 'nowrap' }}>
-              SSL 256-bit
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Language Switcher Pill */}
+            <div style={{ display: 'inline-flex', background: '#F1F5F9', borderRadius: '999px', padding: '2px', border: '1px solid #E2E8F0' }}>
+              <button
+                type="button"
+                onClick={() => setLocale('en')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  background: !isFr ? '#FFFFFF' : 'transparent',
+                  color: !isFr ? '#0F172A' : '#64748B',
+                  boxShadow: !isFr ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                }}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLocale('fr')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  background: isFr ? '#FFFFFF' : 'transparent',
+                  color: isFr ? '#0F172A' : '#64748B',
+                  boxShadow: isFr ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                }}
+              >
+                FR
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '6px 12px', borderRadius: '20px' }}>
+              <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#065F46', whiteSpace: 'nowrap' }}>
+                SSL 256-bit
+              </span>
+            </div>
           </div>
         </div>
       </header>
@@ -149,10 +208,10 @@ function CheckoutContent() {
             href="/studio"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#64748B', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'none', marginBottom: '20px' }}
           >
-            <ArrowLeft size={16} /> Retour au Studio
+            <ArrowLeft size={16} /> {isFr ? 'Retour au Studio' : 'Back to Studio'}
           </Link>
 
-          {/* BANNIÈRE UTILISATEUR DÉCONNECTÉ (MM-107 AC1 & AC3) */}
+          {/* GUEST BANNER (MM-107 AC1 & AC3) */}
           {isGuest && (
             <div style={{
               background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(236, 72, 153, 0.06) 100%)',
@@ -183,10 +242,12 @@ function CheckoutContent() {
                 </div>
                 <div>
                   <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-                    Vous avez déjà un compte MarkMosaiq ?
+                    {isFr ? 'Vous avez déjà un compte MarkMosaiq ?' : 'Already have a MarkMosaiq account?'}
                   </div>
                   <div style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
-                    Connectez-vous pour finaliser votre commande et rattacher vos crédits à votre espace existant.
+                    {isFr
+                      ? 'Connectez-vous pour finaliser votre commande et rattacher vos crédits à votre espace existant.'
+                      : 'Sign in to complete your order and attach your credits to your existing workspace.'}
                   </div>
                 </div>
               </div>
@@ -208,7 +269,7 @@ function CheckoutContent() {
                     boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
                   }}
                 >
-                  <span>Se connecter</span>
+                  <span>{isFr ? 'Se connecter' : 'Sign In'}</span>
                   <span>➔</span>
                 </Link>
                 <Link
@@ -224,13 +285,13 @@ function CheckoutContent() {
                     textDecoration: 'none',
                   }}
                 >
-                  Créer un compte en 1 min
+                  {isFr ? 'Créer un compte en 1 min' : 'Create an account in 1 min'}
                 </Link>
               </div>
             </div>
           )}
 
-          {/* BANNIÈRE UTILISATEUR CONNECTÉ */}
+          {/* AUTHENTICATED USER BANNER */}
           {currentUser && currentWorkspace && (
             <div style={{
               background: '#FFFFFF',
@@ -260,7 +321,7 @@ function CheckoutContent() {
                 </div>
                 <div>
                   <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Espace de travail actif
+                    {isFr ? 'Espace de travail actif' : 'Active Workspace'}
                   </span>
                   <span style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
                     {currentWorkspace.name}
@@ -268,24 +329,36 @@ function CheckoutContent() {
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '11px', color: '#64748B', display: 'block' }}>Connecté en tant que</span>
+                <span style={{ fontSize: '11px', color: '#64748B', display: 'block' }}>
+                  {isFr ? 'Connecté en tant que' : 'Signed in as'}
+                </span>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>{currentUser.email}</span>
               </div>
             </div>
           )}
 
           <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 900, letterSpacing: '-0.02em', marginBottom: '6px', color: '#0F172A' }}>
-            Finaliser Votre Commande de Visuels
+            {isFr ? 'Finaliser Votre Commande de Visuels' : 'Complete Your Studio Plan Order'}
           </h1>
           <p style={{ color: '#64748B', fontSize: '0.92rem', marginBottom: '28px' }}>
-            Activez vos crédits instantanément avec notre passerelle internationale certifiée <strong>Whop Commerce (Merchant of Record)</strong>.
+            {isFr ? (
+              <>
+                Activez vos crédits instantanément avec notre passerelle internationale certifiée{' '}
+                <strong>Whop Commerce (Merchant of Record)</strong>.
+              </>
+            ) : (
+              <>
+                Activate your studio credits instantly via our certified international gateway{' '}
+                <strong>Whop Commerce (Merchant of Record)</strong>.
+              </>
+            )}
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '28px', alignItems: 'start' }}>
-            {/* COLONNE GAUCHE : CHOIX DU PACK CANONIQUE (MM-102) */}
+            {/* LEFT COLUMN: PLAN SELECTION (MM-102) */}
             <div>
               <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '14px', color: '#0F172A' }}>
-                1. Choisissez Votre Forfait
+                {isFr ? '1. Choisissez Votre Forfait' : '1. Choose Your Plan'}
               </h2>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
@@ -296,6 +369,7 @@ function CheckoutContent() {
                   const formatted = formatPrice(priceMinor, selectedCurrency);
                   const color = packColorMap[id];
                   const badge = packBadgeMap[id];
+                  const featuresList = isFr ? p.featuresFr : p.features;
 
                   return (
                     <div
@@ -321,7 +395,7 @@ function CheckoutContent() {
                             {p.name}
                           </h3>
                           <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
-                            {p.creditsPerMonth} Crédits Studio 4K / mois
+                            {p.creditsPerMonth} {isFr ? 'Crédits Studio 4K / mois' : 'Studio 4K Credits / month'}
                           </div>
                         </div>
 
@@ -334,7 +408,7 @@ function CheckoutContent() {
                       </div>
 
                       <ul style={{ margin: '10px 0 0', paddingLeft: '18px', fontSize: '0.8rem', color: '#475569', lineHeight: '1.6' }}>
-                        {p.features.slice(0, 3).map((f, i) => (
+                        {featuresList.slice(0, 3).map((f, i) => (
                           <li key={i}>{f}</li>
                         ))}
                       </ul>
@@ -343,19 +417,23 @@ function CheckoutContent() {
                 })}
               </div>
 
-              {/* Rassurance */}
+              {/* Quality Guarantee */}
               <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '16px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                   <ShieldCheck size={18} color="#059669" />
-                  <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0F172A' }}>Garantie Qualité E-commerce MarkMosaiq</div>
+                  <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0F172A' }}>
+                    {isFr ? 'Garantie Qualité E-commerce MarkMosaiq' : 'MarkMosaiq E-Commerce Quality Guarantee'}
+                  </div>
                 </div>
                 <p style={{ fontSize: '0.78rem', color: '#475569', lineHeight: '1.5', margin: 0 }}>
-                  Tous nos visuels sont calibrés aux dimensions exactes Instagram (1080x1080) et Stories (1080x1920) avec respect des zones d'interaction et détourage physique net de vos articles.
+                  {isFr
+                    ? "Tous nos visuels sont calibrés aux dimensions exactes Instagram (1080x1080) et Stories (1080x1920) avec respect des zones d'interaction et détourage physique net de vos articles."
+                    : 'All visuals are calibrated to exact Instagram Feed (1080×1080) and Stories (1080×1920) dimensions with safe-zone compliance and pixel-accurate product preservation.'}
                 </p>
               </div>
             </div>
 
-            {/* COLONNE DROITE : FORMULAIRE & CONFIRMATION DE COMMANDE */}
+            {/* RIGHT COLUMN: SUMMARY & SECURE CHECKOUT */}
             <div style={{
               background: '#FFFFFF',
               border: '1px solid #E2E8F0',
@@ -367,13 +445,13 @@ function CheckoutContent() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                      2. Paiement Sécurisé Whop
+                      {isFr ? '2. Paiement Sécurisé Whop' : '2. Secure Whop Checkout'}
                     </h2>
                     <Link
                       href={currentCheckoutUrl}
                       style={{ fontSize: '0.8rem', color: '#64748B', textDecoration: 'none', fontWeight: 600 }}
                     >
-                      ← Modifier ma commande
+                      {isFr ? '← Modifier ma commande' : '← Edit my order'}
                     </Link>
                   </div>
                   <WhopCheckout sessionId={sessionId} />
@@ -381,7 +459,7 @@ function CheckoutContent() {
               ) : (
                 <>
                   <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '14px', color: '#0F172A' }}>
-                    2. Récapitulatif & Paiement Sécurisé
+                    {isFr ? '2. Récapitulatif & Paiement Sécurisé' : '2. Order Summary & Secure Payment'}
                   </h2>
 
                   {error && (
@@ -391,10 +469,14 @@ function CheckoutContent() {
                   )}
 
                   <form onSubmit={handleSubmit}>
-                    {/* Moyens de Paiement Whop */}
+                    {/* Whop Payment Methods */}
                     <div style={{ marginBottom: '18px' }}>
                       <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
-                        Paiement sécurisé via <strong>Whop Commerce (Merchant of Record)</strong> :
+                        {isFr ? (
+                          <>Paiement sécurisé via <strong>Whop Commerce (Merchant of Record)</strong> :</>
+                        ) : (
+                          <>Secure payment via <strong>Whop Commerce (Merchant of Record)</strong>:</>
+                        )}
                       </label>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                         <div
@@ -410,7 +492,9 @@ function CheckoutContent() {
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <CreditCard size={20} color="#059669" />
-                              <strong style={{ fontSize: '0.88rem', color: '#0F172A' }}>Cartes Bancaires</strong>
+                              <strong style={{ fontSize: '0.88rem', color: '#0F172A' }}>
+                                {isFr ? 'Cartes Bancaires' : 'Credit / Debit Cards'}
+                              </strong>
                             </div>
                             <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#059669', background: '#DCFCE7', padding: '2px 6px', borderRadius: '4px' }}>
                               3D-SECURE 2.0
@@ -432,37 +516,45 @@ function CheckoutContent() {
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                             <Lock size={18} color="#6366F1" />
-                            <strong style={{ fontSize: '0.88rem', color: '#0F172A' }}>Protection Acheteur</strong>
+                            <strong style={{ fontSize: '0.88rem', color: '#0F172A' }}>
+                              {isFr ? 'Protection Acheteur' : 'Buyer Protection'}
+                            </strong>
                           </div>
                           <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748B' }}>
-                            Facture TVA officielle & conformité PCI-DSS Niveau 1.
+                            {isFr
+                              ? 'Facture TVA officielle & conformité PCI-DSS Niveau 1.'
+                              : 'Official VAT invoice & PCI-DSS Level 1 compliance.'}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    {/* Récapitulatif Prix */}
+                    {/* Price Summary */}
                     <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '22px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem', color: '#64748B' }}>
-                        <span>Forfait sélectionné :</span>
+                        <span>{isFr ? 'Forfait sélectionné :' : 'Selected plan:'}</span>
                         <span style={{ color: '#0F172A', fontWeight: 700 }}>{selectedPack.name}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem', color: '#64748B' }}>
-                        <span>Crédits Studio 4K inclus :</span>
-                        <span style={{ color: '#0F172A', fontWeight: 700 }}>{selectedPack.creditsPerMonth} crédits / mois</span>
+                        <span>{isFr ? 'Crédits Studio 4K inclus :' : 'Included Studio 4K credits:'}</span>
+                        <span style={{ color: '#0F172A', fontWeight: 700 }}>
+                          {selectedPack.creditsPerMonth} {isFr ? 'crédits / mois' : 'credits / month'}
+                        </span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem', color: '#64748B' }}>
-                        <span>Passerelle Certifiée :</span>
+                        <span>{isFr ? 'Passerelle Certifiée :' : 'Certified Gateway:'}</span>
                         <span style={{ color: '#4F46E5', fontWeight: 700 }}>Whop (Merchant of Record Global)</span>
                       </div>
                       <div style={{ borderTop: '1px solid #E2E8F0', margin: '10px 0', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 800, fontSize: '1rem', color: '#0F172A' }}>Total à régler :</span>
+                        <span style={{ fontWeight: 800, fontSize: '1rem', color: '#0F172A' }}>
+                          {isFr ? 'Total à régler :' : 'Total due:'}
+                        </span>
                         <div style={{ textAlign: 'right' }}>
                           <span style={{ fontSize: '1.65rem', fontWeight: 900, color: packColorMap[selectedPackId] }}>
                             {formatPrice(selectedPack.priceMinor[selectedCycle][selectedCurrency], selectedCurrency)}
                           </span>
                           <span style={{ fontSize: '0.75rem', color: '#64748B', display: 'block' }}>
-                            (TVA et conformité MoR incluses)
+                            {isFr ? '(TVA et conformité MoR incluses)' : '(Taxes & MoR compliance included)'}
                           </span>
                         </div>
                       </div>
@@ -492,17 +584,20 @@ function CheckoutContent() {
                       {isLoading ? (
                         <>
                           <Loader2 size={18} className="animate-spin" />
-                          <span>Initialisation du paiement Whop…</span>
+                          <span>{isFr ? 'Initialisation du paiement Whop…' : 'Initializing Whop checkout…'}</span>
                         </>
                       ) : isGuest ? (
                         <>
                           <LogIn size={18} />
-                          <span>Se connecter pour payer via Whop ➔</span>
+                          <span>{isFr ? 'Se connecter pour payer via Whop ➔' : 'Sign in to pay via Whop ➔'}</span>
                         </>
                       ) : (
                         <>
                           <Lock size={18} />
-                          <span>Payer via Whop ({formatPrice(selectedPack.priceMinor[selectedCycle][selectedCurrency], selectedCurrency)}) ➔</span>
+                          <span>
+                            {isFr ? 'Payer via Whop' : 'Pay via Whop'} (
+                            {formatPrice(selectedPack.priceMinor[selectedCycle][selectedCurrency], selectedCurrency)}) ➔
+                          </span>
                         </>
                       )}
                     </button>
@@ -524,7 +619,7 @@ export default function CheckoutPage() {
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ width: '40px', height: '40px', border: '3px solid #E2E8F0', borderTopColor: '#6366F1', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
-            <p style={{ color: '#64748B', fontSize: '0.9rem', fontWeight: 600 }}>Chargement de votre commande sécurisée…</p>
+            <p style={{ color: '#64748B', fontSize: '0.9rem', fontWeight: 600 }}>Loading your secure checkout…</p>
           </div>
         </div>
       }
