@@ -208,27 +208,15 @@ export default function StudioSidebar({
           </Link>
 
           {/* 4. Catalogue produits */}
-          {onOpenCatalog ? (
-            <button
-              type="button"
-              className={`${s.navItem} ${activeNav === 'catalog' ? s.navItemActive : ''}`}
-              onClick={handleCatalogClick}
-            >
-              <ShoppingBag size={18} className={activeNav === 'catalog' ? s.navIconActive : undefined} />
-              <span>{t.studio.sidebar.navCatalog}</span>
-              {activeNav === 'catalog' && <span className={s.navBadge}>{t.studio.sidebar.activeBadge}</span>}
-            </button>
-          ) : (
-            <Link
-              href="/brand-kit?tab=catalog"
-              className={`${s.navItem} ${activeNav === 'catalog' ? s.navItemActive : ''}`}
-              onClick={onCloseMobile}
-            >
-              <ShoppingBag size={18} className={activeNav === 'catalog' ? s.navIconActive : undefined} />
-              <span>{t.studio.sidebar.navCatalog}</span>
-              {activeNav === 'catalog' && <span className={s.navBadge}>{t.studio.sidebar.activeBadge}</span>}
-            </Link>
-          )}
+          <Link
+            href="/products"
+            className={`${s.navItem} ${activeNav === 'catalog' || activeNav === 'products' ? s.navItemActive : ''}`}
+            onClick={onCloseMobile}
+          >
+            <ShoppingBag size={18} className={activeNav === 'catalog' || activeNav === 'products' ? s.navIconActive : undefined} />
+            <span>{t.studio.sidebar.navCatalog}</span>
+            {(activeNav === 'catalog' || activeNav === 'products') && <span className={s.navBadge}>{t.studio.sidebar.activeBadge}</span>}
+          </Link>
 
           {/* Tarifs & Offres */}
           <Link

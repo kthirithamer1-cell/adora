@@ -70,20 +70,13 @@ export async function GET(req: Request) {
       }
     }
 
-    // Fallback for other assets (mockup crops)
-    const SOURCE_PATH = 'C:/Users/MEDIA INFOPLUS/.gemini/antigravity/brain/cce0adc3-62ae-4a69-88dd-07eaf4002ca5/.user_uploaded/media_1793653576817_0689e58c.jpg';
-
-    if (!fs.existsSync(SOURCE_PATH)) {
-      return NextResponse.json({ error: 'Source image not found' }, { status: 404 });
-    }
-
+    // Check cached mockup crops first
     const publicMockupDir = path.join(process.cwd(), 'public', 'images', 'mockup');
     if (!fs.existsSync(publicMockupDir)) {
       fs.mkdirSync(publicMockupDir, { recursive: true });
     }
 
     const cachedFilePath = path.join(publicMockupDir, `${asset}_v${version}.jpg`);
-
     if (fs.existsSync(cachedFilePath)) {
       const fileBuffer = fs.readFileSync(cachedFilePath);
       return new NextResponse(fileBuffer, {
@@ -92,6 +85,13 @@ export async function GET(req: Request) {
           'Cache-Control': 'public, max-age=86400',
         },
       });
+    }
+
+    // Fallback source image if not pre-cached
+    const SOURCE_PATH = path.join(publicMockupDir, 'Gemini_Generated_Image_m5xyttm5xyttm5xy.jpg');
+
+    if (!fs.existsSync(SOURCE_PATH)) {
+      return NextResponse.json({ error: 'Source image not found' }, { status: 404 });
     }
 
     const image = sharp(SOURCE_PATH);

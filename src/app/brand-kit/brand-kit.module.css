@@ -1,0 +1,859 @@
+/* =========================================================================
+   MarkMosaiq BRAND KIT STUDIO DESIGN SYSTEM
+   Pixel-perfect match with MarkMosaiq Brand Guidelines Mockup
+   Fully Responsive (Mobile, Tablet, Desktop)
+   ========================================================================= */
+
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 8px 8px 60px 8px;
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #0F172A;
+}
+
+/* ================= PAGE HEADER ================= */
+.pageHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.headerIconWrap {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 14px;
+  background: #6366F1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.28);
+}
+
+.pageTitle {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.pageSubtitle {
+  font-size: 0.92rem;
+  color: #64748B;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* ================= TOAST / ALERT ================= */
+.toastNotification {
+  margin-bottom: 20px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.toastSuccess {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+}
+
+.toastError {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #991B1B;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================= CARD 1: IMPORT & DETECTION IA ================= */
+.importCard {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 18px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 12px -2px rgba(15, 23, 42, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.logoPreviewCard {
+  width: 140px;
+  min-width: 140px;
+  height: 106px;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  background: #FFFFFF;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.greenCheckBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #16A34A;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+}
+
+.logoImg {
+  max-height: 42px;
+  max-width: 82px;
+  object-fit: contain;
+}
+
+.logoShopName {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin-top: 6px;
+  text-align: center;
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropzoneCard {
+  flex: 1;
+  min-width: 240px;
+  height: 106px;
+  border: 2px dashed #C7D2FE;
+  background: #FBFBFF;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 12px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.dropzoneCard:hover,
+.dropzoneActive {
+  background: #F5F3FF;
+  border-color: #818CF8;
+}
+
+.dropzoneTitle {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-top: 6px;
+}
+
+.dropzoneSubtitle {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #6366F1;
+  margin-top: 2px;
+}
+
+.urlInputsBlock {
+  width: 320px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.urlInputRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 0 14px;
+  height: 48px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.urlInputRow:focus-within {
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.urlInputField {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.85rem;
+  color: #0F172A;
+  font-weight: 500;
+}
+
+.urlInputField::placeholder {
+  color: #94A3B8;
+}
+
+.flowArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #C7D2FE;
+  padding: 0 4px;
+}
+
+.aiActionBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 210px;
+}
+
+.aiAnalyzeBtn {
+  background: #6366F1;
+  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.32);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.aiAnalyzeBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.42);
+}
+
+.aiAnalyzeBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.aiCaption {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: #64748B;
+  line-height: 1.35;
+  text-align: center;
+  max-width: 220px;
+}
+
+.aiCaptionIcon {
+  color: #64748B;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ================= CARD 2: VOTRE CHARTE GRAPHIQUE ================= */
+.charteCard {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 18px;
+  padding: 24px 28px;
+  margin-top: 24px;
+  box-shadow: 0 2px 12px -2px rgba(15, 23, 42, 0.04);
+}
+
+.charteHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.charteHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.charteCheckIcon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #4F46E5;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.charteTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.aiStatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #DCFCE7;
+  color: #16A34A;
+  border: 1px solid #BBF7D0;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.greenDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16A34A;
+}
+
+.resetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: #64748B;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.resetBtn:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+/* ================= CHARTE GRID ================= */
+.charteGrid {
+  display: grid;
+  grid-template-columns: 200px 280px 1fr;
+  gap: 28px;
+  margin-top: 22px;
+}
+
+.sectionLabel {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+/* Col 1: Preview */
+.brandPreviewCard {
+  width: 100%;
+  min-height: 160px;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.brandPreviewLogo {
+  max-height: 64px;
+  max-width: 110px;
+  object-fit: contain;
+}
+
+.brandPreviewTitle {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #0F172A;
+  margin-top: 12px;
+  text-align: center;
+  letter-spacing: -0.02em;
+  word-break: break-word;
+}
+
+/* Col 2: Inputs */
+.inputWithIcon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  height: 48px;
+  padding: 0 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inputWithIcon:focus-within {
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.cleanInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.typographySelectWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  height: 48px;
+  padding: 0 14px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.typographySelectWrap:focus-within,
+.typographySelectWrap:hover {
+  border-color: #6366F1;
+}
+
+.typographyLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.typoAa {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.typoName {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.hiddenSelect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Col 3: Colors & Tags */
+.colorsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.colorCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.colorSwatch {
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 10px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.colorSwatch:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.colorPencil {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+}
+
+.colorPickerHidden {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.colorHex {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0F172A;
+  font-family: monospace;
+}
+
+.colorLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.tagsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.pillList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tagPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.tagPill:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.tagPillActive {
+  background: #EEF2FF;
+  border-color: #C7D2FE;
+  color: #4F46E5;
+}
+
+/* ================= PRODUITS ASSOCIÉS ================= */
+.productsSection {
+  border-top: 1px solid #F1F5F9;
+  padding-top: 20px;
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.productsInfoWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.packageIconWrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #EEF2FF;
+  color: #4F46E5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.productsTitle {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.productsSubtitle {
+  font-size: 0.76rem;
+  color: #64748B;
+  margin-top: 2px;
+}
+
+.productsThumbnailsWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.productThumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  object-fit: contain;
+  padding: 2px;
+}
+
+.associerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid #E0E7FF;
+  color: #4F46E5;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.associerBtn:hover {
+  background: #F5F3FF;
+  border-color: #C7D2FE;
+}
+
+/* ================= BOTTOM ACTION BAR ================= */
+.bottomActionBar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.saveBrandKitBtn {
+  background: #4F46E5;
+  background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 28px;
+  font-size: 0.94rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  transition: all 0.2s ease;
+}
+
+.saveBrandKitBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.45);
+}
+
+.saveBrandKitBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ================= RESPONSIVE ADAPTATIONS ================= */
+
+@media (max-width: 1100px) {
+  .charteGrid {
+    grid-template-columns: 180px 240px 1fr;
+    gap: 20px;
+  }
+
+  .urlInputsBlock {
+    width: 280px;
+  }
+}
+
+@media (max-width: 960px) {
+  .flowArrow {
+    display: none;
+  }
+
+  .importCard {
+    gap: 16px;
+  }
+
+  .charteGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .brandPreviewCol {
+    grid-column: 1 / -1;
+  }
+
+  .colorsAndTagsCol {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 6px 4px 60px 4px;
+  }
+
+  .pageTitle {
+    font-size: 1.4rem;
+  }
+
+  .pageSubtitle {
+    font-size: 0.85rem;
+  }
+
+  .importCard {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 18px;
+    gap: 14px;
+  }
+
+  .logoPreviewCard {
+    width: 100%;
+    min-width: 0;
+    height: 90px;
+  }
+
+  .dropzoneCard {
+    width: 100%;
+    min-width: 0;
+    height: 100px;
+  }
+
+  .urlInputsBlock {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .aiActionBlock {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .aiAnalyzeBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .aiCaption {
+    max-width: 100%;
+  }
+
+  .charteCard {
+    padding: 18px 16px;
+    margin-top: 18px;
+  }
+
+  .charteGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .brandPreviewCol,
+  .inputsCol,
+  .colorsAndTagsCol {
+    grid-column: 1 / -1;
+  }
+
+  .tagsRow {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .productsSection {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .productsThumbnailsWrap {
+    justify-content: center;
+  }
+
+  .associerBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bottomActionBar {
+    width: 100%;
+  }
+
+  .saveBrandKitBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .colorsGrid {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .colorSwatch {
+    height: 38px;
+  }
+
+  .colorHex {
+    font-size: 0.72rem;
+  }
+
+  .colorLabel {
+    font-size: 0.68rem;
+  }
+}
+

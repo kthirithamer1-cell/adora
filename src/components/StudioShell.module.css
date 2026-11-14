@@ -288,25 +288,26 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: #F1F5F9;
-  border: 1px solid #E2E8F0;
-  color: #475569;
-  font-size: 0.78rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: #0F172A;
+  font-size: 0.88rem;
   font-weight: 700;
   text-decoration: none;
   transition: all 0.2s ease;
 }
 
 .breadcrumbBackBtn:hover {
-  background: #E2E8F0;
-  color: #0F172A;
+  background: #F1F5F9;
+  color: #4F46E5;
 }
 
 .breadcrumbSeparator {
-  color: #CBD5E1;
-  font-size: 0.8rem;
+  color: #94A3B8;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .breadcrumbCurrent {
@@ -322,13 +323,13 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #00E5FF18, #7C3AED18);
-  border: 1px solid #7C3AED44;
-  color: #6D28D9;
-  font-size: 0.68rem;
-  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 14px;
+  background: #F3F4F6;
+  border: 1px solid #E5E7EB;
+  color: #475569;
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 .navRightActions {

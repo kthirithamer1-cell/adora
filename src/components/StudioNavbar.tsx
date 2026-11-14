@@ -18,6 +18,7 @@ import {
   FileText,
   LogOut,
   Crown,
+  Home,
 } from 'lucide-react';
 import s from './StudioShell.module.css';
 
@@ -139,20 +140,15 @@ export default function StudioNavbar({
         )}
 
         <Link
-          href="/studio"
+          href="/"
           className={s.breadcrumbBackBtn}
-          title="Retour au studio"
+          title="Accueil"
         >
-          <img
-            src="/images/logo.png"
-            alt="MarkMosaiq Logo"
-            style={{ width: '22px', height: '22px', borderRadius: '6px', objectFit: 'contain', background: '#FFFFFF' }}
-          />
-          <ChevronLeft size={16} />
+          <Home size={15} />
           <span>{t.studio.navbar.home}</span>
         </Link>
 
-        <span className={s.breadcrumbSeparator}>/</span>
+        <span className={s.breadcrumbSeparator}>&gt;</span>
 
         <div className={s.breadcrumbCurrent}>
           <span suppressHydrationWarning>{pageTitle || t.studio.navbar.title}</span>
@@ -199,6 +195,7 @@ export default function StudioNavbar({
         >
           <nextPlanConfig.icon size={14} />
           <span suppressHydrationWarning>{nextPlanConfig.navLabel}</span>
+          <Zap size={12} />
         </button>
 
         <div className={s.navDivider} />

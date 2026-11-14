@@ -313,7 +313,7 @@ export const fr: TranslationDictionary = {
       groupStudio: 'Studio & Création IA',
       navCreateAd: 'Créer une publicité',
       navCutout: 'Remove background',
-      navBrandKit: 'Brand Kit & Charte',
+      navBrandKit: 'Brand Kit & Guidelines',
       navCatalog: 'Catalogue produits',
       groupSpace: 'Espace & Gestion',
       navAgency: 'Espace Agence B2B',

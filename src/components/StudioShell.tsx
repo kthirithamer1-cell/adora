@@ -44,6 +44,7 @@ export default function StudioShell({
   };
 
   const handleOpenBrandKit = () => {
+    if (activeNav === 'brand-kit') return;
     setIsBrandKitOpen(true);
   };
 
