@@ -1,4 +1,4 @@
--- Migration : Intégration de la passerelle MacroPay en remplacement de Paddle
+-- Migration : Intégration de la passerelle MacroPay
 -- Date : 2026-10-15
 -- Auteur : MarkMosaiq AI Studio
 
@@ -8,7 +8,7 @@ ALTER TABLE public.invoices
 
 ALTER TABLE public.invoices 
   ADD CONSTRAINT invoices_payment_gateway_check 
-  CHECK (payment_gateway IN ('macropay', 'paddle', 'flouci', 'konnect', 'credit_card', 'b2b_invoice'));
+  CHECK (payment_gateway IN ('macropay', 'flouci', 'konnect', 'credit_card', 'b2b_invoice'));
 
 -- 2. Ajout des colonnes de tracking MacroPay
 ALTER TABLE public.invoices

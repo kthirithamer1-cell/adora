@@ -1,4 +1,4 @@
--- Migration : Intégration de Whop Commerce (Merchant of Record) en remplacement de MacroPay & Paddle
+-- Migration : Intégration de Whop Commerce (Merchant of Record) en remplacement de MacroPay
 -- Date : 2026-10-17
 -- Auteur : MarkMosaiq AI Studio
 
@@ -10,8 +10,9 @@ ALTER TABLE public.invoices
   ADD CONSTRAINT invoices_payment_gateway_check 
   CHECK (payment_gateway IN ('whop', 'flouci', 'konnect', 'credit_card', 'b2b_invoice'));
 
--- 2. Ajout des colonnes de tracking Whop
+-- 2. Ajout des colonnes de tracking Whop et devises
 ALTER TABLE public.invoices
+  ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'USD',
   ADD COLUMN IF NOT EXISTS whop_payment_id VARCHAR(100),
   ADD COLUMN IF NOT EXISTS whop_checkout_id VARCHAR(100),
   ADD COLUMN IF NOT EXISTS whop_customer_id VARCHAR(100),
