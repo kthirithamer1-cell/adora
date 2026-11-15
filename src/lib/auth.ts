@@ -77,7 +77,7 @@ export interface SessionData {
 export const INITIAL_USERS: User[] = [
   {
     id: 'user_mohamed',
-    email: 'mohamed@nutristore.tn',
+    email: 'mohamed@nutristore.com',
     name: 'Mohamed Ben Salah',
     phone: '+216 98 123 456',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
@@ -85,7 +85,7 @@ export const INITIAL_USERS: User[] = [
   },
   {
     id: 'user_syrine',
-    email: 'syrine@nutristore.tn',
+    email: 'syrine@nutristore.com',
     name: 'Syrine Trabelsi',
     phone: '+216 22 789 012',
     avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=faces',
@@ -93,7 +93,7 @@ export const INITIAL_USERS: User[] = [
   },
   {
     id: 'user_yassine',
-    email: 'yassine@crea.tn',
+    email: 'yassine@crea.com',
     name: 'Yassine Jaziri',
     phone: '+216 55 456 789',
     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces',
@@ -101,7 +101,7 @@ export const INITIAL_USERS: User[] = [
   },
   {
     id: 'user_agence',
-    email: 'contact@hypergrowth.tn',
+    email: 'contact@hypergrowth.com',
     name: 'Karim Gharbi (HyperGrowth Agency)',
     phone: '+216 71 888 999',
     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces',
@@ -121,7 +121,7 @@ export const INITIAL_WORKSPACES: Workspace[] = [
     members: [
       {
         userId: 'user_mohamed',
-        userEmail: 'mohamed@nutristore.tn',
+        userEmail: 'mohamed@nutristore.com',
         userName: 'Mohamed Ben Salah',
         role: 'owner',
         joinedAt: '2026-01-15T10:00:00Z',

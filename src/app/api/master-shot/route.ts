@@ -4,6 +4,7 @@ import { recordApiUsage } from '@/lib/apiUsageLogger';
 import { getBrandKitByWorkspace } from '@/lib/brandkit';
 import { buildArtDirectedPrompt } from '@/lib/artDirector';
 import { generateBackgroundWithGPTImageFlare25 } from '@/lib/openai';
+import { registerGeneration } from '@/lib/editAllowance';
 
 export const maxDuration = 60; // 60s timeout support for image generation
 
@@ -39,6 +40,8 @@ export async function POST(req: NextRequest) {
       cutoutBase64,
       imageBase64,
       brandLogoUrl,
+      primaryColor,
+      secondaryColor,
     } = body;
 
     // 1. Vérification du solde de crédits
@@ -80,8 +83,19 @@ export async function POST(req: NextRequest) {
           aspect,
         });
 
-    // Utiliser STRICTEMENT le prompt fourni par l'utilisateur sans ajout automatique
-    const promptToSend = basePrompt;
+    // 4b. Injection de la palette de marque (couleurs du Studio ou du Brand Kit)
+    const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
+    const kitAny = brandKit as any;
+    const brandPrimary = [primaryColor, kitAny?.palette?.primary, kitAny?.primaryColor]
+      .find((c) => typeof c === 'string' && HEX_RE.test(c.trim()))?.trim();
+    const brandSecondary = [secondaryColor, kitAny?.palette?.secondary, kitAny?.secondaryColor]
+      .find((c) => typeof c === 'string' && HEX_RE.test(c.trim()))?.trim();
+
+    const brandColorDirective = brandPrimary
+      ? `\n\nBRAND COLOR IDENTITY${effectiveBrand ? ` for "${effectiveBrand}"` : ''}: The entire scene is art-directed around the brand palette — primary color ${brandPrimary}${brandSecondary ? ` and secondary accent color ${brandSecondary}` : ''}. Apply ${brandPrimary} to the dominant set elements (backdrop tones, pedestal finish, key props, ambient rim lighting)${brandSecondary ? ` and use ${brandSecondary} for complementary accents, highlights and secondary props` : ''}. Keep the color harmony cohesive, premium and instantly recognizable as this brand, while the product keeps its own authentic original colors.`
+      : '';
+
+    const promptToSend = `${basePrompt}${brandColorDirective}`;
 
     // 5. Détermination de la taille selon le format
     const targetSize = SIZE_BY_ASPECT[aspect] || '1024x1024';
@@ -104,6 +118,7 @@ export async function POST(req: NextRequest) {
 );
 
     const finalImageUrl = result;
+    const generationId = registerGeneration(workspaceId);
 
     // 8. Déduction du crédit & Enregistrement de l'usage
     const deduction = await deductCredit(workspaceId, 1, {
@@ -134,6 +149,7 @@ export async function POST(req: NextRequest) {
     // 9. Retour du visuel généré
     return NextResponse.json({
       success: true,
+      generationId,
       masterVisualUrl: finalImageUrl,
       imageUrl: finalImageUrl,
       promptUsed: promptToSend,

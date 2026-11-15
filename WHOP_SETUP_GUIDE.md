@@ -61,7 +61,7 @@ Dans l'onglet **Products**, créez vos offres correspondant aux forfaits MarkMos
 2. Cliquez sur **Add Endpoint**.
 3. Renseignez l'URL de votre serveur :
    ```
-   https://app.markmosaiq.tn/api/payment/whop-webhook
+   https://app.markmosaiq.com/api/payment/whop-webhook
    ```
 4. Sélectionnez les événements suivants à écouter :
    - `payment.succeeded` (Paiement réussi)

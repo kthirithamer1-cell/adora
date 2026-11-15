@@ -29,7 +29,7 @@ const initialAgencies: Record<string, AgencyConfig> = {
     agencyName: 'HyperGrowth Agence Digitale',
     agencyLogoUrl: '/images/logo.png',
     whiteLabelActive: true,
-    customDomain: 'studio.hypergrowth.tn',
+    customDomain: 'studio.hypergrowth.com',
     planTier: 'agency_299',
     monthlyPriceTND: 299,
     monthlyPriceUSD: 99,

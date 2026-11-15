@@ -379,7 +379,7 @@ export default function AgencyPortalModal({ isOpen, onClose }: AgencyPortalModal
                   value={config.customDomain || ''}
                   onChange={(e) => setConfig({ ...config, customDomain: e.target.value })}
                   onBlur={() => handleUpdateConfig({ customDomain: config.customDomain })}
-                  placeholder="studio.monagence.tn"
+                  placeholder="studio.monagence.com"
                   style={{ width: '100%', background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '9px 12px', color: '#0F172A', fontSize: '0.85rem' }}
                 />
               </div>

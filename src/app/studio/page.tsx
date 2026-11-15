@@ -82,6 +82,7 @@ import {
   User as UserIcon,
 } from 'lucide-react';
 import { extractPaletteFromLogo } from '@/lib/colorExtractor';
+import { requestMasterShot } from '@/lib/masterShotClient';
 
 const FacebookIcon = ({ size = 18, color = 'currentColor' }: { size?: number; color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -681,6 +682,8 @@ interface VisualCardData {
   styleName: string;
   price?: string;
   badgeText?: string;
+  generationId?: string;
+  editsUsed?: number;
 }
 
 const STYLES_LIST: { id: AdStyle; label: string; bgGradient: string; previewImg: string; promptModifier: string }[] = [
@@ -907,7 +910,9 @@ export default function StudioCreativePage() {
 
   // Édition d'une carte unitaire & retouche décor IA (gpt-image-2.5-flare)
   const [editingCard, setEditingCard] = useState<VisualCardData | null>(null);
-  const [editingCardTab, setEditingCardTab] = useState<'copy' | 'ai_prompt'>('copy');
+  const [editingCardTab, setEditingCardTab] = useState<'copy' | 'ai_prompt' | 'ai_edit'>('copy');
+  const [imageEditInstruction, setImageEditInstruction] = useState<string>('');
+  const [isEditingCardImage, setIsEditingCardImage] = useState<boolean>(false);
   const [cardEditPrompt, setCardEditPrompt] = useState<string>('');
   const [isRegeneratingCardImage, setIsRegeneratingCardImage] = useState<boolean>(false);
 
@@ -1772,6 +1777,8 @@ ${frenchText}
           model: 'gpt-image-2.5-flare',
           brandName: brandName,
           brandLogoUrl: importedLogo,
+          primaryColor,
+          secondaryColor,
         };
 
         if (enableConsoleLogs) {
@@ -1780,13 +1787,8 @@ ${frenchText}
         }
         console.log("data sent", JSON.stringify(payload))
 
-        const genRes = await fetch('/api/master-shot', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        const genData = await genRes.json();
+        const genRes = await requestMasterShot(payload);
+        const genData = genRes.data;
         console.log("sending", genData)
 
         if (enableConsoleLogs) {
@@ -1819,7 +1821,7 @@ ${frenchText}
           updateCredits(genData.creditsRemaining);
         }
 
-        const returnedUrl = genData.masterVisualUrl || genData.url || genData.images?.[0] || genData.data?.[0]?.url;
+        const returnedUrl = genRes.imageUrl || '';
         generatedFormats = {
           instagram: genData.formats?.feed || returnedUrl,
           story: genData.formats?.story || returnedUrl,
@@ -1839,6 +1841,8 @@ ${frenchText}
               {
                 ...base[0],
                 bgImage: genData.formats?.feed || returnedUrl,
+                generationId: genData.generationId,
+                editsUsed: 0,
                 headline: genData.selectedIntent?.hookFr || base[0].headline,
                 subheadline: genData.selectedIntent?.subtitle || base[0].subheadline,
                 badgeText: genData.selectedIntent?.badgeText || base[0].badgeText,
@@ -1848,6 +1852,8 @@ ${frenchText}
               {
                 ...base[1],
                 bgImage: genData.formats?.story || returnedUrl,
+                generationId: genData.generationId,
+                editsUsed: 0,
                 headline: genData.selectedIntent?.hookDarija || base[1].headline,
                 subheadline: genData.selectedIntent?.subtitle || base[1].subheadline,
                 badgeText: genData.selectedIntent?.badgeText || base[1].badgeText,
@@ -1857,6 +1863,8 @@ ${frenchText}
               {
                 ...base[2],
                 bgImage: genData.formats?.banner || returnedUrl,
+                generationId: genData.generationId,
+                editsUsed: 0,
                 headline: genData.selectedIntent?.hookFr || base[2].headline,
                 subheadline: genData.selectedIntent?.subtitle || base[2].subheadline,
                 badgeText: '🔥 Offre Limitée',
@@ -1866,6 +1874,8 @@ ${frenchText}
               {
                 ...base[3],
                 bgImage: genData.formats?.feed || returnedUrl,
+                generationId: genData.generationId,
+                editsUsed: 0,
                 headline: genData.selectedIntent?.hookDarija || base[3].headline,
                 subheadline: genData.selectedIntent?.subtitle || base[3].subheadline,
                 badgeText: '✨ Édition Prestige',
@@ -2092,6 +2102,80 @@ ${frenchText}
     }
   };
 
+  // Édition IA d'un visuel généré : 1ère édition offerte par génération, ensuite 1 crédit
+  const handleEditCardImage = async (cardToEdit: VisualCardData, instruction: string) => {
+    const trimmed = instruction.trim();
+    if (!trimmed) {
+      showToast('✍️ Décrivez la modification souhaitée.');
+      return;
+    }
+    const isFreeEdit = Boolean(cardToEdit.generationId) && (cardToEdit.editsUsed ?? 0) < 1;
+    try {
+      setIsEditingCardImage(true);
+      showToast(isFreeEdit ? '🎁 Édition gratuite en cours...' : '✏️ Édition en cours (1 crédit)...');
+
+      const aspect = cardToEdit.format === 'story' || cardToEdit.format === 'tiktok'
+        ? '9:16'
+        : cardToEdit.format === 'facebook'
+          ? '1.91:1'
+          : '1:1';
+
+      const res = await fetch('/api/master-shot/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          generationId: cardToEdit.generationId,
+          imageBase64: cardToEdit.bgImage,
+          instruction: trimmed,
+          aspect,
+          workspaceId: workspace?.id || 'ws_nutristore',
+          productName,
+          primaryColor,
+          secondaryColor,
+        }),
+      });
+      const data = await res.json();
+
+      if (res.status === 402 || data.code === 'INSUFFICIENT_CREDITS') {
+        showToast('⚠️ Solde de crédits insuffisant. Veuillez recharger votre pack.');
+        setIsCheckoutOpen(true);
+        return;
+      }
+      if (!res.ok || !data.success || !data.data?.imageUrl) {
+        throw new Error(data.error || "Échec de l'édition du visuel");
+      }
+
+      if (typeof data.data.creditsRemaining === 'number') {
+        updateCredits(data.data.creditsRemaining);
+      }
+
+      const newEditsUsed: number = data.data.editsUsed || (cardToEdit.editsUsed ?? 0) + 1;
+      const updatedCard: VisualCardData = {
+        ...cardToEdit,
+        bgImage: data.data.imageUrl,
+        editsUsed: newEditsUsed,
+      };
+      setEditingCard(updatedCard);
+      // Le compteur est partagé par toutes les cartes issues de la même génération
+      setVisuals((prev) =>
+        prev.map((c) => {
+          if (c.id === cardToEdit.id) return updatedCard;
+          if (cardToEdit.generationId && c.generationId === cardToEdit.generationId) {
+            return { ...c, editsUsed: newEditsUsed };
+          }
+          return c;
+        })
+      );
+      setImageEditInstruction('');
+      showToast(data.data.wasFree ? '✅ Édition gratuite appliquée !' : '✅ Édition appliquée (1 crédit déduit)');
+    } catch (err: any) {
+      console.error('Erreur édition visuel:', err);
+      showToast(`❌ Erreur: ${err.message || "Échec de l'édition"}`);
+    } finally {
+      setIsEditingCardImage(false);
+    }
+  };
+
   // Ouverture du Studio d'Édition unitaire pour un visuel
   const openCardEditor = (card: VisualCardData) => {
     setEditingCard(card);
@@ -2132,24 +2216,23 @@ ${frenchText}
         model: 'gpt-image-2.5-flare',
         brandName,
         brandLogoUrl: importedLogo,
+        primaryColor,
+        secondaryColor,
       };
 
-      const res = await fetch('/api/master-shot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
+      const res = await requestMasterShot(payload);
+      const data = res.data;
+      if (!res.ok) {
         throw new Error(data.error || 'Échec de la régénération du visuel');
       }
 
-      const newImageUrl = data.masterVisualUrl || data.url || data.images?.[0];
+      const newImageUrl = res.imageUrl;
       if (newImageUrl) {
         const updatedCard: VisualCardData = {
           ...cardToUpdate,
           bgImage: newImageUrl,
+          generationId: data.generationId,
+          editsUsed: 0,
         };
         setEditingCard(updatedCard);
         setVisuals((prev) => prev.map((c) => (c.id === cardToUpdate.id ? updatedCard : c)));
@@ -3520,484 +3603,411 @@ ${frenchText}
             )}
 
             {visuals.length > 0 && (
-            <div className={s.resultsGrid}>
-              {visuals.map((card) => (
-                <div key={card.id} className={s.adVisualCard} style={{ overflow: 'hidden', position: 'relative' }}>
-                  {/* Overlay de chargement pendant la génération */}
-                  {isGenerating && (
-                    <div style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'rgba(15, 23, 42, 0.78)',
-                      backdropFilter: 'blur(8px)',
-                      zIndex: 20,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px',
-                      color: '#FFFFFF',
-                      padding: '16px',
-                      textAlign: 'center',
-                    }}>
-                      <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(0, 229, 255, 0.15)', border: '2px solid #00E5FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Sparkles size={20} color="#00E5FF" className="animate-spin" />
-                      </div>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 800 }}>Génération en cours...</div>
-                      <div style={{ fontSize: '0.68rem', color: '#94A3B8' }}>{card.formatLabel}</div>
-                      <div style={{ width: '120px', height: '4px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px', overflow: 'hidden', marginTop: '4px' }}>
-                        <div style={{ width: `${generationProgress}%`, height: '100%', background: 'linear-gradient(90deg, #00E5FF, #7C3AED)', transition: 'width 0.3s ease' }} />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* APERÇU FORMAT RÉSEAUX SOCIAUX (INSTAGRAM STORY, POST & FACEBOOK ADS) */}
-                  <div>
-                    {/* CAS A : FORMAT INSTAGRAM STORY (OU TIKTOK 9:16) */}
-                    {card.format === 'story' || card.format === 'tiktok' ? (
-                      <div style={{ background: '#0F172A', color: '#FFF' }}>
-                        {/* Barres de progression Story */}
-                        <div style={{ display: 'flex', gap: '3px', padding: '8px 10px 4px' }}>
-                          <div style={{ flex: 1, height: '2px', background: '#FFFFFF', borderRadius: '2px' }} />
-                          <div style={{ flex: 1, height: '2px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }} />
-                          <div style={{ flex: 1, height: '2px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }} />
+              <div className={s.resultsGrid}>
+                {visuals.map((card) => (
+                  <div key={card.id} className={s.adVisualCard} style={{ overflow: 'hidden', position: 'relative' }}>
+                    {/* Overlay de chargement pendant la génération */}
+                    {isGenerating && (
+                      <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(15, 23, 42, 0.78)',
+                        backdropFilter: 'blur(8px)',
+                        zIndex: 20,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        color: '#FFFFFF',
+                        padding: '16px',
+                        textAlign: 'center',
+                      }}>
+                        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(0, 229, 255, 0.15)', border: '2px solid #00E5FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Sparkles size={20} color="#00E5FF" className="animate-spin" />
                         </div>
-
-                        {/* Header Instagram Story */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(45deg, #F58529, #D92E7F, #833AB4)', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.6rem', color: '#7C3AED' }}>
-                                {(brandName || 'AD').slice(0, 2).toUpperCase()}
-                              </div>
-                            </div>
-                            <div style={{ fontSize: '0.74rem', fontWeight: 800 }}>
-                              {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.tn'}
-                            </div>
-                          </div>
-                          <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#A855F7', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '4px' }}>
-                            Story 9:16
-                          </span>
-                        </div>
-
-                        {/* Image Story avec Stickers */}
-                        <div style={{
-                          position: 'relative',
-                          width: '100%',
-                          aspectRatio: '9 / 16',
-                          maxHeight: '420px',
-                          overflow: 'hidden',
-                          background: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage) && activeStyleObj?.previewImg)
-                            ? `url(${activeStyleObj.previewImg}) center/cover no-repeat, #0F172A`
-                            : '#0F172A',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}>
-                          <img
-                            src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
-                            alt={card.headline}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              display: 'block',
-                              objectFit: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'contain' : 'cover',
-                              padding: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? '28px 16px' : 0,
-                              filter: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'drop-shadow(0 14px 28px rgba(0, 0, 0, 0.45))' : 'none',
-                              position: 'relative',
-                              zIndex: 1,
-                            }}
-                            onError={(e) => {
-                              const el = e.currentTarget;
-                              if (!el.src.includes('image.png')) el.src = '/images/image.png';
-                            }}
-                          />
-
-                          {/* Badge IA Story */}
-                          {card.badgeText && (
-                            <div style={{
-                              position: 'absolute',
-                              top: '12px',
-                              left: '12px',
-                              background: '#E11D48',
-                              color: '#FFF',
-                              padding: '4px 10px',
-                              borderRadius: '6px',
-                              fontSize: '0.64rem',
-                              fontWeight: 900,
-                              boxShadow: '0 2px 8px rgba(225, 29, 72, 0.4)',
-                            }}>
-                              {card.badgeText}
-                            </div>
-                          )}
-
-                          {/* Accroche IA Story */}
-                          <div style={{
-                            position: 'absolute',
-                            bottom: '12px',
-                            left: '12px',
-                            right: '12px',
-                            background: 'rgba(0, 0, 0, 0.75)',
-                            backdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(255, 255, 255, 0.2)',
-                            borderRadius: '8px',
-                            padding: '8px 12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '8px',
-                          }}>
-                            <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#FFF' }}>
-                              {card.headline}
-                            </div>
-                            {card.price && (
-                              <span style={{ fontSize: '0.68rem', color: '#34D399', fontWeight: 900, whiteSpace: 'nowrap' }}>
-                                {card.price}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Bouton d'action Story Swipe-up */}
-                        <div style={{ padding: '8px 10px', background: '#0F172A' }}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedSocialVisual(card.bgImage);
-                              setIsSocialModalOpen(true);
-                            }}
-                            style={{
-                              width: '100%',
-                              padding: '8px',
-                              borderRadius: '9999px',
-                              background: '#FFFFFF',
-                              color: '#0F172A',
-                              fontWeight: 800,
-                              fontSize: '0.74rem',
-                              border: 'none',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '6px',
-                            }}
-                          >
-                            <span>{card.ctaText || 'Commander'}</span>
-                            <ArrowRight size={12} />
-                          </button>
-                        </div>
-                      </div>
-                    ) : card.format === 'facebook' ? (
-                      /* CAS B : FORMAT FACEBOOK ADS FEED */
-                      <div style={{ background: '#FFFFFF' }}>
-                        {/* Header Facebook */}
-                        <div style={{ padding: '10px 12px 8px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1877F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 900, fontSize: '0.65rem' }}>
-                                {(brandName || 'AD').slice(0, 2).toUpperCase()}
-                              </div>
-                              <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                  <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0F172A' }}>{brandName}</span>
-                                  <span style={{ color: '#1877F2', fontSize: '0.7rem' }}>✓</span>
-                                </div>
-                              </div>
-                            </div>
-                            <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#1877F2', background: '#EFF6FF', padding: '2px 6px', borderRadius: '4px', border: '1px solid #DBEAFE' }}>
-                              Facebook Ads
-                            </span>
-                          </div>
-                          <div style={{ fontSize: '0.74rem', color: '#1E293B', lineHeight: '1.4', fontWeight: 600 }}>
-                            {card.headline}
-                          </div>
-                        </div>
-
-                        {/* Image Facebook */}
-                        <div style={{
-                          position: 'relative',
-                          width: '100%',
-                          background: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage) && activeStyleObj?.previewImg)
-                            ? `url(${activeStyleObj.previewImg}) center/cover no-repeat, #F8FAFC`
-                            : '#F8FAFC',
-                          overflow: 'hidden',
-                          aspectRatio: '1.91 / 1',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}>
-                          <img
-                            src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
-                            alt={card.headline}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              display: 'block',
-                              objectFit: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'contain' : 'cover',
-                              padding: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? '16px' : 0,
-                              filter: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'drop-shadow(0 10px 22px rgba(0, 0, 0, 0.2))' : 'none',
-                              position: 'relative',
-                              zIndex: 1,
-                            }}
-                            onError={(e) => {
-                              const el = e.currentTarget;
-                              if (!el.src.includes('image.png')) el.src = '/images/image.png';
-                            }}
-                          />
-                        </div>
-
-                        {/* Lien et CTA Facebook Ads */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC' }}>
-                          <div style={{ flex: 1, marginRight: '8px' }}>
-                            <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0F172A' }}>{card.subheadline}</div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedSocialVisual(card.bgImage);
-                              setIsSocialModalOpen(true);
-                            }}
-                            style={{
-                              background: '#1877F2',
-                              color: '#FFFFFF',
-                              fontWeight: 800,
-                              fontSize: '0.7rem',
-                              padding: '6px 12px',
-                              borderRadius: '6px',
-                              border: 'none',
-                              cursor: 'pointer',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {card.ctaText || 'Commander'}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      /* CAS C : FORMAT INSTAGRAM POST FEED (PAR DÉFAUT) */
-                      <div style={{ background: '#FFFFFF' }}>
-                        {/* Header Instagram Post */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderBottom: '1px solid #F1F5F9' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{
-                              width: '30px',
-                              height: '30px',
-                              borderRadius: '50%',
-                              background: 'linear-gradient(45deg, #F58529, #D92E7F, #833AB4)',
-                              padding: '2px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}>
-                              <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.62rem', color: '#7C3AED' }}>
-                                {(brandName || 'AD').slice(0, 2).toUpperCase()}
-                              </div>
-                            </div>
-                            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0F172A' }}>
-                              {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.tn'}
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#E1306C', background: '#FDF2F8', padding: '2px 6px', borderRadius: '4px', border: '1px solid #FCE7F3' }}>
-                            Instagram Post
-                          </span>
-                        </div>
-
-                        {/* Image Instagram Post */}
-                        <div style={{
-                          position: 'relative',
-                          width: '100%',
-                          background: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage) && activeStyleObj?.previewImg)
-                            ? `url(${activeStyleObj.previewImg}) center/cover no-repeat, #F8FAFC`
-                            : '#F8FAFC',
-                          overflow: 'hidden',
-                          aspectRatio: '1 / 1',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}>
-                          <img
-                            src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
-                            alt={card.headline}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              display: 'block',
-                              objectFit: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'contain' : 'cover',
-                              padding: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? '22px' : 0,
-                              filter: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'drop-shadow(0 14px 28px rgba(0, 0, 0, 0.22))' : 'none',
-                              position: 'relative',
-                              zIndex: 1,
-                            }}
-                            onError={(e) => {
-                              const el = e.currentTarget;
-                              if (!el.src.includes('image.png')) el.src = '/images/image.png';
-                            }}
-                          />
-                        </div>
-
-                        {/* Légende du Post avec Accroche IA */}
-                        <div style={{ padding: '10px 12px' }}>
-                          <div style={{ fontSize: '0.74rem', color: '#1E293B', lineHeight: '1.4', marginBottom: '8px' }}>
-                            <span style={{ fontWeight: 800, marginRight: '6px' }}>
-                              {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.tn'}
-                            </span>
-                            <span>{card.headline}</span>
-                            {card.subheadline && (
-                              <div style={{ color: '#64748B', fontSize: '0.7rem', marginTop: '3px' }}>
-                                {card.subheadline}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Bouton CTA d'Achat IA */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedSocialVisual(card.bgImage);
-                              setIsSocialModalOpen(true);
-                            }}
-                            style={{
-                              width: '100%',
-                              padding: '8px',
-                              borderRadius: '8px',
-                              background: 'linear-gradient(135deg, #7C3AED 0%, #6366F1 100%)',
-                              color: '#FFFFFF',
-                              fontWeight: 800,
-                              fontSize: '0.72rem',
-                              border: 'none',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '6px',
-                              boxShadow: '0 2px 8px rgba(124, 58, 237, 0.25)',
-                            }}
-                          >
-                            <ShoppingBag size={13} />
-                            <span>{card.ctaText || 'Commander'}</span>
-                          </button>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 800 }}>Génération en cours...</div>
+                        <div style={{ fontSize: '0.68rem', color: '#94A3B8' }}>{card.formatLabel}</div>
+                        <div style={{ width: '120px', height: '4px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px', overflow: 'hidden', marginTop: '4px' }}>
+                          <div style={{ width: `${generationProgress}%`, height: '100%', background: 'linear-gradient(90deg, #00E5FF, #7C3AED)', transition: 'width 0.3s ease' }} />
                         </div>
                       </div>
                     )}
-                  </div>
 
+                    {/* APERÇU FORMAT RÉSEAUX SOCIAUX (INSTAGRAM STORY, POST & FACEBOOK ADS) */}
+                    <div>
+                      {/* CAS A : FORMAT INSTAGRAM STORY (OU TIKTOK 9:16) */}
+                      {card.format === 'story' || card.format === 'tiktok' ? (
+                        <div style={{ background: '#0F172A', color: '#FFF' }}>
+                          {/* Barres de progression Story */}
+                          <div style={{ display: 'flex', gap: '3px', padding: '8px 10px 4px' }}>
+                            <div style={{ flex: 1, height: '2px', background: '#FFFFFF', borderRadius: '2px' }} />
+                            <div style={{ flex: 1, height: '2px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }} />
+                            <div style={{ flex: 1, height: '2px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }} />
+                          </div>
 
-                  {/* Barre d'action unitaire sous chaque carte */}
-                  <div className={s.adCardToolbar}>
-                    <div className={s.toolbarActionsLeft}>
-                      {/* Modifier */}
-                      <button
-                        type="button"
-                        className={s.toolActionBtn}
-                        title={locale === 'en' ? "Edit text or AI backdrop" : "Modifier le texte ou le décor IA"}
-                        onClick={() => openCardEditor(card)}
-                      >
-                        <Edit3 size={15} />
-                      </button>
+                          {/* Header Instagram Story */}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(45deg, #F58529, #D92E7F, #833AB4)', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.6rem', color: '#7C3AED' }}>
+                                  {(brandName || 'AD').slice(0, 2).toUpperCase()}
+                                </div>
+                              </div>
+                              <div style={{ fontSize: '0.74rem', fontWeight: 800 }}>
+                                {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.com'}
+                              </div>
+                            </div>
+                            <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#A855F7', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '4px' }}>
+                              Story 9:16
+                            </span>
+                          </div>
 
-                      {/* Régénérer */}
-                      <button
-                        type="button"
-                        className={s.toolActionBtn}
-                        title={locale === 'en' ? "Regenerate this visual with AI Studio" : "Régénérer ce visuel avec le Studio IA"}
-                        onClick={() => handleRegenerateSingle(card.id)}
-                      >
-                        <RefreshCw size={15} />
-                      </button>
+                          {/* Image Story avec Stickers */}
+                          <div style={{
+                            position: 'relative',
+                            width: '100%',
+                            aspectRatio: '9 / 16',
+                            maxHeight: '420px',
+                            overflow: 'hidden',
+                            background: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage) && activeStyleObj?.previewImg)
+                              ? `url(${activeStyleObj.previewImg}) center/cover no-repeat, #0F172A`
+                              : '#0F172A',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                            <img
+                              src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
+                              alt={card.headline}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'block',
+                                objectFit: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'contain' : 'cover',
+                                padding: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? '28px 16px' : 0,
+                                filter: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'drop-shadow(0 14px 28px rgba(0, 0, 0, 0.45))' : 'none',
+                                position: 'relative',
+                                zIndex: 1,
+                              }}
+                              onError={(e) => {
+                                const el = e.currentTarget;
+                                if (!el.src.includes('image.png')) el.src = '/images/image.png';
+                              }}
+                            />
 
-                      {/* Télécharger ce visuel unitaire */}
-                      <button
-                        type="button"
-                        className={s.toolActionBtn}
-                        title={t.studio.page.downloadSingle}
-                        onClick={() => handleDownloadSingle(card)}
-                      >
-                        <Download size={15} />
-                      </button>
+                            {/* Badge IA Story */}
+                            {card.badgeText && (
+                              <div style={{
+                                position: 'absolute',
+                                top: '12px',
+                                left: '12px',
+                                background: '#E11D48',
+                                color: '#FFF',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                fontSize: '0.64rem',
+                                fontWeight: 900,
+                                boxShadow: '0 2px 8px rgba(225, 29, 72, 0.4)',
+                              }}>
+                                {card.badgeText}
+                              </div>
+                            )}
+
+                            {/* Accroche IA Story */}
+                            <div style={{
+                              position: 'absolute',
+                              bottom: '12px',
+                              left: '12px',
+                              right: '12px',
+                              background: 'rgba(0, 0, 0, 0.75)',
+                              backdropFilter: 'blur(8px)',
+                              border: '1px solid rgba(255, 255, 255, 0.2)',
+                              borderRadius: '8px',
+                              padding: '8px 12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '8px',
+                            }}>
+                              <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#FFF' }}>
+                                {card.headline}
+                              </div>
+                              {card.price && (
+                                <span style={{ fontSize: '0.68rem', color: '#34D399', fontWeight: 900, whiteSpace: 'nowrap' }}>
+                                  {card.price}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Bouton d'action Story Swipe-up */}
+                          <div style={{ padding: '8px 10px', background: '#0F172A' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedSocialVisual(card.bgImage);
+                                setIsSocialModalOpen(true);
+                              }}
+                              style={{
+                                width: '100%',
+                                padding: '8px',
+                                borderRadius: '9999px',
+                                background: '#FFFFFF',
+                                color: '#0F172A',
+                                fontWeight: 800,
+                                fontSize: '0.74rem',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px',
+                              }}
+                            >
+                              <span>{card.ctaText || 'Commander'}</span>
+                              <ArrowRight size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      ) : card.format === 'facebook' ? (
+                        /* CAS B : FORMAT FACEBOOK ADS FEED */
+                        <div style={{ background: '#FFFFFF' }}>
+                          {/* Header Facebook */}
+                          <div style={{ padding: '10px 12px 8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1877F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 900, fontSize: '0.65rem' }}>
+                                  {(brandName || 'AD').slice(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0F172A' }}>{brandName}</span>
+                                    <span style={{ color: '#1877F2', fontSize: '0.7rem' }}>✓</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#1877F2', background: '#EFF6FF', padding: '2px 6px', borderRadius: '4px', border: '1px solid #DBEAFE' }}>
+                                Facebook Ads
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '0.74rem', color: '#1E293B', lineHeight: '1.4', fontWeight: 600 }}>
+                              {card.headline}
+                            </div>
+                          </div>
+
+                          {/* Image Facebook */}
+                          <div style={{
+                            position: 'relative',
+                            width: '100%',
+                            background: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage) && activeStyleObj?.previewImg)
+                              ? `url(${activeStyleObj.previewImg}) center/cover no-repeat, #F8FAFC`
+                              : '#F8FAFC',
+                            overflow: 'hidden',
+                            aspectRatio: '1.91 / 1',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                            <img
+                              src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
+                              alt={card.headline}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'block',
+                                objectFit: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'contain' : 'cover',
+                                padding: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? '16px' : 0,
+                                filter: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'drop-shadow(0 10px 22px rgba(0, 0, 0, 0.2))' : 'none',
+                                position: 'relative',
+                                zIndex: 1,
+                              }}
+                              onError={(e) => {
+                                const el = e.currentTarget;
+                                if (!el.src.includes('image.png')) el.src = '/images/image.png';
+                              }}
+                            />
+                          </div>
+
+                          {/* Lien et CTA Facebook Ads */}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC' }}>
+                            <div style={{ flex: 1, marginRight: '8px' }}>
+                              <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0F172A' }}>{card.subheadline}</div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedSocialVisual(card.bgImage);
+                                setIsSocialModalOpen(true);
+                              }}
+                              style={{
+                                background: '#1877F2',
+                                color: '#FFFFFF',
+                                fontWeight: 800,
+                                fontSize: '0.7rem',
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                border: 'none',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {card.ctaText || 'Commander'}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* CAS C : FORMAT INSTAGRAM POST FEED (PAR DÉFAUT) */
+                        <div style={{ background: '#FFFFFF' }}>
+                          {/* Header Instagram Post */}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderBottom: '1px solid #F1F5F9' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{
+                                width: '30px',
+                                height: '30px',
+                                borderRadius: '50%',
+                                background: 'linear-gradient(45deg, #F58529, #D92E7F, #833AB4)',
+                                padding: '2px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}>
+                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.62rem', color: '#7C3AED' }}>
+                                  {(brandName || 'AD').slice(0, 2).toUpperCase()}
+                                </div>
+                              </div>
+                              <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0F172A' }}>
+                                {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.com'}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#E1306C', background: '#FDF2F8', padding: '2px 6px', borderRadius: '4px', border: '1px solid #FCE7F3' }}>
+                              Instagram Post
+                            </span>
+                          </div>
+
+                          {/* Image Instagram Post */}
+                          <div style={{
+                            position: 'relative',
+                            width: '100%',
+                            background: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage) && activeStyleObj?.previewImg)
+                              ? `url(${activeStyleObj.previewImg}) center/cover no-repeat, #F8FAFC`
+                              : '#F8FAFC',
+                            overflow: 'hidden',
+                            aspectRatio: '1 / 1',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                            <img
+                              src={card.bgImage || activeStyleObj.previewImg || '/images/image.png'}
+                              alt={card.headline}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'block',
+                                objectFit: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'contain' : 'cover',
+                                padding: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? '22px' : 0,
+                                filter: (card.bgImage && (card.bgImage.startsWith('data:') || card.bgImage === cutoutBase64 || card.bgImage === productImage)) ? 'drop-shadow(0 14px 28px rgba(0, 0, 0, 0.22))' : 'none',
+                                position: 'relative',
+                                zIndex: 1,
+                              }}
+                              onError={(e) => {
+                                const el = e.currentTarget;
+                                if (!el.src.includes('image.png')) el.src = '/images/image.png';
+                              }}
+                            />
+                          </div>
+
+                          {/* Légende du Post avec Accroche IA */}
+                          <div style={{ padding: '10px 12px' }}>
+                            <div style={{ fontSize: '0.74rem', color: '#1E293B', lineHeight: '1.4', marginBottom: '8px' }}>
+                              <span style={{ fontWeight: 800, marginRight: '6px' }}>
+                                {(brandName || 'boutique').toLowerCase().replace(/[^a-z0-9]/g, '') + '.com'}
+                              </span>
+                              <span>{card.headline}</span>
+                              {card.subheadline && (
+                                <div style={{ color: '#64748B', fontSize: '0.7rem', marginTop: '3px' }}>
+                                  {card.subheadline}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Bouton CTA d'Achat IA */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedSocialVisual(card.bgImage);
+                                setIsSocialModalOpen(true);
+                              }}
+                              style={{
+                                width: '100%',
+                                padding: '8px',
+                                borderRadius: '8px',
+                                background: 'linear-gradient(135deg, #7C3AED 0%, #6366F1 100%)',
+                                color: '#FFFFFF',
+                                fontWeight: 800,
+                                fontSize: '0.72rem',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px',
+                                boxShadow: '0 2px 8px rgba(124, 58, 237, 0.25)',
+                              }}
+                            >
+                              <ShoppingBag size={13} />
+                              <span>{card.ctaText || 'Commander'}</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Menu contextuel (Publier sur réseaux sociaux) feature en future */}
 
+                    {/* Barre d'action unitaire sous chaque carte */}
+                    <div className={s.adCardToolbar}>
+                      <div className={s.toolbarActionsLeft}>
+                        {/* Modifier */}
+                        <button
+                          type="button"
+                          className={s.toolActionBtn}
+                          title={locale === 'en' ? "Edit text or AI backdrop" : "Modifier le texte ou le décor IA"}
+                          onClick={() => openCardEditor(card)}
+                        >
+                          <Edit3 size={15} />
+                        </button>
+
+                        {/* Régénérer */}
+                        <button
+                          type="button"
+                          className={s.toolActionBtn}
+                          title={locale === 'en' ? "Regenerate this visual with AI Studio" : "Régénérer ce visuel avec le Studio IA"}
+                          onClick={() => handleRegenerateSingle(card.id)}
+                        >
+                          <RefreshCw size={15} />
+                        </button>
+
+                        {/* Télécharger ce visuel unitaire */}
+                        <button
+                          type="button"
+                          className={s.toolActionBtn}
+                          title={t.studio.page.downloadSingle}
+                          onClick={() => handleDownloadSingle(card)}
+                        >
+                          <Download size={15} />
+                        </button>
+                      </div>
+
+                      {/* Menu contextuel (Publier sur réseaux sociaux) feature en future */}
+
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
             )}
 
-            {/* BANNIÈRE DE STATUT & TÉLÉCHARGEMENT GROUPÉ (MarkMosaiq-56) */}
-            {visuals.length > 0 && (
-            <div className={s.statusBanner}>
-              <div className={s.statusLeft}>
-                <div className={s.statusCheckIcon}>
-                  <CheckCircle2 size={18} />
-                </div>
-                <div className={s.statusTextWrap}>
-                  <h4 className={s.statusTitle}>
-                    {locale === 'en' ? 'Your visuals are ready!' : 'Vos créations sont prêtes !'}
-                  </h4>
-                  <p className={s.statusDesc}>
-                    {locale === 'en'
-                      ? 'You can now customize them, generate additional variants, or download to publish on your social channels.'
-                      : "Vous pouvez maintenant les modifier, en générer d'autres ou les télécharger pour les publier sur vos réseaux."}
-                  </p>
-                </div>
-              </div>
-
-              {/* Actions de partage & téléchargement (WhatsApp & ZIP) */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-
-
-                {/* Bouton Tout télécharger (ZIP) */}
-                <button
-                  type="button"
-                  className={s.downloadAllBtn}
-                  onClick={() => handleDownloadAllZip()}
-                  disabled={isZipping}
-                  title={locale === 'en' ? "Download complete ZIP archive" : "Télécharger l'archive ZIP complète des créations"}
-                >
-                  {isZipping ? (
-                    <>
-                      <RefreshCw size={15} className="animate-spin" />
-                      <span>{locale === 'en' ? 'Creating ZIP...' : 'Création du ZIP...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Download size={15} />
-                      <span>{t.studio.page.downloadZip}</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Bouton Personnaliser / Choisir les formats */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsDownloadDropdownOpen(true);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #CBD5E1',
-                    borderRadius: '8px',
-                    padding: '6px 12px',
-                    color: '#0F172A',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)',
-                  }}
-                  title="Choisir individuellement quels formats télécharger"
-                >
-                  <Sliders size={13} />
-                  <span>Choisir les formats</span>
-                </button>
-              </div>
-            </div>
-            )}
+            
           </section>
         </div>
       </main>
@@ -4139,6 +4149,32 @@ ${frenchText}
               >
                 <Wand2 size={14} />
                 <span>🎨 Retouche Décor Studio IA</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingCardTab('ai_edit')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  background: editingCardTab === 'ai_edit' ? '#131823' : 'transparent',
+                  color: editingCardTab === 'ai_edit' ? '#00E5FF' : '#94A3B8',
+                  boxShadow: editingCardTab === 'ai_edit' ? 'inset 0 0 0 1px #00E5FF' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Sparkles size={14} />
+                <span>✏️ Éditer l&apos;image</span>
+                {editingCard.generationId && (editingCard.editsUsed ?? 0) < 1 && (
+                  <span style={{ background: '#10B981', color: '#07090E', fontSize: '0.62rem', fontWeight: 900, padding: '2px 6px', borderRadius: '999px' }}>
+                    1 GRATUITE
+                  </span>
+                )}
               </button>
             </div>
 
@@ -4497,6 +4533,127 @@ ${frenchText}
                         </>
                       )}
                     </button>
+                  </div>
+                )}
+
+                {editingCardTab === 'ai_edit' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {(() => {
+                      const editIsFree = Boolean(editingCard.generationId) && (editingCard.editsUsed ?? 0) < 1;
+                      return (
+                        <>
+                          <div
+                            style={{
+                              padding: '10px 12px',
+                              borderRadius: '10px',
+                              border: `1px solid ${editIsFree ? 'rgba(16, 185, 129, 0.40)' : 'rgba(255, 87, 34, 0.40)'}`,
+                              background: editIsFree ? 'rgba(16, 185, 129, 0.10)' : 'rgba(255, 87, 34, 0.10)',
+                              color: editIsFree ? '#34D399' : '#FF8A65',
+                              fontSize: '0.76rem',
+                              fontWeight: 800,
+                              lineHeight: '1.5',
+                            }}
+                          >
+                            {editIsFree
+                              ? '🎁 Votre 1ère édition de ce visuel est offerte (0 crédit).'
+                              : `💳 Édition gratuite utilisée — chaque nouvelle édition coûte 1 crédit.${editingCard.editsUsed ? ` (${editingCard.editsUsed} édition${editingCard.editsUsed > 1 ? 's' : ''} effectuée${editingCard.editsUsed > 1 ? 's' : ''})` : ''}`}
+                          </div>
+
+                          <div style={{ fontSize: '0.74rem', color: '#94A3B8', lineHeight: '1.5' }}>
+                            Décrivez la retouche à appliquer sur l&apos;image générée. Le reste de la composition, votre produit et vos couleurs de marque sont conservés.
+                          </div>
+
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {[
+                              { label: '☀️ Plus lumineux', text: 'Make the overall lighting brighter and more vibrant' },
+                              { label: '🎨 Couleurs de marque', text: `Reinforce the brand colors ${primaryColor} and ${secondaryColor} in the backdrop and accents` },
+                              { label: '🔍 Produit plus grand', text: 'Make the product slightly larger and more prominent in the frame' },
+                              { label: '🌫️ Fond épuré', text: 'Simplify the background into a clean, elegant, minimal studio setting' },
+                            ].map((chip) => (
+                              <button
+                                key={chip.label}
+                                type="button"
+                                onClick={() => setImageEditInstruction(chip.text)}
+                                style={{
+                                  background: '#131823',
+                                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                                  color: '#E2E8F0',
+                                  borderRadius: '6px',
+                                  padding: '4px 8px',
+                                  fontSize: '0.70rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                {chip.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: '0.74rem', fontWeight: 800, color: '#00E5FF', display: 'block', marginBottom: '6px' }}>
+                              Modification souhaitée ({editingCard.formatLabel})
+                            </label>
+                            <textarea
+                              rows={4}
+                              value={imageEditInstruction}
+                              onChange={(e) => setImageEditInstruction(e.target.value)}
+                              placeholder="Ex: Rendre le fond plus chaleureux avec une lumière dorée..."
+                              style={{
+                                width: '100%',
+                                maxWidth: '100%',
+                                boxSizing: 'border-box',
+                                padding: '12px',
+                                border: '1px solid #1E293B',
+                                borderRadius: '8px',
+                                fontSize: '0.80rem',
+                                lineHeight: '1.45',
+                                background: '#131823',
+                                color: '#FFFFFF',
+                                outline: 'none',
+                                resize: 'vertical',
+                              }}
+                            />
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={isEditingCardImage || !imageEditInstruction.trim()}
+                            onClick={() => handleEditCardImage(editingCard, imageEditInstruction)}
+                            style={{
+                              padding: '12px 18px',
+                              background: editIsFree
+                                ? 'linear-gradient(135deg, #10B981 0%, #00E5FF 100%)'
+                                : 'linear-gradient(135deg, #FF5722 0%, #E11D48 100%)',
+                              color: editIsFree ? '#07090E' : '#FFFFFF',
+                              fontWeight: 900,
+                              fontSize: '0.84rem',
+                              border: 'none',
+                              borderRadius: '10px',
+                              cursor: isEditingCardImage || !imageEditInstruction.trim() ? 'not-allowed' : 'pointer',
+                              opacity: !imageEditInstruction.trim() ? 0.6 : 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              boxShadow: editIsFree ? '0 4px 18px rgba(16, 185, 129, 0.30)' : '0 4px 18px rgba(255, 87, 34, 0.30)',
+                            }}
+                          >
+                            {isEditingCardImage ? (
+                              <>
+                                <RefreshCw size={16} className="animate-spin" />
+                                <span>Édition en cours...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles size={16} />
+                                <span>{editIsFree ? '✏️ Appliquer l’édition (Gratuit)' : '✏️ Appliquer l’édition (1 crédit)'}</span>
+                              </>
+                            )}
+                          </button>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

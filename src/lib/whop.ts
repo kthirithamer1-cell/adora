@@ -144,7 +144,7 @@ export async function createWhopCheckout(
   const plan = WHOP_PLANS[params.packId] || WHOP_PLANS['pro'];
   let appUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
-    (process.env.NODE_ENV === 'development' ? 'https://2535-196-177-82-10.ngrok-free.app' : 'https://app.MarkMosaiq.tn');
+    (process.env.NODE_ENV === 'development' ? 'https://2535-196-177-82-10.ngrok-free.app' : 'https://app.MarkMosaiq.com');
   if (appUrl.startsWith('http://localhost') || appUrl.startsWith('http://127.0.0.1')) {
     appUrl = 'https://2535-196-177-82-10.ngrok-free.app';
   }

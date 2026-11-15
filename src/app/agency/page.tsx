@@ -612,7 +612,7 @@ export default function AgencyPortalPage() {
                   type="text"
                   value={agency.customDomain || ''}
                   onChange={(e) => setAgency({ ...agency, customDomain: e.target.value })}
-                  placeholder="Ex: studio.monagence.tn"
+                  placeholder="Ex: studio.monagence.com"
                   style={{
                     width: '100%',
                     padding: '12px 14px',
@@ -712,7 +712,7 @@ export default function AgencyPortalPage() {
                   color: '#64748B',
                 }}>
                   <span style={{ color: '#059669' }}>🔒</span>
-                  <span>https://{agency.customDomain || 'studio.hypergrowth.tn'}</span>
+                  <span>https://{agency.customDomain || 'studio.hypergrowth.com'}</span>
                 </div>
 
                 {/* Navbar mock agence */}

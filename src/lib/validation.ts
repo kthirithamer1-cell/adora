@@ -116,7 +116,7 @@ export function normalizeAndValidateUrl(rawUrl: string): {
     // Must have a valid dot and TLD
     const parts = hostname.split('.');
     if (parts.length < 2 || parts[parts.length - 1].length < 2) {
-      return { valid: false, error: 'URL must contain a valid domain extension (e.g., .com, .tn, .shop).' };
+      return { valid: false, error: 'URL must contain a valid domain extension (e.g., .com, .shop).' };
     }
 
     // Must not be localhost

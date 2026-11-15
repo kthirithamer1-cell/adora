@@ -394,7 +394,7 @@ export default function TeamPage() {
                     required
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="collaborateur@maboutique.tn"
+                    placeholder="collaborateur@maboutique.com"
                     style={{
                       width: '100%',
                       padding: '10px 12px',

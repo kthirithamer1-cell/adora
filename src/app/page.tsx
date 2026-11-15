@@ -7,6 +7,7 @@ import { useWorkspace } from '@/lib/WorkspaceContext';
 import { useLanguage } from '@/lib/LanguageContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { buildCheckoutUrl } from '@/lib/checkout/params';
+import { requestFreePreview, requestMasterShot } from '@/lib/masterShotClient';
 import {
   Sparkles,
   Play,
@@ -320,7 +321,7 @@ const FAQ_ITEMS: FaqItem[] = [
 ];
 
 export default function HomePage() {
-  const { user } = useWorkspace();
+  const { user, workspace, updateCredits } = useWorkspace();
   const { locale } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [activeCategory, setActiveCategory] = useState<IndustryCategory>('beauty');
@@ -328,6 +329,85 @@ export default function HomePage() {
   const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [faqFilter, setFaqFilter] = useState<'all' | 'product' | 'plans' | 'rights'>('all');
+  const [heroPreview, setHeroPreview] = useState<string | null>(null);
+  const [heroDragOver, setHeroDragOver] = useState<boolean>(false);
+
+  const loadHeroFile = (file?: File | null) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : null;
+      setHeroPreview(result);
+      try {
+        if (result) sessionStorage.setItem('markmosaiq_hero_upload', result);
+      } catch {
+        // quota exceeded : ignore
+      }
+    };
+    reader.readAsDataURL(file);
+    setHeroResult(null);
+    setHeroStatus('idle');
+    setHeroError(null);
+  };
+
+  // Génération Hero : réutilise exactement le même client que le Studio (requestMasterShot)
+  const [heroStatus, setHeroStatus] = useState<'idle' | 'generating' | 'done' | 'error'>('idle');
+  const [heroResult, setHeroResult] = useState<string | null>(null);
+  const [heroError, setHeroError] = useState<string | null>(null);
+  const [heroProgress, setHeroProgress] = useState<number>(0);
+
+  useEffect(() => {
+    if (heroStatus !== 'generating') return;
+    setHeroProgress(4);
+    const timer = setInterval(() => {
+      // Progression asymptotique jusqu'à 92% en attendant la réponse réelle
+      setHeroProgress((p) => (p >= 92 ? p : p + Math.max(1, Math.round((92 - p) / 12))));
+    }, 450);
+    return () => clearInterval(timer);
+  }, [heroStatus]);
+
+  const handleHeroGenerate = async () => {
+    if (!heroPreview) {
+      setHeroError('Add a product photo first.');
+      return;
+    }
+    setHeroError(null);
+    setHeroResult(null);
+    setHeroStatus('generating');
+    try {
+      // Sans compte : aperçu gratuit filigrané. Avec compte : génération Studio standard.
+      const result = !user || !workspace?.id
+        ? await requestFreePreview(heroPreview)
+        : await requestMasterShot({
+            imageBase64: heroPreview,
+            cutoutBase64: heroPreview,
+            workspaceId: workspace.id,
+            aspect: '1:1',
+            productName: 'Product',
+            stylePrompt: 'Premium studio product staging on an elegant stone pedestal, soft natural window light with botanical shadows, warm neutral palette',
+          });
+      if (result.previewLimitReached) {
+        setHeroStatus('error');
+        setHeroError(result.data.error || 'Free preview already used. Create a free account to continue.');
+        return;
+      }
+      if (result.insufficientCredits) {
+        setHeroStatus('error');
+        setHeroError('No credits left. Pick a pack to keep generating.');
+        return;
+      }
+      if (!result.ok || !result.imageUrl) {
+        throw new Error(result.data.error || 'Generation failed');
+      }
+      if (typeof result.data.creditsRemaining === 'number') updateCredits(result.data.creditsRemaining);
+      setHeroProgress(100);
+      setHeroResult(result.imageUrl);
+      setHeroStatus('done');
+    } catch (err: any) {
+      setHeroStatus('error');
+      setHeroError(err?.message || 'Generation failed');
+    }
+  };
 
   // Auto-detect European visitors
   useEffect(() => {
@@ -492,75 +572,162 @@ export default function HomePage() {
           2. HERO SECTION
           ========================================================================= */}
       <section className={s.heroSection}>
+        {/* Floating decor photos */}
+        <img src="/images/sample_cream_jar.jpg" alt="" aria-hidden="true" className={`${s.heroFloatPhoto} ${s.heroFloatLeft}`} />
+        <img src="/images/sample_perfume_amber.jpg" alt="" aria-hidden="true" className={`${s.heroFloatPhoto} ${s.heroFloatRight}`} />
+
         <div className={s.container}>
-          <div className={s.heroGrid}>
-            {/* Left Column */}
-            <div className={s.heroLeft}>
-              {/* Badge */}
-              <div className={s.heroBadge}>
-                <Sparkles size={13} color="#7C3AED" />
-                <span>AI Visuals for E-commerce Brands</span>
-              </div>
+          <div className={s.heroCentered}>
+            <h1 className={s.heroTitleCentered}>
+              Your products deserve<br />
+              <span className={s.heroGradientWord}>better</span> than ordinary photos.
+            </h1>
+            <p className={s.heroSubtitleCentered}>
+              Drop your product photo. Get a studio-quality visual in seconds —{' '}
+              <span className={s.heroUnderline}>no signup needed</span>.
+            </p>
 
-              {/* Main Headline */}
-              <h1 className={s.heroTitle}>
-                Your products<br />
-                deserve <span className={s.italicBetter}>better</span><br />
-                than ordinary photos.
-              </h1>
-
-              {/* Subtitle */}
-              <p className={s.heroSubtitle}>
-                Turn one simple product photo into stunning, on-brand Instagram posts, Stories, and advertising visuals. No designer, no photography studio needed.
-              </p>
-
-              {/* CTAs */}
-              <div className={s.heroCtas}>
-                <Link href={user ? '/studio' : '/signup?pack=free'} className={s.purplePrimaryBtn}>
-                  <span>Create my first visuals</span>
-                  <ArrowRight size={16} />
-                </Link>
-
-                <a href="#how-it-works" className={s.heroPlayLink}>
-                  <span className={s.heroPlayCircle}>
-                    <Play size={14} fill="#FFFFFF" color="#FFFFFF" style={{ marginLeft: '2px' }} />
-                  </span>
-                  <span>See how it works</span>
-                </a>
-              </div>
-
-              {/* Trust Points */}
-              <div className={s.heroTrustRow}>
-                <div className={s.heroTrustItem}>
-                  <Gift size={15} color="#7C3AED" />
-                  <span>5 free credits</span>
+            {/* Interactive demo card */}
+            <div className={s.heroDemoCard}>
+              {/* Steps */}
+              <div className={s.heroSteps}>
+                <div className={`${s.heroStep} ${s.heroStepActive}`}>
+                  <span className={s.heroStepNum}>1</span>
+                  <span>1. Upload</span>
                 </div>
-                <div className={s.heroTrustItem}>
-                  <Grid size={15} color="#7C3AED" />
-                  <span>All product categories</span>
+                <span className={`${s.heroStepLine} ${heroStatus !== 'idle' ? s.heroStepLineDone : ''}`} />
+                <div className={`${s.heroStep} ${heroStatus !== 'idle' ? s.heroStepActive : ''} ${heroStatus === 'generating' ? s.heroStepPulse : ''}`}>
+                  <span className={s.heroStepNum}>2</span>
+                  <span>2. Generate</span>
                 </div>
-                <div className={s.heroTrustItem}>
-                  <ShieldCheck size={16} color="#7C3AED" />
-                  <span>No credit card required</span>
+                <span className={`${s.heroStepLine} ${heroStatus === 'done' ? s.heroStepLineDone : ''}`} />
+                <div className={`${s.heroStep} ${heroStatus === 'done' ? s.heroStepActive : ''}`}>
+                  <span className={s.heroStepNum}>3</span>
+                  <span>3. Preview</span>
                 </div>
               </div>
-            </div>
 
-            {/* Right Column: 3D Staged Luxury Product Podium */}
-            <div className={s.heroRight}>
-              <div className={s.heroStagingStage}>
-                <img
-                  src="/images/Présentation e-commerce pastel haut de gamme.png"
-                  onError={(e) => {
-                    const img = e.currentTarget;
-                    if (!img.dataset.fallback) {
-                      img.dataset.fallback = '1';
-                      img.src = '/images/hero-presentation.png';
-                    }
+              <div className={s.heroDemoGrid}>
+                {/* Dropzone */}
+                <label
+                  className={`${s.heroDropzone} ${heroDragOver ? s.heroDropzoneActive : ''}`}
+                  onDragOver={(e) => { e.preventDefault(); setHeroDragOver(true); }}
+                  onDragLeave={() => setHeroDragOver(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setHeroDragOver(false);
+                    loadHeroFile(e.dataTransfer.files?.[0]);
                   }}
-                  alt="MarkMosaiq AI Product Staging Visuals - Luxury Presentation"
-                  className={s.heroMainVisualImg}
-                />
+                >
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className={s.heroFileInput}
+                    onChange={(e) => loadHeroFile(e.target.files?.[0])}
+                  />
+                  <UploadCloud size={44} color="#7C3AED" strokeWidth={1.6} />
+                  <strong className={s.heroDropTitle}>Drop your product photo here</strong>
+                  <span className={s.heroDropHint}>
+                    or <span className={s.heroBrowseLink}>browse files</span> · JPG, PNG, WEBP
+                  </span>
+                  <span className={s.heroDropDivider} />
+                  <span className={s.heroDropTrust}>
+                    <ShieldCheck size={15} color="#7C3AED" />
+                    One free preview · No account needed
+                  </span>
+                  <button
+                    type="button"
+                    className={s.heroGenerateBtn}
+                    disabled={heroStatus === 'generating'}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleHeroGenerate();
+                    }}
+                  >
+                    <Sparkles size={16} className={heroStatus === 'generating' ? s.heroSpin : undefined} />
+                    <span>{heroStatus === 'generating' ? 'Generating…' : heroStatus === 'done' ? 'Generate again' : 'Generate my free preview'}</span>
+                  </button>
+                  {heroError && <span className={s.heroErrorText}>{heroError}</span>}
+                </label>
+
+                {/* Before */}
+                <div className={s.heroCompareCol}>
+                  <div className={s.heroCompareFrame}>
+                    <span className={s.heroCompareTag}>YOUR PHOTO</span>
+                    <img
+                      src={heroPreview || '/images/product.jpg'}
+                      alt="Original product photo"
+                      className={s.heroCompareImg}
+                    />
+                  </div>
+                  <span className={s.heroCompareCheck}>
+                    <BadgeCheck size={15} color="#7C3AED" /> Product details preserved
+                  </span>
+                </div>
+
+                <span className={s.heroCompareArrow} aria-hidden="true">
+                  <ArrowRight size={16} />
+                </span>
+
+                {/* After */}
+                <div className={s.heroCompareCol}>
+                  <div className={`${s.heroCompareFrame} ${heroStatus === 'done' ? s.heroRevealFrame : ''}`}>
+                    <span className={`${s.heroCompareTag} ${s.heroCompareTagAi}`}>AI STUDIO RESULT</span>
+                    <img
+                      key={heroResult || 'sample'}
+                      src={heroResult || '/images/image.png'}
+                      alt="AI studio result"
+                      className={`${s.heroCompareImg} ${heroStatus === 'generating' ? s.heroImgDimmed : ''} ${heroStatus === 'done' ? s.heroImgReveal : ''}`}
+                    />
+                    {heroStatus === 'generating' && (
+                      <div className={s.heroGenOverlay}>
+                        <span className={s.heroScanBeam} />
+                        <span className={s.heroSparkle} style={{ top: '22%', left: '24%' }} />
+                        <span className={s.heroSparkle} style={{ top: '60%', left: '70%', animationDelay: '0.5s' }} />
+                        <span className={s.heroSparkle} style={{ top: '38%', left: '58%', animationDelay: '1s' }} />
+                        <div className={s.heroGenInfo}>
+                          <Sparkles size={18} className={s.heroSpin} />
+                          <span>
+                            {heroProgress < 30 ? 'Analyzing product…' : heroProgress < 65 ? 'Building studio scene…' : 'Lighting & shadows…'}
+                          </span>
+                          <div className={s.heroGenBar}>
+                            <div className={s.heroGenBarFill} style={{ width: `${heroProgress}%` }} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <span className={s.heroWatermark}>MARKMOSAIQ<br />PREVIEW</span>
+                  </div>
+                  <span className={s.heroCompareCheck}>
+                    <BadgeCheck size={15} color="#7C3AED" /> Studio scene generated
+                  </span>
+                </div>
+              </div>
+
+              {/* Signup banner */}
+              <div className={s.heroSignupBanner}>
+                <div className={s.heroSignupLeft}>
+                  <span className={s.heroGiftIcon}>
+                    <Gift size={34} color="#7C3AED" strokeWidth={1.6} />
+                  </span>
+                  <div>
+                    <strong className={s.heroSignupTitle}>Love your result?</strong>
+                    <p className={s.heroSignupText}>
+                      Create <span className={s.heroSignupAccent}>a free account</span> to remove the watermark, unlock 4K,
+                      and generate Story + Banner versions.
+                    </p>
+                  </div>
+                </div>
+                <div className={s.heroSignupRight}>
+                  <Link href={user ? '/studio' : '/signup?pack=free'} className={s.heroSignupBtn}>
+                    <span>Create my free account</span>
+                    <ArrowRight size={16} />
+                  </Link>
+                  <span className={s.heroSignupNote}>
+                    <Lock size={12} /> No credit card required · 5 free credits after signup
+                  </span>
+                </div>
               </div>
             </div>
           </div>

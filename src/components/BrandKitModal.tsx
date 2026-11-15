@@ -460,7 +460,7 @@ export default function BrandKitModal({ isOpen, onClose, onSaved }: BrandKitModa
                   type="text"
                   value={brandKit.instagramHandle}
                   onChange={(e) => setBrandKit({ ...brandKit, instagramHandle: e.target.value })}
-                  placeholder="@maboutique.tn"
+                  placeholder="@maboutique.com"
                   style={{ width: '100%', background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '9px 12px', color: '#0F172A', fontSize: '0.85rem' }}
                 />
               </div>

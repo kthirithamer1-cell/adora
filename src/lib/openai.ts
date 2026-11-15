@@ -191,7 +191,50 @@ fake logos, gibberish or unsupported claims.
   return `data:image/png;base64,${generatedImage}`;
 }
 
+/**
+ * Édition ciblée d'un visuel déjà généré : applique une instruction utilisateur
+ * en conservant la composition, le produit réel et l'identité de marque.
+ */
+export async function editGeneratedImageWithGPTImageFlare25(
+  generatedImage: string,
+  instruction: string,
+  size: ImageSize = "1024x1024",
+  brandColors?: { primary?: string; secondary?: string }
+): Promise<string> {
+  if (!generatedImage) throw new Error("Generated image is required");
+  if (!instruction?.trim()) throw new Error("Edit instruction is required");
 
+  const image = await resolveImageFile(generatedImage);
+
+  const colorLine = brandColors?.primary
+    ? `\n- Keep the brand palette consistent: primary ${brandColors.primary}${brandColors.secondary ? `, secondary accent ${brandColors.secondary}` : ""}.`
+    : "";
+
+  const result = await openai.images.edit({
+    model: "gpt-image-2.5-flare",
+    image,
+    prompt: `
+You are a professional retoucher editing an existing commercial advertisement.
+
+REQUESTED EDIT:
+${instruction.trim()}
+
+EDITING RULES:
+- Apply the requested edit precisely and only where it is needed.
+- Keep the rest of the composition, framing, lighting and layout identical.
+- The product stays exactly as it is: same shape, packaging, label, logo and colors.
+- Any existing headline, copy and CTA stay correctly spelled and readable.${colorLine}
+- Deliver a polished, publish-ready advertising image.
+    `,
+    size,
+    quality: "medium",
+    output_format: "png",
+  });
+
+  const edited = result.data?.[0]?.b64_json;
+  if (!edited) throw new Error("OpenAI returned no edited image");
+  return `data:image/png;base64,${edited}`;
+}
 
 export async function removeBackgroundWithOpenAI(
   productImageBase64: string

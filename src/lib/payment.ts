@@ -56,7 +56,7 @@ export const MarkMosaiq_COMPANY_INFO = {
   matriculeFiscal: '1849204/B/A/M/000',
   registreCommerce: 'B012482026',
   adresse: 'Centre Urbain Nord, 1082 Tunis, Tunisie',
-  email: 'contact@MarkMosaiq.tn',
+  email: 'contact@MarkMosaiq.com',
   telephone: '+216 71 800 900',
   ribBancaire: '08 014 0001234567890 44 (BIAT Agence Tunis)',
   timbreFiscalDT: 1.0, // 1000 millimes légal en Tunisie
